@@ -1,16 +1,13 @@
 export const dynamic = 'force-dynamic'
-import { createServiceClient } from '@/lib/supabase'
+import { safeQuery } from '@/lib/db'
 import { formatCurrency, formatRelativeTime } from '@/lib/utils'
 import { Building2, Plus } from 'lucide-react'
 
-async function getProperties() {
-  const supabase = createServiceClient()
-  const { data } = await supabase
-    .from('properties')
-    .select('*')
-    .order('created_at', { ascending: false })
-    .limit(100)
-  return data ?? []
+async function getProperties(): Promise<any[]> {
+  return safeQuery(
+    (db) => db.from('properties').select('*').order('created_at', { ascending: false }).limit(100),
+    []
+  )
 }
 
 const statusColors: Record<string, string> = {
@@ -30,7 +27,7 @@ export default async function AdminPropertiesPage() {
           <h1 className="font-serif text-2xl font-bold text-navy-900">Properties</h1>
           <p className="text-gray-500 text-sm mt-0.5">{properties.length} listings</p>
         </div>
-        <button className="btn-primary text-sm px-4 py-2.5">
+        <button type="button" className="btn-primary text-sm px-4 py-2.5">
           <Plus size={15} /> Add Property
         </button>
       </div>
@@ -40,7 +37,7 @@ export default async function AdminPropertiesPage() {
           <Building2 size={40} className="text-gray-200 mx-auto mb-4" />
           <h3 className="font-serif text-lg font-bold text-navy-900 mb-2">No Properties Yet</h3>
           <p className="text-gray-400 text-sm mb-6">Add your first property listing to start showcasing to clients.</p>
-          <button className="btn-primary">
+          <button type="button" className="btn-primary">
             <Plus size={16} /> Add First Property
           </button>
         </div>
@@ -65,7 +62,7 @@ export default async function AdminPropertiesPage() {
                       <p className="text-gray-400 text-xs">{p.city}, {p.state} · {p.type}</p>
                       <div className="flex gap-2 mt-1">
                         {p.is_pre_construction && (
-                          <span className="badge bg-wine-50 text-wine text-xs">Pre-Construction</span>
+                          <span className="badge bg-red-50 text-red-700 text-xs">Pre-Construction</span>
                         )}
                         {p.featured && (
                           <span className="badge bg-yellow-50 text-yellow-600 text-xs">Featured</span>

@@ -1,5 +1,5 @@
 export const dynamic = 'force-dynamic'
-import { createServiceClient } from '@/lib/supabase'
+import { safeQuery } from '@/lib/db'
 import { getPipelineStageLabel, formatCurrency, formatRelativeTime } from '@/lib/utils'
 import { UserCircle, Phone } from 'lucide-react'
 import Link from 'next/link'
@@ -26,13 +26,13 @@ const stageDotColors: Record<string, string> = {
   LOST: 'bg-gray-400',
 }
 
-async function getLeadsByStage() {
-  const supabase = createServiceClient()
-  const { data } = await supabase
-    .from('leads')
-    .select('id, full_name, client_type, pipeline_stage, budget_min, budget_max, phone, preferred_area, created_at')
-    .order('created_at', { ascending: false })
-  return data ?? []
+async function getLeadsByStage(): Promise<any[]> {
+  return safeQuery(
+    (db) => db.from('leads')
+      .select('id, full_name, client_type, pipeline_stage, budget_min, budget_max, phone, preferred_area, created_at')
+      .order('created_at', { ascending: false }),
+    []
+  )
 }
 
 export default async function PipelinePage() {
@@ -52,18 +52,18 @@ export default async function PipelinePage() {
       <div className="mb-6">
         <h1 className="font-serif text-2xl font-bold text-navy-900">Pipeline</h1>
         <p className="text-gray-500 text-sm mt-0.5">
-          {leads.filter((l) => !['CLOSED', 'LOST'].includes(l.pipeline_stage)).length} active deals ·{' '}
-          {activeDealValue > 0 && <span className="font-semibold text-navy-700">{formatCurrency(activeDealValue)} potential value</span>}
+          {leads.filter((l) => !['CLOSED', 'LOST'].includes(l.pipeline_stage)).length} active deals
+          {activeDealValue > 0 && (
+            <> · <span className="font-semibold text-navy-700">{formatCurrency(activeDealValue)} potential value</span></>
+          )}
         </p>
       </div>
 
-      {/* Kanban board */}
       <div className="flex gap-4 overflow-x-auto pb-4">
         {STAGES.map((stage) => {
           const stageleads = grouped[stage] ?? []
           return (
             <div key={stage} className="w-72 shrink-0">
-              {/* Column header */}
               <div className={`rounded-xl border px-4 py-3 mb-3 ${stageColors[stage]}`}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -78,7 +78,6 @@ export default async function PipelinePage() {
                 </div>
               </div>
 
-              {/* Cards */}
               <div className="space-y-2">
                 {stageleads.length === 0 && (
                   <div className="bg-gray-50 rounded-xl border-2 border-dashed border-gray-200 p-5 text-center">
@@ -101,23 +100,16 @@ export default async function PipelinePage() {
                       </div>
                     </div>
                     <div className="space-y-1.5 text-xs text-gray-500">
-                      {lead.preferred_area && (
-                        <p className="truncate">{lead.preferred_area}</p>
-                      )}
+                      {lead.preferred_area && <p className="truncate">{lead.preferred_area}</p>}
                       {(lead.budget_min || lead.budget_max) && (
                         <p className="font-medium text-navy-700">
-                          {lead.budget_min ? formatCurrency(lead.budget_min) : '—'} –{' '}
-                          {lead.budget_max ? formatCurrency(lead.budget_max) : 'Open'}
+                          {lead.budget_min ? formatCurrency(lead.budget_min) : '—'} – {lead.budget_max ? formatCurrency(lead.budget_max) : 'Open'}
                         </p>
                       )}
                     </div>
                     <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-gray-50">
                       <span className="text-gray-300 text-xs">{formatRelativeTime(lead.created_at)}</span>
-                      <a
-                        href={`tel:${lead.phone}`}
-                        onClick={(e) => e.stopPropagation()}
-                        className="text-sky-500 hover:text-sky-600"
-                      >
+                      <a href={`tel:${lead.phone}`} onClick={(e) => e.stopPropagation()} aria-label={`Call ${lead.full_name}`} className="text-sky-500 hover:text-sky-600">
                         <Phone size={13} />
                       </a>
                     </div>

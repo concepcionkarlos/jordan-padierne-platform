@@ -1,34 +1,28 @@
 export const dynamic = 'force-dynamic'
 import { Users, MessageSquare, CheckSquare, TrendingUp, AlertCircle, UserCircle } from 'lucide-react'
 import StatCard from '@/components/admin/StatCard'
-import { createServiceClient } from '@/lib/supabase'
+import { safeQuery } from '@/lib/db'
+import { isSupabaseConfigured } from '@/lib/supabase'
 import { formatRelativeTime, getPipelineStageColor, getPipelineStageLabel, getStatusColor } from '@/lib/utils'
 import Link from 'next/link'
 
 async function getDashboardData() {
-  const supabase = createServiceClient()
-
-  const [leadsRes, messagesRes, tasksRes] = await Promise.all([
-    supabase.from('leads').select('id, full_name, status, pipeline_stage, client_type, created_at, source').order('created_at', { ascending: false }).limit(100),
-    supabase.from('messages').select('id, full_name, type, status, created_at, subject').order('created_at', { ascending: false }).limit(10),
-    supabase.from('tasks').select('id, title, status, priority, due_date').eq('status', 'todo').order('due_date', { ascending: true }).limit(10),
+  const [leads, messages, tasks]: [any[], any[], any[]] = await Promise.all([
+    safeQuery((db) => db.from('leads').select('id, full_name, status, pipeline_stage, client_type, created_at, source').order('created_at', { ascending: false }).limit(100), []),
+    safeQuery((db) => db.from('messages').select('id, full_name, type, status, created_at, subject').order('created_at', { ascending: false }).limit(10), []),
+    safeQuery((db) => db.from('tasks').select('id, title, status, priority, due_date').eq('status', 'todo').order('due_date', { ascending: true }).limit(10), []),
   ])
 
-  const leads = leadsRes.data ?? []
-  const messages = messagesRes.data ?? []
-  const tasks = tasksRes.data ?? []
-
-  const newLeads = leads.filter((l) => l.status === 'new').length
-  const unreadMessages = messages.filter((m) => m.status === 'unread').length
-  const pendingTasks = tasks.length
-  const activePipeline = leads.filter((l) => !['CLOSED', 'LOST'].includes(l.pipeline_stage)).length
-
+  const newLeads = leads.filter((l: any) => l.status === 'new').length
+  const unreadMessages = messages.filter((m: any) => m.status === 'unread').length
+  const activePipeline = leads.filter((l: any) => !['CLOSED', 'LOST'].includes(l.pipeline_stage)).length
   const recentLeads = leads.slice(0, 8)
 
-  return { leads, messages, tasks, newLeads, unreadMessages, pendingTasks, activePipeline, recentLeads, totalLeads: leads.length }
+  return { leads, messages, tasks, newLeads, unreadMessages, activePipeline, recentLeads, totalLeads: leads.length }
 }
 
 export default async function AdminDashboard() {
+  const configured = isSupabaseConfigured()
   const data = await getDashboardData()
 
   return (
@@ -39,10 +33,26 @@ export default async function AdminDashboard() {
         <p className="text-gray-500 text-sm mt-1">Overview of your leads, messages, and tasks.</p>
       </div>
 
+      {/* Supabase setup banner */}
+      {!configured && (
+        <div className="mb-6 bg-amber-50 border border-amber-200 rounded-2xl p-5 flex items-start gap-4">
+          <div className="w-8 h-8 rounded-xl bg-amber-100 flex items-center justify-center shrink-0 mt-0.5">
+            <AlertCircle size={16} className="text-amber-600" />
+          </div>
+          <div>
+            <p className="font-semibold text-amber-900 text-sm">Supabase Not Connected</p>
+            <p className="text-amber-700 text-xs mt-1 leading-relaxed">
+              Add your Supabase credentials to <code className="bg-amber-100 px-1 rounded">.env.local</code> to activate the CRM.
+              Run <code className="bg-amber-100 px-1 rounded">supabase/schema.sql</code> in your Supabase SQL editor first.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <StatCard title="Total Leads" value={data.totalLeads} subtitle="All time" icon={Users} color="navy" />
-        <StatCard title="New Leads" value={data.newLeads} subtitle="Awaiting contact" icon={AlertCircle} color="wine" trend={{ value: 'Needs attention', positive: false }} />
+        <StatCard title="New Leads" value={data.newLeads} subtitle="Awaiting contact" icon={AlertCircle} color="wine" />
         <StatCard title="Unread Messages" value={data.unreadMessages} subtitle="From website forms" icon={MessageSquare} color="sky" />
         <StatCard title="Active Pipeline" value={data.activePipeline} subtitle="In progress deals" icon={TrendingUp} color="green" />
       </div>
@@ -59,8 +69,10 @@ export default async function AdminDashboard() {
           </div>
           <div className="divide-y divide-gray-50">
             {data.recentLeads.length === 0 && (
-              <div className="px-6 py-8 text-center text-gray-400 text-sm">
-                No leads yet. They will appear here once forms are submitted.
+              <div className="px-6 py-10 text-center">
+                <Users size={28} className="text-gray-200 mx-auto mb-2" />
+                <p className="text-gray-400 text-sm">No leads yet.</p>
+                <p className="text-gray-300 text-xs mt-1">They appear here when website forms are submitted.</p>
               </div>
             )}
             {data.recentLeads.map((lead) => (
@@ -77,7 +89,7 @@ export default async function AdminDashboard() {
                   <p className="text-gray-400 text-xs">{lead.client_type} · {lead.source}</p>
                 </div>
                 <div className="flex flex-col items-end gap-1">
-                  <span className={`badge ${getPipelineStageColor(lead.pipeline_stage)} text-xs`}>
+                  <span className={`badge ${getPipelineStageColor(lead.pipeline_stage)}`}>
                     {getPipelineStageLabel(lead.pipeline_stage)}
                   </span>
                   <span className="text-gray-300 text-xs">{formatRelativeTime(lead.created_at)}</span>
@@ -139,7 +151,6 @@ export default async function AdminDashboard() {
                       <p className="text-gray-400 text-xs">Due {formatRelativeTime(task.due_date)}</p>
                     )}
                   </div>
-                  <span className={`badge text-xs ${getStatusColor(task.status)}`}>{task.status}</span>
                 </div>
               ))}
             </div>

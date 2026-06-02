@@ -1,16 +1,13 @@
 export const dynamic = 'force-dynamic'
-import { createServiceClient } from '@/lib/supabase'
-import { formatDate, getStatusColor } from '@/lib/utils'
+import { safeQuery } from '@/lib/db'
+import { formatDate } from '@/lib/utils'
 import { CheckSquare, Calendar, AlertCircle, Plus } from 'lucide-react'
 
-async function getTasks() {
-  const supabase = createServiceClient()
-  const { data } = await supabase
-    .from('tasks')
-    .select('*')
-    .order('due_date', { ascending: true })
-    .limit(100)
-  return data ?? []
+async function getTasks(): Promise<any[]> {
+  return safeQuery(
+    (db) => db.from('tasks').select('*').order('due_date', { ascending: true }).limit(100),
+    []
+  )
 }
 
 const priorityColors: Record<string, string> = {
@@ -19,19 +16,12 @@ const priorityColors: Record<string, string> = {
   low: 'text-gray-400',
 }
 
-const priorityIcons: Record<string, string> = {
-  high: '!!!',
-  medium: '!!',
-  low: '!',
-}
-
 export default async function TasksPage() {
   const tasks = await getTasks()
 
   const todo = tasks.filter((t) => t.status === 'todo')
   const inProgress = tasks.filter((t) => t.status === 'in_progress')
   const done = tasks.filter((t) => t.status === 'done')
-
   const overdue = todo.filter((t) => t.due_date && new Date(t.due_date) < new Date())
 
   return (
@@ -46,7 +36,7 @@ export default async function TasksPage() {
             )}
           </p>
         </div>
-        <button className="btn-primary text-sm px-4 py-2.5">
+        <button type="button" className="btn-primary text-sm px-4 py-2.5">
           <Plus size={15} /> New Task
         </button>
       </div>
@@ -56,7 +46,7 @@ export default async function TasksPage() {
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="px-5 py-4 border-b border-gray-50 flex items-center justify-between">
             <h2 className="font-semibold text-navy-900 text-sm">To Do</h2>
-            <span className="bg-wine-50 text-wine text-xs font-bold px-2 py-0.5 rounded-full">{todo.length}</span>
+            <span className="bg-red-50 text-red-500 text-xs font-bold px-2 py-0.5 rounded-full">{todo.length}</span>
           </div>
           <div className="divide-y divide-gray-50">
             {todo.length === 0 && (
@@ -73,23 +63,19 @@ export default async function TasksPage() {
                     )}
                     <div className="flex items-center gap-3 mt-2">
                       {task.due_date && (
-                        <span className={`flex items-center gap-1 text-xs ${
-                          new Date(task.due_date) < new Date() ? 'text-wine' : 'text-gray-400'
-                        }`}>
-                          <Calendar size={11} />
-                          {formatDate(task.due_date)}
+                        <span className={`flex items-center gap-1 text-xs ${new Date(task.due_date) < new Date() ? 'text-wine' : 'text-gray-400'}`}>
+                          <Calendar size={11} />{formatDate(task.due_date)}
                         </span>
                       )}
                       {task.priority === 'high' && (
                         <span className="flex items-center gap-1 text-xs text-wine">
-                          <AlertCircle size={11} />
-                          High Priority
+                          <AlertCircle size={11} />High
                         </span>
                       )}
                     </div>
                   </div>
-                  <span className={`text-xs font-bold ${priorityColors[task.priority]}`}>
-                    {priorityIcons[task.priority]}
+                  <span className={`text-xs font-bold ${priorityColors[task.priority] ?? 'text-gray-400'}`}>
+                    {task.priority === 'high' ? '!!!' : task.priority === 'medium' ? '!!' : '!'}
                   </span>
                 </div>
               </div>
@@ -110,7 +96,7 @@ export default async function TasksPage() {
             {inProgress.map((task) => (
               <div key={task.id} className="px-5 py-4">
                 <div className="flex items-start gap-3">
-                  <div className="w-4 h-4 rounded border-2 border-blue-400 flex items-center justify-center mt-0.5">
+                  <div className="w-4 h-4 rounded border-2 border-blue-400 flex items-center justify-center mt-0.5 shrink-0">
                     <div className="w-1.5 h-1.5 rounded-full bg-blue-400" />
                   </div>
                   <div>

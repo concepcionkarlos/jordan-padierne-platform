@@ -1,17 +1,13 @@
 export const dynamic = 'force-dynamic'
-import { createServiceClient } from '@/lib/supabase'
+import { safeQuery } from '@/lib/db'
 import { formatRelativeTime, formatPhone } from '@/lib/utils'
 import { UserCircle, Phone, Mail, Plus } from 'lucide-react'
-import Link from 'next/link'
 
-async function getContacts() {
-  const supabase = createServiceClient()
-  const { data } = await supabase
-    .from('contacts')
-    .select('*')
-    .order('created_at', { ascending: false })
-    .limit(200)
-  return data ?? []
+async function getContacts(): Promise<any[]> {
+  return safeQuery(
+    (db) => db.from('contacts').select('*').order('created_at', { ascending: false }).limit(200),
+    []
+  )
 }
 
 export default async function ContactsPage() {
@@ -24,20 +20,20 @@ export default async function ContactsPage() {
           <h1 className="font-serif text-2xl font-bold text-navy-900">Contacts</h1>
           <p className="text-gray-500 text-sm mt-0.5">{contacts.length} contacts</p>
         </div>
-        <button className="btn-primary text-sm px-4 py-2.5">
+        <button type="button" className="btn-primary text-sm px-4 py-2.5">
           <Plus size={15} /> Add Contact
         </button>
       </div>
 
-      {/* Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {contacts.length === 0 && (
           <div className="col-span-full bg-white rounded-2xl border border-gray-100 p-12 text-center">
             <UserCircle size={36} className="text-gray-200 mx-auto mb-3" />
-            <p className="text-gray-400 text-sm">No contacts yet. Contacts are created from leads.</p>
+            <p className="text-gray-400 text-sm">No contacts yet.</p>
+            <p className="text-gray-300 text-xs mt-1">Contacts are created from leads.</p>
           </div>
         )}
-        {contacts.map((contact) => (
+        {(contacts as any[]).map((contact) => (
           <div key={contact.id} className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm hover:shadow-card hover:border-sky-200 transition-all">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-full bg-navy-50 flex items-center justify-center">

@@ -1,23 +1,20 @@
 export const dynamic = 'force-dynamic'
-import { createServiceClient } from '@/lib/supabase'
+import { safeQuery } from '@/lib/db'
 import { formatRelativeTime } from '@/lib/utils'
 import { FileText } from 'lucide-react'
 
-async function getFormSubmissions() {
-  const supabase = createServiceClient()
-  const { data } = await supabase
-    .from('form_submissions')
-    .select('*')
-    .order('created_at', { ascending: false })
-    .limit(100)
-  return data ?? []
+async function getFormSubmissions(): Promise<any[]> {
+  return safeQuery(
+    (db) => db.from('form_submissions').select('*').order('created_at', { ascending: false }).limit(100),
+    []
+  )
 }
 
 const typeLabels: Record<string, string> = {
   contact: 'Contact Form',
   buyer_qualification: 'Buyer Qualification',
   investor_inquiry: 'Investor Inquiry',
-  pre_construction_interest: 'Pre-Construction Interest',
+  pre_construction_interest: 'Pre-Construction',
   showing_request: 'Showing Request',
   open_house: 'Open House Check-In',
 }
@@ -26,7 +23,7 @@ const typeColors: Record<string, string> = {
   contact: 'bg-sky-50 text-sky-600',
   buyer_qualification: 'bg-blue-50 text-blue-600',
   investor_inquiry: 'bg-purple-50 text-purple-600',
-  pre_construction_interest: 'bg-wine-50 text-wine',
+  pre_construction_interest: 'bg-red-50 text-red-700',
   showing_request: 'bg-orange-50 text-orange-600',
   open_house: 'bg-green-50 text-green-600',
 }
@@ -34,8 +31,7 @@ const typeColors: Record<string, string> = {
 export default async function FormsPage() {
   const submissions = await getFormSubmissions()
 
-  // Count by type
-  const counts = submissions.reduce((acc, s) => {
+  const counts = (submissions as any[]).reduce((acc: Record<string, number>, s) => {
     acc[s.form_type] = (acc[s.form_type] ?? 0) + 1
     return acc
   }, {} as Record<string, number>)
@@ -79,7 +75,7 @@ export default async function FormsPage() {
                   </td>
                 </tr>
               )}
-              {submissions.map((sub) => (
+              {(submissions as any[]).map((sub) => (
                 <tr key={sub.id} className="hover:bg-gray-50">
                   <td className="px-5 py-4">
                     <p className="font-semibold text-navy-900 text-sm">{sub.data?.full_name ?? '—'}</p>

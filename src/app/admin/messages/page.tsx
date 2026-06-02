@@ -1,16 +1,13 @@
 export const dynamic = 'force-dynamic'
-import { createServiceClient } from '@/lib/supabase'
+import { safeQuery } from '@/lib/db'
 import { formatRelativeTime, getStatusColor } from '@/lib/utils'
 import { MessageSquare, Phone, Mail } from 'lucide-react'
 
-async function getMessages() {
-  const supabase = createServiceClient()
-  const { data } = await supabase
-    .from('messages')
-    .select('*')
-    .order('created_at', { ascending: false })
-    .limit(100)
-  return data ?? []
+async function getMessages(): Promise<any[]> {
+  return safeQuery(
+    (db) => db.from('messages').select('*').order('created_at', { ascending: false }).limit(100),
+    []
+  )
 }
 
 const typeLabels: Record<string, string> = {
@@ -26,10 +23,12 @@ const typeColors: Record<string, string> = {
   contact: 'bg-sky-50 text-sky-600',
   buyer_qualification: 'bg-blue-50 text-blue-600',
   investor_inquiry: 'bg-purple-50 text-purple-600',
-  pre_construction_interest: 'bg-wine-50 text-wine',
+  pre_construction_interest: 'bg-red-50 text-red-700',
   showing_request: 'bg-orange-50 text-orange-600',
   open_house: 'bg-green-50 text-green-600',
 }
+
+const tabs = ['All', 'Unread', 'Contact', 'Buyer Form', 'Investor', 'Pre-Construction', 'Showing']
 
 export default async function MessagesPage() {
   const messages = await getMessages()
@@ -40,17 +39,18 @@ export default async function MessagesPage() {
       <div className="mb-6">
         <h1 className="font-serif text-2xl font-bold text-navy-900">Messages</h1>
         <p className="text-gray-500 text-sm mt-0.5">
-          {unread > 0 ? (
-            <span className="text-wine font-semibold">{unread} unread</span>
-          ) : 'All messages read'} · {messages.length} total
+          {unread > 0
+            ? <span className="text-wine font-semibold">{unread} unread</span>
+            : 'All caught up'} · {messages.length} total
         </p>
       </div>
 
-      {/* Filter tabs (visual only — filter via Supabase in production) */}
+      {/* Filter tabs */}
       <div className="flex gap-2 mb-6 overflow-x-auto pb-1">
-        {['All', 'Unread', 'Contact', 'Buyer Form', 'Investor', 'Pre-Construction', 'Showing'].map((tab) => (
+        {tabs.map((tab) => (
           <button
             key={tab}
+            type="button"
             className={`px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors ${
               tab === 'All' ? 'bg-navy-900 text-white' : 'bg-white border border-gray-200 text-gray-500 hover:border-navy-300'
             }`}
@@ -65,14 +65,15 @@ export default async function MessagesPage() {
         {messages.length === 0 && (
           <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
             <MessageSquare size={32} className="text-gray-200 mx-auto mb-3" />
-            <p className="text-gray-400 text-sm">No messages yet. They will appear here when website forms are submitted.</p>
+            <p className="text-gray-400 text-sm">No messages yet.</p>
+            <p className="text-gray-300 text-xs mt-1">They appear here when website forms are submitted.</p>
           </div>
         )}
         {messages.map((msg) => (
           <div
             key={msg.id}
-            className={`bg-white rounded-2xl border shadow-sm overflow-hidden transition-all ${
-              msg.status === 'unread' ? 'border-wine-100 shadow-wine-50/50' : 'border-gray-100'
+            className={`bg-white rounded-2xl border shadow-sm overflow-hidden ${
+              msg.status === 'unread' ? 'border-red-100' : 'border-gray-100'
             }`}
           >
             <div className="p-5">
@@ -96,8 +97,6 @@ export default async function MessagesPage() {
                   <span className="text-gray-300 text-xs">{formatRelativeTime(msg.created_at)}</span>
                 </div>
               </div>
-
-              {/* Contact */}
               <div className="flex gap-4 mb-3">
                 {msg.phone && (
                   <a href={`tel:${msg.phone}`} className="flex items-center gap-1.5 text-xs text-sky-500 hover:text-sky-600">
@@ -108,8 +107,6 @@ export default async function MessagesPage() {
                   <Mail size={11} />{msg.email}
                 </a>
               </div>
-
-              {/* Body */}
               <div className="bg-gray-50 rounded-xl p-4">
                 <p className="text-gray-600 text-xs leading-relaxed whitespace-pre-wrap">{msg.body}</p>
               </div>

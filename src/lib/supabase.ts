@@ -1,7 +1,13 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
-// Lazy singleton — never calls createClient() at module load time,
-// so the build succeeds even when env vars are not set.
+const PLACEHOLDER = 'your-project'
+
+export function isSupabaseConfigured(): boolean {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
+  return url.length > 0 && !url.includes(PLACEHOLDER)
+}
+
+// Lazy singleton for client components
 let _client: SupabaseClient | null = null
 
 export function getSupabaseClient(): SupabaseClient {

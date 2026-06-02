@@ -1,23 +1,14 @@
 export const dynamic = 'force-dynamic'
 import Link from 'next/link'
-import { createServiceClient } from '@/lib/supabase'
-import {
-  formatRelativeTime,
-  getPipelineStageColor,
-  getPipelineStageLabel,
-  getStatusColor,
-  formatPhone,
-} from '@/lib/utils'
+import { safeQuery } from '@/lib/db'
+import { formatRelativeTime, getPipelineStageColor, getPipelineStageLabel, formatPhone } from '@/lib/utils'
 import { UserCircle, Phone, Mail, Plus } from 'lucide-react'
 
-async function getLeads() {
-  const supabase = createServiceClient()
-  const { data } = await supabase
-    .from('leads')
-    .select('*')
-    .order('created_at', { ascending: false })
-    .limit(200)
-  return data ?? []
+async function getLeads(): Promise<any[]> {
+  return safeQuery(
+    (db) => db.from('leads').select('*').order('created_at', { ascending: false }).limit(200),
+    []
+  )
 }
 
 export default async function LeadsPage() {
@@ -70,7 +61,7 @@ export default async function LeadsPage() {
               {leads.length === 0 && (
                 <tr>
                   <td colSpan={6} className="px-5 py-12 text-center text-gray-400 text-sm">
-                    No leads yet. Leads will appear here once website forms are submitted.
+                    No leads yet. They appear when website forms are submitted.
                   </td>
                 </tr>
               )}
