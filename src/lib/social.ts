@@ -16,10 +16,9 @@ export const SOCIAL_LINKS = {
     active: true,
   },
   linkedin: {
-    // TODO: Update with Jordan's LinkedIn profile URL
-    url: 'https://www.linkedin.com/',
+    url: 'https://www.linkedin.com/in/jordan-padierne-realtor-?utm_source=share_via&utm_content=profile&utm_medium=member_ios',
     label: 'LinkedIn',
-    active: false,
+    active: true,
   },
   zillow: {
     // TODO: Update with Jordan's Zillow profile URL
