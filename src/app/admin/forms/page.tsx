@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic'
 import { createServiceClient } from '@/lib/supabase'
 import { formatRelativeTime } from '@/lib/utils'
 import { FileText } from 'lucide-react'

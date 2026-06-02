@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic'
 import { createServiceClient } from '@/lib/supabase'
 import { formatDate, getStatusColor } from '@/lib/utils'
 import { CheckSquare, Calendar, AlertCircle, Plus } from 'lucide-react'

@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic'
 import { Users, MessageSquare, CheckSquare, TrendingUp, AlertCircle, UserCircle } from 'lucide-react'
 import StatCard from '@/components/admin/StatCard'
 import { createServiceClient } from '@/lib/supabase'

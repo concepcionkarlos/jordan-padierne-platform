@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic'
 import { createServiceClient } from '@/lib/supabase'
 import { formatRelativeTime, getStatusColor } from '@/lib/utils'
 import { MessageSquare, Phone, Mail } from 'lucide-react'

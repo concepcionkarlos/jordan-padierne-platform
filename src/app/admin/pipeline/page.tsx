@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic'
 import { createServiceClient } from '@/lib/supabase'
 import { getPipelineStageLabel, formatCurrency, formatRelativeTime } from '@/lib/utils'
 import { UserCircle, Phone } from 'lucide-react'
