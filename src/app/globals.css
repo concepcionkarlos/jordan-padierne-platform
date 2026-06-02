@@ -1,17 +1,8 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
-  :root {
-    --navy-900: #0A1628;
-    --navy-600: #1A3A6B;
-    --sky: #7BA7C2;
-    --wine: #8B1A2F;
-  }
-
   * {
     box-sizing: border-box;
   }
@@ -35,7 +26,7 @@
   }
 
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 bg-white text-navy-900 border border-navy-200 px-6 py-3 rounded-lg font-semibold font-sans text-sm transition-all duration-200 hover:border-navy-900 hover:shadow-card active:scale-95;
+    @apply inline-flex items-center justify-center gap-2 bg-white text-navy-900 border border-gray-200 px-6 py-3 rounded-lg font-semibold font-sans text-sm transition-all duration-200 hover:border-navy-900 hover:shadow-card active:scale-95;
   }
 
   .btn-wine {
@@ -67,7 +58,7 @@
   }
 
   .input-field {
-    @apply w-full px-4 py-3 rounded-xl border border-gray-200 text-navy-900 placeholder-gray-400 text-sm font-sans focus:outline-none focus:ring-2 focus:ring-sky-400/40 focus:border-sky-400 transition-all duration-150 bg-white;
+    @apply w-full px-4 py-3 rounded-xl border border-gray-200 text-navy-900 placeholder-gray-400 text-sm font-sans focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-sky-400 transition-all duration-150 bg-white;
   }
 
   .label {
@@ -83,7 +74,7 @@
   }
 
   .sidebar-link-active {
-    @apply flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium bg-sky/20 text-sky border border-sky/30;
+    @apply flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium bg-sky-900 text-sky-400 border border-sky-800;
   }
 }
 

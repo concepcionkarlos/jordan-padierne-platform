@@ -1,6 +1,5 @@
-import type { Config } from 'tailwindcss'
-
-const config: Config = {
+/** @type {import('tailwindcss').Config} */
+module.exports = {
   content: [
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
@@ -52,8 +51,8 @@ const config: Config = {
         'light-gray': '#F4F7FA',
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
-        serif: ['Playfair Display', 'Georgia', 'serif'],
+        sans: ['var(--font-inter)', 'system-ui', 'sans-serif'],
+        serif: ['var(--font-playfair)', 'Georgia', 'serif'],
       },
       boxShadow: {
         card: '0 2px 16px 0 rgba(10, 22, 40, 0.08)',
@@ -83,5 +82,3 @@ const config: Config = {
   },
   plugins: [],
 }
-
-export default config
