@@ -1,0 +1,43 @@
+export const SOCIAL_LINKS = {
+  instagram: {
+    url: 'https://www.instagram.com/jordanpadiernerealtor?igsh=MmdldG0xdDBkZmJj&utm_source=qr',
+    label: '@jordanpadiernerealtor',
+    handle: 'jordanpadiernerealtor',
+    active: true,
+  },
+  whatsapp: {
+    url: 'https://wa.me/13057996973',
+    label: 'WhatsApp',
+    active: true,
+  },
+  facebook: {
+    // TODO: Update with Jordan's Facebook page URL
+    url: 'https://www.facebook.com/',
+    label: 'Facebook',
+    active: false,
+  },
+  linkedin: {
+    // TODO: Update with Jordan's LinkedIn profile URL
+    url: 'https://www.linkedin.com/',
+    label: 'LinkedIn',
+    active: false,
+  },
+  zillow: {
+    // TODO: Update with Jordan's Zillow profile URL
+    url: 'https://www.zillow.com/',
+    label: 'Zillow',
+    active: false,
+  },
+}
+
+export const CONTACT_INFO = {
+  phone: '305-799-6973',
+  phoneHref: 'tel:+13057996973',
+  email: 'info@jordanpadierne.com',
+  emailHref: 'mailto:info@jordanpadierne.com',
+  whatsapp: SOCIAL_LINKS.whatsapp.url,
+  license: 'SL3641062',
+  broker: 'eXp Realty',
+  areas: 'Miami-Dade, Brickell, Hialeah, Downtown, Doral, Coral Gables',
+  languages: 'English / Español',
+}

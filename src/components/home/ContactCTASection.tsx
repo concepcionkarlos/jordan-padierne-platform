@@ -1,6 +1,8 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { Phone, Mail, ArrowRight, Calendar } from 'lucide-react'
+import SocialIcons from '@/components/ui/SocialIcons'
+import { CONTACT_INFO } from '@/lib/social'
 
 export default function ContactCTASection() {
   return (
@@ -40,7 +42,7 @@ export default function ContactCTASection() {
               </a>
 
               <a
-                href="mailto:info@jordanpadierne.com"
+                href={CONTACT_INFO.emailHref}
                 className="flex items-center gap-4 p-4 rounded-xl border border-gray-100 hover:border-sky-200 hover:bg-sky-50 transition-all group"
               >
                 <div className="w-11 h-11 rounded-xl bg-navy-50 flex items-center justify-center group-hover:bg-sky-100 transition-colors">
@@ -48,10 +50,16 @@ export default function ContactCTASection() {
                 </div>
                 <div>
                   <p className="font-semibold text-navy-900 text-sm">Send an Email</p>
-                  <p className="text-gray-500 text-sm">info@jordanpadierne.com</p>
+                  <p className="text-gray-500 text-sm">{CONTACT_INFO.email}</p>
                 </div>
                 <ArrowRight size={16} className="text-gray-300 group-hover:text-sky-500 ml-auto transition-colors" />
               </a>
+            </div>
+
+            {/* Social links */}
+            <div className="mb-8">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Follow Jordan</p>
+              <SocialIcons variant="contact" />
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4">

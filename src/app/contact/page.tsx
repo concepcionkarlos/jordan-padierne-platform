@@ -6,7 +6,9 @@ import ContactForm from '@/components/forms/ContactForm'
 import BuyerQualificationForm from '@/components/forms/BuyerQualificationForm'
 import InvestorForm from '@/components/forms/InvestorForm'
 import PreConstructionForm from '@/components/forms/PreConstructionForm'
+import SocialIcons from '@/components/ui/SocialIcons'
 import { Phone, Mail, Clock, MapPin } from 'lucide-react'
+import { CONTACT_INFO } from '@/lib/social'
 
 export const metadata: Metadata = {
   title: 'Contact',
@@ -15,10 +17,10 @@ export const metadata: Metadata = {
 }
 
 const contactInfo = [
-  { icon: Phone, label: 'Call or Text', value: '305-799-6973', href: 'tel:+13057996973' },
-  { icon: Mail, label: 'Email', value: 'info@jordanpadierne.com', href: 'mailto:info@jordanpadierne.com' },
+  { icon: Phone, label: 'Call or Text', value: CONTACT_INFO.phone, href: CONTACT_INFO.phoneHref },
+  { icon: Mail, label: 'Email', value: CONTACT_INFO.email, href: CONTACT_INFO.emailHref },
   { icon: Clock, label: 'Availability', value: 'Mon-Sun · 8am – 8pm', href: null },
-  { icon: MapPin, label: 'Areas Served', value: 'Miami-Dade, Brickell, Doral, Coral Gables, Hialeah', href: null },
+  { icon: MapPin, label: 'Areas Served', value: CONTACT_INFO.areas, href: null },
 ]
 
 export default function ContactPage() {
@@ -75,11 +77,17 @@ export default function ContactPage() {
                   )
                 })}
               </div>
-              <div className="mt-8 p-5 bg-light-gray rounded-2xl">
+              <div className="mt-6 p-5 bg-light-gray rounded-2xl">
                 <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">License</p>
                 <p className="text-navy-900 font-semibold text-sm">SL3641062</p>
                 <p className="text-gray-500 text-sm">eXp Realty · State of Florida</p>
                 <p className="text-gray-400 text-xs mt-2">English / Español</p>
+              </div>
+
+              {/* Social Media */}
+              <div className="mt-6">
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Follow Jordan</p>
+                <SocialIcons variant="contact" />
               </div>
             </div>
 

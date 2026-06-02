@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowRight, Phone } from 'lucide-react'
+import SocialIcons from '@/components/ui/SocialIcons'
 
 export default function HeroSection() {
   return (
@@ -78,6 +79,8 @@ export default function HeroSection() {
               <Phone size={16} className="text-sky-400" />
               <span className="font-semibold text-sm">305-799-6973</span>
             </a>
+            <div className="w-px h-10 bg-white/20" />
+            <SocialIcons variant="light" />
           </div>
         </div>
       </div>
