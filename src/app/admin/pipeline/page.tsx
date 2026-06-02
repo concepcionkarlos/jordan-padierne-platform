@@ -85,35 +85,37 @@ export default async function PipelinePage() {
                   </div>
                 )}
                 {stageleads.map((lead) => (
-                  <Link
-                    key={lead.id}
-                    href={`/admin/leads/${lead.id}`}
-                    className="block bg-white rounded-xl border border-gray-100 p-4 shadow-sm hover:shadow-card hover:border-sky-200 transition-all"
-                  >
-                    <div className="flex items-start gap-3 mb-3">
-                      <div className="w-8 h-8 rounded-full bg-navy-50 flex items-center justify-center shrink-0">
-                        <UserCircle size={16} className="text-navy-600" />
+                  <div key={lead.id} className="relative bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-card hover:border-sky-200 transition-all">
+                    <Link href={`/admin/leads/${lead.id}`} className="block p-4 pr-10">
+                      <div className="flex items-start gap-3 mb-3">
+                        <div className="w-8 h-8 rounded-full bg-navy-50 flex items-center justify-center shrink-0">
+                          <UserCircle size={16} className="text-navy-600" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-navy-900 text-xs truncate">{lead.full_name}</p>
+                          <p className="text-gray-400 text-xs">{lead.client_type}</p>
+                        </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-navy-900 text-xs truncate">{lead.full_name}</p>
-                        <p className="text-gray-400 text-xs">{lead.client_type}</p>
+                      <div className="space-y-1.5 text-xs text-gray-500">
+                        {lead.preferred_area && <p className="truncate">{lead.preferred_area}</p>}
+                        {(lead.budget_min || lead.budget_max) && (
+                          <p className="font-medium text-navy-700">
+                            {lead.budget_min ? formatCurrency(lead.budget_min) : '—'} – {lead.budget_max ? formatCurrency(lead.budget_max) : 'Open'}
+                          </p>
+                        )}
                       </div>
-                    </div>
-                    <div className="space-y-1.5 text-xs text-gray-500">
-                      {lead.preferred_area && <p className="truncate">{lead.preferred_area}</p>}
-                      {(lead.budget_min || lead.budget_max) && (
-                        <p className="font-medium text-navy-700">
-                          {lead.budget_min ? formatCurrency(lead.budget_min) : '—'} – {lead.budget_max ? formatCurrency(lead.budget_max) : 'Open'}
-                        </p>
-                      )}
-                    </div>
-                    <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-gray-50">
-                      <span className="text-gray-300 text-xs">{formatRelativeTime(lead.created_at)}</span>
-                      <a href={`tel:${lead.phone}`} onClick={(e) => e.stopPropagation()} aria-label={`Call ${lead.full_name}`} className="text-sky-500 hover:text-sky-600">
-                        <Phone size={13} />
-                      </a>
-                    </div>
-                  </Link>
+                      <p className="text-gray-300 text-xs mt-3 pt-2.5 border-t border-gray-50">
+                        {formatRelativeTime(lead.created_at)}
+                      </p>
+                    </Link>
+                    <a
+                      href={`tel:${lead.phone}`}
+                      aria-label={`Call ${lead.full_name}`}
+                      className="absolute top-4 right-3 text-sky-400 hover:text-sky-600 p-1"
+                    >
+                      <Phone size={13} />
+                    </a>
+                  </div>
                 ))}
               </div>
             </div>
