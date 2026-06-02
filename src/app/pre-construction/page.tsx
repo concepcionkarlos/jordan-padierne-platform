@@ -49,7 +49,7 @@ export default function PreConstructionPage() {
             pre-construction projects — before prices rise and units sell out.
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
-            <Link href="/contact#pre-construction-form" className="btn-wine">
+            <Link href="/contact#pre-construction-form" className="btn-wine cta-shine">
               Get Project Access <ArrowRight size={16} />
             </Link>
             <a href="tel:+13057996973" className="btn-outline-white">

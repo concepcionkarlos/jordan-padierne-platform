@@ -68,7 +68,7 @@ export default function BuyPage() {
             buying process simple, informed, and stress-free.
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
-            <Link href="/contact" className="btn-wine">
+            <Link href="/contact" className="btn-wine cta-shine">
               Start Your Search <ArrowRight size={16} />
             </Link>
             <Link href="/properties" className="btn-outline-white">

@@ -65,7 +65,7 @@ export default function InvestorsPage() {
             position themselves for long-term growth in one of the world&apos;s hottest markets.
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
-            <Link href="/contact#investor-form" className="btn-wine">
+            <Link href="/contact#investor-form" className="btn-wine cta-shine">
               Start Investing <ArrowRight size={16} />
             </Link>
             <Link href="/pre-construction" className="btn-outline-white">

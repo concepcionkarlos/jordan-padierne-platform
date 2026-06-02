@@ -17,9 +17,11 @@ import {
   ChevronRight,
   CalendarDays,
   BarChart3,
+  MessageSquareQuote,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import InstallPrompt from './InstallPrompt'
+import CommandPalette from './CommandPalette'
 
 const navItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true },
@@ -32,6 +34,7 @@ const navItems = [
   { href: '/admin/contacts', label: 'Contacts', icon: UserCircle },
   { href: '/admin/forms', label: 'Forms', icon: FileText },
   { href: '/admin/properties', label: 'Properties', icon: Building2 },
+  { href: '/admin/testimonials', label: 'Testimonials', icon: MessageSquareQuote },
   { href: '/admin/settings', label: 'Settings', icon: Settings },
 ]
 
@@ -49,6 +52,11 @@ export default function AdminSidebar() {
       <div className="px-6 py-6 border-b border-navy-800">
         <p className="font-serif text-white font-bold text-lg leading-tight">Jordan Padierne</p>
         <p className="text-sky-400 text-xs font-medium tracking-wider mt-0.5">Admin Dashboard</p>
+      </div>
+
+      {/* Command palette search */}
+      <div className="px-3 pt-3">
+        <CommandPalette />
       </div>
 
       {/* Nav */}

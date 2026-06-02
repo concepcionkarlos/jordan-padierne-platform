@@ -42,6 +42,9 @@ export async function POST(req: NextRequest) {
       home_valuation: 'contact',
     }
 
+    // Leads that actively opted in (popup, home valuation) come in warmer.
+    const isWarm = formData.source === 'Website Popup' || form_type === 'home_valuation'
+
     // 2. Create lead in Supabase
     const { data: lead, error: leadError } = await supabase
       .from('leads')
@@ -60,6 +63,8 @@ export async function POST(req: NextRequest) {
         property_interest: formData.preferred_project ?? formData.property_address ?? null,
         financing_status: formData.financing_status ?? null,
         message: formData.message ?? null,
+        hot_score: isWarm ? 2 : 1,
+        tags: form_type === 'home_valuation' ? ['hot'] : (formData.source === 'Website Popup' ? ['hot'] : []),
         metadata: body,
       })
       .select('id')

@@ -4,7 +4,11 @@ import WhyJordanSection from '@/components/home/WhyJordanSection'
 import ServicesSection from '@/components/home/ServicesSection'
 import PreConstructionSection from '@/components/home/PreConstructionSection'
 import AreasSection from '@/components/home/AreasSection'
+import TestimonialsSection from '@/components/home/TestimonialsSection'
 import ContactCTASection from '@/components/home/ContactCTASection'
+
+// Refresh periodically so new testimonials appear without a redeploy.
+export const revalidate = 120
 
 export default function HomePage() {
   return (
@@ -14,6 +18,7 @@ export default function HomePage() {
       <ServicesSection />
       <PreConstructionSection />
       <AreasSection />
+      <TestimonialsSection />
       <ContactCTASection />
     </PublicLayout>
   )

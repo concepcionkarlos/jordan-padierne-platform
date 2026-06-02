@@ -64,8 +64,8 @@ export default function LeadCaptureModal() {
           phone: form.phone,
           email: form.email || 'no-email@placeholder.com',
           client_type: 'Buyer',
-          message: 'Requested free consultation via website popup.',
-          source: 'Website',
+          message: '🎯 Requested FREE consultation via website popup — warm lead, reach out fast!',
+          source: 'Website Popup',
         }),
       })
       setSubmitted(true)

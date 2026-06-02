@@ -113,7 +113,7 @@ export default function AboutPage() {
               </div>
 
               <div className="mt-10 flex flex-col sm:flex-row gap-4">
-                <Link href="/contact" className="btn-wine">
+                <Link href="/contact" className="btn-wine cta-shine">
                   Work With Jordan
                   <ArrowRight size={16} />
                 </Link>
