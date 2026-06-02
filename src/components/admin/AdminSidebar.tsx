@@ -19,6 +19,7 @@ import {
   BarChart3,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import InstallPrompt from './InstallPrompt'
 
 const navItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true },
@@ -70,6 +71,9 @@ export default function AdminSidebar() {
           )
         })}
       </nav>
+
+      {/* Install prompt */}
+      <InstallPrompt />
 
       {/* Bottom */}
       <div className="px-3 py-4 border-t border-navy-800 space-y-2">

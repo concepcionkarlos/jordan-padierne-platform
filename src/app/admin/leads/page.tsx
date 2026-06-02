@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic'
 import { safeQuery } from '@/lib/db'
 import LeadsTable from '@/components/admin/LeadsTable'
 import AddLeadModal from '@/components/admin/AddLeadModal'
+import ImportLeadsModal from '@/components/admin/ImportLeadsModal'
 import { getLeadFreshness } from '@/lib/leads'
 
 async function getLeads(): Promise<any[]> {
@@ -39,7 +40,10 @@ export default async function LeadsPage() {
           <h1 className="font-serif text-2xl font-bold text-navy-900">Leads</h1>
           <p className="text-gray-500 text-sm mt-0.5">{stats.total} total · {stats.active} active</p>
         </div>
-        <AddLeadModal />
+        <div className="flex gap-2">
+          <ImportLeadsModal />
+          <AddLeadModal />
+        </div>
       </div>
 
       {/* Quick stats */}

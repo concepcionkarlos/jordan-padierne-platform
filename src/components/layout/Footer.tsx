@@ -6,6 +6,7 @@ import SocialIcons from '@/components/ui/SocialIcons'
 const footerLinks = {
   Services: [
     { href: '/buy', label: 'Buy a Home' },
+    { href: '/home-value', label: 'Sell — What\'s My Home Worth?' },
     { href: '/pre-construction', label: 'Pre-Construction' },
     { href: '/investors', label: 'Investment Properties' },
     { href: '/properties', label: 'Search Properties' },

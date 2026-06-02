@@ -29,6 +29,7 @@ export async function POST(req: NextRequest) {
       pre_construction_interest: formData.is_investor ? 'Investor' : 'Pre-Construction Buyer',
       showing_request: formData.client_type ?? 'Buyer',
       open_house: formData.client_type ?? 'Buyer',
+      home_valuation: 'Seller',
     }
 
     const messageTypeMap: Record<string, string> = {
@@ -38,6 +39,7 @@ export async function POST(req: NextRequest) {
       pre_construction_interest: 'pre_construction_interest',
       showing_request: 'showing_request',
       open_house: 'open_house',
+      home_valuation: 'contact',
     }
 
     // 2. Create lead in Supabase
@@ -135,6 +137,7 @@ function buildSubject(formType: string, data: Record<string, unknown>): string {
     pre_construction_interest: `Pre-Construction Interest — ${data.full_name}`,
     showing_request: `Showing Request — ${data.full_name}`,
     open_house: `Open House Check-In — ${data.full_name}`,
+    home_valuation: `🏠 Home Valuation Request — ${data.full_name}`,
   }
   return subjectMap[formType] ?? `Form Submission — ${data.full_name}`
 }
@@ -181,6 +184,17 @@ function buildMessageBody(formType: string, data: Record<string, unknown>): stri
     addLine('Working with Agent', data.is_working_with_agent ? 'Yes' : 'No')
     if (data.is_working_with_agent) addLine('Agent Name', data.agent_name)
     addLine('Pre-Qualified', data.prequalified ? 'Yes' : 'No')
+  }
+
+  if (formType === 'home_valuation') {
+    addLine('Property Address', data.property_address)
+    addLine('City/Area', data.city)
+    addLine('Property Type', data.property_type)
+    addLine('Bedrooms', data.bedrooms)
+    addLine('Bathrooms', data.bathrooms)
+    addLine('Sq Ft', data.sqft)
+    addLine('Condition', data.condition)
+    addLine('Selling Timeline', data.timeline)
   }
 
   if (data.message) {

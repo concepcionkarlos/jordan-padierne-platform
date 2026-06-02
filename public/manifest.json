@@ -1,0 +1,21 @@
+{
+  "name": "Jordan Padierne — Real Estate CRM",
+  "short_name": "Jordan CRM",
+  "description": "Jordan Padierne Real Estate — leads, pipeline, calendar, and commissions.",
+  "start_url": "/admin",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0A1628",
+  "theme_color": "#0A1628",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Dashboard", "url": "/admin", "description": "Your daily command center" },
+    { "name": "Leads", "url": "/admin/leads", "description": "View and manage leads" },
+    { "name": "Calendar", "url": "/admin/calendar", "description": "Appointments" }
+  ]
+}

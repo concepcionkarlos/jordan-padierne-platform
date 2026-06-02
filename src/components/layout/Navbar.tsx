@@ -15,6 +15,7 @@ const navLinks = [
       { href: '/buy', label: 'Buy a Home' },
       { href: '/pre-construction', label: 'Pre-Construction' },
       { href: '/investors', label: 'Investors' },
+      { href: '/home-value', label: 'Sell — Home Value' },
     ],
   },
   { href: '/properties', label: 'Properties' },
