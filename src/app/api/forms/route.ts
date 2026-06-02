@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase'
+import { sendAdminNotification, sendClientAutoReply } from '@/lib/email'
 import type { ClientType, LeadSource } from '@/lib/types'
 
 export async function POST(req: NextRequest) {
@@ -13,7 +14,7 @@ export async function POST(req: NextRequest) {
 
     const supabase = createServiceClient()
 
-    // Save raw form submission
+    // 1. Save raw form submission
     await supabase.from('form_submissions').insert({
       form_type,
       data: body,
@@ -21,7 +22,6 @@ export async function POST(req: NextRequest) {
       user_agent: req.headers.get('user-agent') ?? 'unknown',
     })
 
-    // Determine client type and message type
     const clientTypeMap: Record<string, ClientType> = {
       contact: formData.client_type ?? 'Buyer',
       buyer_qualification: 'Buyer',
@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
       open_house: 'open_house',
     }
 
-    // Create lead
+    // 2. Create lead in Supabase
     const { data: lead, error: leadError } = await supabase
       .from('leads')
       .insert({
@@ -64,10 +64,10 @@ export async function POST(req: NextRequest) {
       .single()
 
     if (leadError) {
-      console.error('Lead insert error:', leadError)
+      console.error('[forms] Lead insert error:', leadError)
     }
 
-    // Create message
+    // 3. Create message in CRM
     const messageBody = buildMessageBody(form_type, formData)
     await supabase.from('messages').insert({
       type: messageTypeMap[form_type] ?? 'contact',
@@ -81,9 +81,48 @@ export async function POST(req: NextRequest) {
       metadata: body,
     })
 
-    return NextResponse.json({ success: true, lead_id: lead?.id })
+    // 4. Send emails (non-blocking — don't fail the response if email fails)
+    const emailData = {
+      full_name: String(formData.full_name),
+      email: String(formData.email),
+      phone: formData.phone ? String(formData.phone) : undefined,
+      client_type: formData.client_type ? String(formData.client_type) : clientTypeMap[form_type],
+      preferred_area: formData.preferred_area ? String(formData.preferred_area) : undefined,
+      budget: formData.budget
+        ? String(formData.budget)
+        : formData.budget_min
+          ? `$${Number(formData.budget_min).toLocaleString()} – $${Number(formData.budget_max).toLocaleString()}`
+          : undefined,
+      timeline: formData.timeline ? String(formData.timeline) : undefined,
+      financing_status: formData.financing_status ? String(formData.financing_status) : undefined,
+      source: formData.source ? String(formData.source) : 'Website',
+      message: formData.message ? String(formData.message) : undefined,
+      form_type,
+      lead_id: lead?.id,
+    }
+
+    // Fire both emails concurrently — await but don't throw on failure
+    const [adminSent, clientSent] = await Promise.allSettled([
+      sendAdminNotification(emailData),
+      sendClientAutoReply(String(formData.email), String(formData.full_name), form_type),
+    ])
+
+    const emailStatus = {
+      admin: adminSent.status === 'fulfilled' && adminSent.value,
+      client: clientSent.status === 'fulfilled' && clientSent.value,
+    }
+
+    if (!emailStatus.admin) {
+      console.warn('[forms] Admin notification not sent (email may not be configured)')
+    }
+
+    return NextResponse.json({
+      success: true,
+      lead_id: lead?.id,
+      email: emailStatus,
+    })
   } catch (err) {
-    console.error('Form API error:', err)
+    console.error('[forms] API error:', err)
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }
