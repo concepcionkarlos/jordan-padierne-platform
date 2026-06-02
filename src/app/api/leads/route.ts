@@ -59,3 +59,19 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ success: false, error: String(err) }, { status: 500 })
   }
 }
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const supabase = createServiceClient()
+    const { searchParams } = new URL(req.url)
+    const id = searchParams.get('id')
+    if (!id) return NextResponse.json({ success: false, error: 'ID required' }, { status: 400 })
+
+    const { error } = await supabase.from('leads').delete().eq('id', id)
+    if (error) throw error
+
+    return NextResponse.json({ success: true })
+  } catch (err) {
+    return NextResponse.json({ success: false, error: String(err) }, { status: 500 })
+  }
+}
