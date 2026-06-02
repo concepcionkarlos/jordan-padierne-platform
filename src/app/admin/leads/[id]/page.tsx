@@ -19,13 +19,17 @@ async function getLeadMessages(leadId: string): Promise<any[]> {
 async function getLeadTasks(leadId: string): Promise<any[]> {
   return safeQuery((db) => db.from('tasks').select('*').eq('lead_id', leadId).order('created_at', { ascending: true }), [])
 }
+async function getLeadAppointments(leadId: string): Promise<any[]> {
+  return safeQuery((db) => db.from('appointments').select('*').eq('lead_id', leadId).order('starts_at', { ascending: true }), [])
+}
 
 export default async function LeadDetailPage({ params }: { params: { id: string } }) {
-  const [lead, notes, messages, tasks] = await Promise.all([
+  const [lead, notes, messages, tasks, appointments] = await Promise.all([
     getLead(params.id),
     getLeadNotes(params.id),
     getLeadMessages(params.id),
     getLeadTasks(params.id),
+    getLeadAppointments(params.id),
   ])
 
   if (!lead) notFound()
@@ -55,7 +59,7 @@ export default async function LeadDetailPage({ params }: { params: { id: string 
         </div>
       </div>
 
-      <LeadWorkspace lead={lead} initialNotes={notes} initialTasks={tasks} messages={messages} />
+      <LeadWorkspace lead={lead} initialNotes={notes} initialTasks={tasks} initialAppointments={appointments} messages={messages} />
     </div>
   )
 }

@@ -15,17 +15,21 @@ import {
   LogOut,
   Phone,
   ChevronRight,
+  CalendarDays,
+  BarChart3,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const navItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true },
   { href: '/admin/leads', label: 'Leads', icon: Users },
-  { href: '/admin/contacts', label: 'Contacts', icon: UserCircle },
-  { href: '/admin/messages', label: 'Messages', icon: MessageSquare },
-  { href: '/admin/forms', label: 'Forms', icon: FileText },
   { href: '/admin/pipeline', label: 'Pipeline', icon: GitBranch },
+  { href: '/admin/calendar', label: 'Calendar', icon: CalendarDays },
   { href: '/admin/tasks', label: 'Tasks', icon: CheckSquare },
+  { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
+  { href: '/admin/messages', label: 'Messages', icon: MessageSquare },
+  { href: '/admin/contacts', label: 'Contacts', icon: UserCircle },
+  { href: '/admin/forms', label: 'Forms', icon: FileText },
   { href: '/admin/properties', label: 'Properties', icon: Building2 },
   { href: '/admin/settings', label: 'Settings', icon: Settings },
 ]

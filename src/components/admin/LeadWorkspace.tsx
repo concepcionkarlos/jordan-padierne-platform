@@ -4,32 +4,37 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   Phone, Mail, MapPin, Calendar, DollarSign, MessageSquare,
-  Send, Plus, Check, Flame, Clock, Trash2, StickyNote, ChevronDown, Tag,
+  Send, Plus, Check, Clock, Trash2, StickyNote, ChevronDown, TrendingUp, CalendarPlus,
 } from 'lucide-react'
 import {
   formatDate, formatPhone, formatRelativeTime, formatCurrency,
   getPipelineStageLabel, getPipelineStageColor,
 } from '@/lib/utils'
 import { LEAD_TAGS, getTagDef, HOT_SCORES, getHotScore, getLeadFreshness } from '@/lib/leads'
+import { commissionFor } from '@/lib/goals'
+import TemplatesPanel from './TemplatesPanel'
 
 const STAGES = ['NEW', 'QUALIFIED', 'CONTACTED', 'SHOWING_SCHEDULED', 'NEGOTIATION', 'CLOSED', 'LOST']
 
 interface Note { id: string; content: string; author: string; created_at: string }
 interface Task { id: string; title: string; status: string; priority: string; due_date: string | null }
 interface Msg { id: string; subject: string; body: string; created_at: string }
+interface Appt { id: string; title: string; type: string; starts_at: string; location: string | null; status: string }
 
 interface Props {
   lead: any
   initialNotes: Note[]
   initialTasks: Task[]
+  initialAppointments: Appt[]
   messages: Msg[]
 }
 
-export default function LeadWorkspace({ lead: initialLead, initialNotes, initialTasks, messages }: Props) {
+export default function LeadWorkspace({ lead: initialLead, initialNotes, initialTasks, initialAppointments, messages }: Props) {
   const router = useRouter()
   const [lead, setLead] = useState(initialLead)
   const [notes, setNotes] = useState<Note[]>(initialNotes)
   const [tasks, setTasks] = useState<Task[]>(initialTasks)
+  const [appts, setAppts] = useState<Appt[]>(initialAppointments)
   const [noteText, setNoteText] = useState('')
   const [savingNote, setSavingNote] = useState(false)
   const [showTagPicker, setShowTagPicker] = useState(false)
@@ -37,10 +42,19 @@ export default function LeadWorkspace({ lead: initialLead, initialNotes, initial
   const [taskTitle, setTaskTitle] = useState('')
   const [taskDue, setTaskDue] = useState('')
   const [showTaskForm, setShowTaskForm] = useState(false)
+  // Appointment form
+  const [showApptForm, setShowApptForm] = useState(false)
+  const [apptTitle, setApptTitle] = useState('')
+  const [apptType, setApptType] = useState('showing')
+  const [apptWhen, setApptWhen] = useState('')
+  const [apptLocation, setApptLocation] = useState('')
 
   const freshness = getLeadFreshness(lead)
   const hotScore = getHotScore(lead.hot_score)
   const tags: string[] = lead.tags ?? []
+  const dealValue = lead.deal_value ?? lead.budget_max ?? 0
+  const commRate = lead.commission_rate ?? 3
+  const commission = dealValue ? commissionFor(dealValue, commRate) : 0
 
   // ─── Lead patch helper ───
   async function patchLead(updates: Record<string, unknown>) {
@@ -113,6 +127,24 @@ export default function LeadWorkspace({ lead: initialLead, initialNotes, initial
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id: task.id, status: newStatus, completed_at: newStatus === 'done' ? new Date().toISOString() : null }),
     })
+  }
+
+  // ─── Appointments ───
+  async function addAppt() {
+    if (!apptTitle.trim() || !apptWhen) return
+    const res = await fetch('/api/appointments', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: apptTitle.trim(), type: apptType, starts_at: new Date(apptWhen).toISOString(),
+        location: apptLocation || null, lead_id: lead.id, status: 'scheduled',
+      }),
+    })
+    const json = await res.json()
+    if (json.success) {
+      setAppts((prev) => [...prev, json.data].sort((a, b) => +new Date(a.starts_at) - +new Date(b.starts_at)))
+      setApptTitle(''); setApptWhen(''); setApptLocation(''); setShowApptForm(false)
+    }
   }
 
   return (
@@ -242,6 +274,94 @@ export default function LeadWorkspace({ lead: initialLead, initialNotes, initial
           )}
         </div>
 
+        {/* Deal & Commission */}
+        <div className="bg-gradient-to-br from-navy-900 to-navy-700 rounded-2xl p-5 shadow-sm text-white">
+          <h3 className="font-semibold text-sm mb-3 flex items-center gap-2">
+            <TrendingUp size={14} className="text-sky-400" /> Deal & Commission
+          </h3>
+          <div className="space-y-3">
+            <div>
+              <label className="block text-xs text-navy-300 mb-1">Deal Value ($)</label>
+              <input
+                type="number"
+                defaultValue={lead.deal_value ?? ''}
+                onBlur={(e) => patchLead({ deal_value: e.target.value ? Number(e.target.value) : null })}
+                placeholder={lead.budget_max ? String(lead.budget_max) : '650000'}
+                className="w-full px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder-navy-400 text-sm focus:outline-none focus:border-sky-400"
+                title="Deal value"
+              />
+            </div>
+            <div className="flex gap-3">
+              <div className="flex-1">
+                <label className="block text-xs text-navy-300 mb-1">Commission %</label>
+                <input
+                  type="number"
+                  step="0.5"
+                  defaultValue={lead.commission_rate ?? 3}
+                  onBlur={(e) => patchLead({ commission_rate: e.target.value ? Number(e.target.value) : 3 })}
+                  className="w-full px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white text-sm focus:outline-none focus:border-sky-400"
+                  title="Commission rate"
+                />
+              </div>
+              <div className="flex-1">
+                <label className="block text-xs text-navy-300 mb-1">Close %</label>
+                <input
+                  type="number"
+                  defaultValue={lead.close_probability ?? 50}
+                  onBlur={(e) => patchLead({ close_probability: e.target.value ? Number(e.target.value) : 50 })}
+                  className="w-full px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white text-sm focus:outline-none focus:border-sky-400"
+                  title="Close probability"
+                />
+              </div>
+            </div>
+            <div className="pt-3 border-t border-white/15 flex items-center justify-between">
+              <span className="text-navy-300 text-xs">Your Commission</span>
+              <span className="font-serif text-2xl font-bold text-sky-400">{commission ? formatCurrency(commission) : '—'}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Appointments */}
+        <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-semibold text-navy-900 text-sm flex items-center gap-2">
+              <CalendarPlus size={14} className="text-sky-400" /> Appointments
+            </h3>
+            <button type="button" onClick={() => setShowApptForm(!showApptForm)} className="text-sky-500 hover:text-sky-600" aria-label="Add appointment">
+              <Plus size={15} className={showApptForm ? 'rotate-45 transition-transform' : 'transition-transform'} />
+            </button>
+          </div>
+          {showApptForm && (
+            <div className="space-y-2 mb-3 pb-3 border-b border-gray-50">
+              <input value={apptTitle} onChange={(e) => setApptTitle(e.target.value)} placeholder="e.g. Showing at Brickell condo" className="input-field text-sm" />
+              <div className="flex gap-2">
+                <select value={apptType} onChange={(e) => setApptType(e.target.value)} className="input-field text-sm flex-1" title="Appointment type">
+                  <option value="showing">🏠 Showing</option>
+                  <option value="call">📞 Call</option>
+                  <option value="meeting">🤝 Meeting</option>
+                  <option value="closing">🔑 Closing</option>
+                  <option value="other">📌 Other</option>
+                </select>
+                <input type="datetime-local" value={apptWhen} onChange={(e) => setApptWhen(e.target.value)} className="input-field text-sm flex-1" title="When" />
+              </div>
+              <input value={apptLocation} onChange={(e) => setApptLocation(e.target.value)} placeholder="Location (optional)" className="input-field text-sm" />
+              <button type="button" onClick={addAppt} disabled={!apptTitle.trim() || !apptWhen} className="btn-primary w-full text-sm disabled:opacity-50">Schedule</button>
+            </div>
+          )}
+          <div className="space-y-2">
+            {appts.length === 0 && !showApptForm && <p className="text-gray-300 text-xs text-center py-1">No appointments scheduled.</p>}
+            {appts.map((a) => (
+              <div key={a.id} className="flex items-center gap-2.5 text-sm">
+                <span className="text-base">{a.type === 'showing' ? '🏠' : a.type === 'call' ? '📞' : a.type === 'meeting' ? '🤝' : a.type === 'closing' ? '🔑' : '📌'}</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-navy-700 text-xs font-medium truncate">{a.title}</p>
+                  <p className="text-gray-400 text-xs">{formatDate(a.starts_at)} · {new Date(a.starts_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
         {/* Lead details */}
         <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
           <h3 className="font-semibold text-navy-900 text-sm mb-3">Details</h3>
@@ -281,7 +401,7 @@ export default function LeadWorkspace({ lead: initialLead, initialNotes, initial
                 placeholder="Log a call, meeting, or note… (Enter to save)"
                 className="input-field text-sm"
               />
-              <button type="button" onClick={addNote} disabled={savingNote || !noteText.trim()} className="btn-primary px-4 shrink-0 disabled:opacity-50">
+              <button type="button" onClick={addNote} disabled={savingNote || !noteText.trim()} aria-label="Save note" className="btn-primary px-4 shrink-0 disabled:opacity-50">
                 <Send size={14} />
               </button>
             </div>
@@ -371,6 +491,9 @@ export default function LeadWorkspace({ lead: initialLead, initialNotes, initial
             </div>
           </div>
         )}
+
+        {/* Quick message templates */}
+        <TemplatesPanel leadName={lead.full_name} leadPhone={lead.phone} leadEmail={lead.email} />
       </div>
     </div>
   )

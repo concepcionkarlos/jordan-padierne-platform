@@ -1,7 +1,8 @@
 export const dynamic = 'force-dynamic'
 import { safeQuery } from '@/lib/db'
 import { getPipelineStageLabel, formatCurrency, formatRelativeTime } from '@/lib/utils'
-import { UserCircle, Phone } from 'lucide-react'
+import { weightedDealValue, commissionFor } from '@/lib/goals'
+import { UserCircle, Phone, Flame } from 'lucide-react'
 import Link from 'next/link'
 
 const STAGES = ['NEW', 'QUALIFIED', 'CONTACTED', 'SHOWING_SCHEDULED', 'NEGOTIATION', 'CLOSED', 'LOST'] as const
@@ -29,7 +30,7 @@ const stageDotColors: Record<string, string> = {
 async function getLeadsByStage(): Promise<any[]> {
   return safeQuery(
     (db) => db.from('leads')
-      .select('id, full_name, client_type, pipeline_stage, budget_min, budget_max, phone, preferred_area, created_at')
+      .select('*')
       .order('created_at', { ascending: false }),
     []
   )
@@ -43,20 +44,31 @@ export default async function PipelinePage() {
     return acc
   }, {} as Record<string, typeof leads>)
 
-  const activeDealValue = leads
-    .filter((l) => !['CLOSED', 'LOST'].includes(l.pipeline_stage) && l.budget_max)
-    .reduce((sum, l) => sum + (l.budget_max ?? 0), 0)
+  const active = leads.filter((l) => !['CLOSED', 'LOST'].includes(l.pipeline_stage))
+  const totalValue = active.reduce((sum, l) => sum + (l.deal_value ?? l.budget_max ?? 0), 0)
+  const weightedForecast = active.reduce((sum, l) => sum + weightedDealValue(l) * ((l.commission_rate ?? 3) / 100), 0)
+
+  // Per-stage value totals
+  const stageValue = (stage: string) =>
+    (grouped[stage] ?? []).reduce((s, l) => s + (l.deal_value ?? l.budget_max ?? 0), 0)
 
   return (
     <div className="p-6 lg:p-8">
-      <div className="mb-6">
-        <h1 className="font-serif text-2xl font-bold text-navy-900">Pipeline</h1>
-        <p className="text-gray-500 text-sm mt-0.5">
-          {leads.filter((l) => !['CLOSED', 'LOST'].includes(l.pipeline_stage)).length} active deals
-          {activeDealValue > 0 && (
-            <> · <span className="font-semibold text-navy-700">{formatCurrency(activeDealValue)} potential value</span></>
-          )}
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+        <div>
+          <h1 className="font-serif text-2xl font-bold text-navy-900">Pipeline</h1>
+          <p className="text-gray-500 text-sm mt-0.5">{active.length} active deals</p>
+        </div>
+        <div className="flex gap-3">
+          <div className="bg-white rounded-xl border border-gray-100 px-4 py-2">
+            <p className="text-xs text-gray-400">Pipeline Value</p>
+            <p className="font-serif text-lg font-bold text-navy-900">{formatCurrency(Math.round(totalValue))}</p>
+          </div>
+          <div className="bg-navy-900 rounded-xl px-4 py-2">
+            <p className="text-xs text-navy-300">Forecast Commission</p>
+            <p className="font-serif text-lg font-bold text-sky-400">{formatCurrency(Math.round(weightedForecast))}</p>
+          </div>
+        </div>
       </div>
 
       <div className="flex gap-4 overflow-x-auto pb-4">
@@ -76,6 +88,9 @@ export default async function PipelinePage() {
                     {stageleads.length}
                   </span>
                 </div>
+                {stageValue(stage) > 0 && (
+                  <p className="text-xs font-semibold text-navy-700 mt-1.5">{formatCurrency(Math.round(stageValue(stage)))}</p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -92,15 +107,21 @@ export default async function PipelinePage() {
                           <UserCircle size={16} className="text-navy-600" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-navy-900 text-xs truncate">{lead.full_name}</p>
+                          <div className="flex items-center gap-1">
+                            <p className="font-semibold text-navy-900 text-xs truncate">{lead.full_name}</p>
+                            {lead.hot_score === 3 && <Flame size={10} className="text-red-500 shrink-0" />}
+                          </div>
                           <p className="text-gray-400 text-xs">{lead.client_type}</p>
                         </div>
                       </div>
-                      <div className="space-y-1.5 text-xs text-gray-500">
+                      <div className="space-y-1 text-xs text-gray-500">
                         {lead.preferred_area && <p className="truncate">{lead.preferred_area}</p>}
-                        {(lead.budget_min || lead.budget_max) && (
-                          <p className="font-medium text-navy-700">
-                            {lead.budget_min ? formatCurrency(lead.budget_min) : '—'} – {lead.budget_max ? formatCurrency(lead.budget_max) : 'Open'}
+                        {(lead.deal_value ?? lead.budget_max) && (
+                          <p className="font-semibold text-navy-700">
+                            {formatCurrency(lead.deal_value ?? lead.budget_max)}
+                            {lead.commission_rate && (
+                              <span className="text-sky-500 font-medium"> · {formatCurrency(commissionFor(lead.deal_value ?? lead.budget_max, lead.commission_rate))} comm</span>
+                            )}
                           </p>
                         )}
                       </div>

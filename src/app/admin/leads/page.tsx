@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic'
 import { safeQuery } from '@/lib/db'
-import { Plus } from 'lucide-react'
 import LeadsTable from '@/components/admin/LeadsTable'
+import AddLeadModal from '@/components/admin/AddLeadModal'
 import { getLeadFreshness } from '@/lib/leads'
 
 async function getLeads(): Promise<any[]> {
@@ -25,9 +25,7 @@ export default async function LeadsPage() {
           <h1 className="font-serif text-2xl font-bold text-navy-900">Leads</h1>
           <p className="text-gray-500 text-sm mt-0.5">{stats.total} total · {stats.active} active</p>
         </div>
-        <button type="button" className="btn-primary text-sm px-4 py-2.5">
-          <Plus size={15} /> Add Lead
-        </button>
+        <AddLeadModal />
       </div>
 
       {/* Quick stats */}
