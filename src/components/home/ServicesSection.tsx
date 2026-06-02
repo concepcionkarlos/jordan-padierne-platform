@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowRight, Home, TrendingUp, Globe, Building2, Star } from 'lucide-react'
+import Reveal from '@/components/ui/Reveal'
 
 const services = [
   {
@@ -60,7 +61,7 @@ export default function ServicesSection() {
     <section className="py-20 lg:py-28 bg-light-gray">
       <div className="container-max section-padding">
         {/* Header */}
-        <div className="text-center max-w-2xl mx-auto mb-16">
+        <Reveal className="text-center max-w-2xl mx-auto mb-16">
           <p className="text-wine font-semibold text-sm uppercase tracking-widest mb-3">
             What I Do
           </p>
@@ -72,17 +73,17 @@ export default function ServicesSection() {
             From first-time buyers to seasoned investors — Jordan has the expertise and
             dedication to guide every type of client toward the right decision.
           </p>
-        </div>
+        </Reveal>
 
         {/* Top 3 cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-          {services.slice(0, 3).map((service) => {
+          {services.slice(0, 3).map((service, i) => {
             const Icon = service.icon
             return (
+              <Reveal key={service.title} variant="up" delay={i * 120}>
               <Link
-                key={service.title}
                 href={service.href}
-                className="group card relative overflow-hidden"
+                className="group card relative overflow-hidden hover-lift block"
               >
                 {/* Image */}
                 <div className="relative h-52 overflow-hidden">
@@ -111,19 +112,20 @@ export default function ServicesSection() {
                   </span>
                 </div>
               </Link>
+              </Reveal>
             )
           })}
         </div>
 
         {/* Bottom 2 wide cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {services.slice(3).map((service) => {
+          {services.slice(3).map((service, i) => {
             const Icon = service.icon
             return (
+              <Reveal key={service.title} variant="up" delay={i * 120}>
               <Link
-                key={service.title}
                 href={service.href}
-                className="group card relative overflow-hidden flex flex-col sm:flex-row"
+                className="group card relative overflow-hidden flex flex-col sm:flex-row hover-lift"
               >
                 {/* Image */}
                 <div className="relative h-48 sm:h-auto sm:w-48 shrink-0 overflow-hidden">
@@ -149,6 +151,7 @@ export default function ServicesSection() {
                   </span>
                 </div>
               </Link>
+              </Reveal>
             )
           })}
         </div>

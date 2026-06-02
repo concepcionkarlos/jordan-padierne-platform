@@ -97,3 +97,99 @@
     border-radius: 2px;
   }
 }
+
+/* ─── Premium interactive animations ───────────────────────────────────── */
+
+/* Scroll-reveal base: hidden until .is-visible is added by IntersectionObserver */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1), transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
+}
+.reveal.reveal-fade { transform: none; }
+.reveal.reveal-left { transform: translateX(-32px); }
+.reveal.reveal-right { transform: translateX(32px); }
+.reveal.reveal-scale { transform: scale(0.94); }
+.reveal.is-visible {
+  opacity: 1;
+  transform: translate(0, 0) scale(1);
+}
+
+/* Ken Burns slow zoom for hero/feature images */
+@keyframes kenBurns {
+  0% { transform: scale(1) translate(0, 0); }
+  100% { transform: scale(1.12) translate(-1.5%, -1%); }
+}
+.animate-ken-burns { animation: kenBurns 18s ease-out forwards; }
+
+/* Shimmer sweep across primary CTAs */
+@keyframes shimmerSweep {
+  0% { transform: translateX(-120%) skewX(-18deg); }
+  100% { transform: translateX(220%) skewX(-18deg); }
+}
+.cta-shine { position: relative; overflow: hidden; }
+.cta-shine::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; width: 60%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+  transform: translateX(-120%) skewX(-18deg);
+  animation: shimmerSweep 4.5s ease-in-out infinite;
+  animation-delay: 1.5s;
+  pointer-events: none;
+}
+
+/* Soft pulsing glow for the most important action */
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(139, 26, 47, 0.35); }
+  50% { box-shadow: 0 0 0 12px rgba(139, 26, 47, 0); }
+}
+.pulse-glow { animation: pulseGlow 2.6s ease-in-out infinite; }
+
+/* Gentle float (badges, accents) */
+@keyframes floatY {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+.animate-float { animation: floatY 4s ease-in-out infinite; }
+
+/* Animated gradient text for highlight words */
+@keyframes gradientShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+.text-gradient-animate {
+  background: linear-gradient(90deg, #7BA7C2, #2E69AC, #7BA7C2);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradientShift 5s ease infinite;
+}
+
+/* Lift on hover for cards */
+.hover-lift { transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s ease; }
+.hover-lift:hover { transform: translateY(-6px); }
+
+/* Modal entrance */
+@keyframes modalPop {
+  0% { opacity: 0; transform: translateY(24px) scale(0.96); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+.animate-modal-pop { animation: modalPop 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+
+@keyframes slideUpBar {
+  0% { opacity: 0; transform: translateY(100%); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.animate-slide-up-bar { animation: slideUpBar 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+
+/* Respect reduced motion — disable all the above */
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
+  .animate-ken-burns, .cta-shine::after, .pulse-glow, .animate-float,
+  .text-gradient-animate, .animate-modal-pop, .animate-slide-up-bar {
+    animation: none !important;
+  }
+}

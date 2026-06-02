@@ -1,4 +1,5 @@
 import { MapPin } from 'lucide-react'
+import Reveal from '@/components/ui/Reveal'
 
 const areas = [
   {
@@ -44,7 +45,7 @@ export default function AreasSection() {
     <section className="py-20 lg:py-28 bg-light-gray">
       <div className="container-max section-padding">
         {/* Header */}
-        <div className="text-center max-w-2xl mx-auto mb-16">
+        <Reveal className="text-center max-w-2xl mx-auto mb-16">
           <p className="text-wine font-semibold text-sm uppercase tracking-widest mb-3">
             Where I Work
           </p>
@@ -56,14 +57,16 @@ export default function AreasSection() {
             Deep local knowledge across Miami-Dade County — from luxury urban living in
             Brickell to family communities in Doral and cultural roots in Hialeah.
           </p>
-        </div>
+        </Reveal>
 
         {/* Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {areas.map((area) => (
-            <div
+          {areas.map((area, i) => (
+            <Reveal
               key={area.name}
-              className="group relative rounded-2xl overflow-hidden cursor-default"
+              variant="scale"
+              delay={(i % 3) * 100}
+              className="group relative rounded-2xl overflow-hidden cursor-default hover-lift"
             >
               {/* Background */}
               <div className={`absolute inset-0 bg-gradient-to-br ${area.gradient}`} />
@@ -87,7 +90,7 @@ export default function AreasSection() {
                 <h3 className="font-serif text-2xl font-bold text-white mb-2">{area.name}</h3>
                 <p className="text-white/75 text-sm leading-relaxed">{area.description}</p>
               </div>
-            </div>
+            </Reveal>
           ))}
         </div>
 

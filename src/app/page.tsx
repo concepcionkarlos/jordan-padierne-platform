@@ -8,7 +8,7 @@ import ContactCTASection from '@/components/home/ContactCTASection'
 
 export default function HomePage() {
   return (
-    <PublicLayout>
+    <PublicLayout showLeadModal>
       <HeroSection />
       <WhyJordanSection />
       <ServicesSection />
