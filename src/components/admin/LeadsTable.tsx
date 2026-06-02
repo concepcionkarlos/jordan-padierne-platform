@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { Search, UserCircle, Phone, Mail, Flame, X } from 'lucide-react'
 import { formatRelativeTime, getPipelineStageColor, getPipelineStageLabel, formatPhone, formatCurrency } from '@/lib/utils'
-import { getLeadFreshness, getHotScore, getTagDef, LEAD_TAGS } from '@/lib/leads'
+import { getLeadFreshness, getHotScore, getTagDef, LEAD_TAGS, scoreLead } from '@/lib/leads'
 
 interface Props {
   leads: any[]
@@ -18,7 +18,7 @@ export default function LeadsTable({ leads }: Props) {
   const [stageFilter, setStageFilter] = useState('ALL')
   const [clientFilter, setClientFilter] = useState('All Types')
   const [tagFilter, setTagFilter] = useState<string | null>(null)
-  const [sortBy, setSortBy] = useState<'recent' | 'hot' | 'stale'>('recent')
+  const [sortBy, setSortBy] = useState<'score' | 'recent' | 'stale'>('score')
 
   const filtered = useMemo(() => {
     let result = leads.filter((lead) => {
@@ -33,8 +33,8 @@ export default function LeadsTable({ leads }: Props) {
       return true
     })
 
-    if (sortBy === 'hot') {
-      result = [...result].sort((a, b) => (b.hot_score ?? 1) - (a.hot_score ?? 1))
+    if (sortBy === 'score') {
+      result = [...result].sort((a, b) => scoreLead(b).score - scoreLead(a).score)
     } else if (sortBy === 'stale') {
       result = [...result].sort((a, b) => getLeadFreshness(b).ageDays - getLeadFreshness(a).ageDays)
     }
@@ -57,7 +57,7 @@ export default function LeadsTable({ leads }: Props) {
           />
         </div>
         <div className="flex gap-2">
-          {(['recent', 'hot', 'stale'] as const).map((s) => (
+          {(['score', 'recent', 'stale'] as const).map((s) => (
             <button
               key={s}
               type="button"
@@ -66,7 +66,7 @@ export default function LeadsTable({ leads }: Props) {
                 sortBy === s ? 'bg-navy-900 text-white' : 'bg-white border border-gray-200 text-gray-500 hover:border-navy-300'
               }`}
             >
-              {s === 'recent' ? 'Most Recent' : s === 'hot' ? '🔥 Hottest' : '⏰ Needs Attention'}
+              {s === 'score' ? '⚡ Smart Score' : s === 'recent' ? 'Most Recent' : '⏰ Needs Attention'}
             </button>
           ))}
         </div>
@@ -107,6 +107,7 @@ export default function LeadsTable({ leads }: Props) {
             <thead>
               <tr className="border-b border-gray-50">
                 <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-400 uppercase tracking-wide">Lead</th>
+                <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-400 uppercase tracking-wide">Score</th>
                 <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-400 uppercase tracking-wide hidden md:table-cell">Contact</th>
                 <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-400 uppercase tracking-wide hidden lg:table-cell">Budget</th>
                 <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-400 uppercase tracking-wide">Stage</th>
@@ -115,11 +116,11 @@ export default function LeadsTable({ leads }: Props) {
             </thead>
             <tbody className="divide-y divide-gray-50">
               {filtered.length === 0 && (
-                <tr><td colSpan={5} className="px-5 py-12 text-center text-gray-400 text-sm">No leads match your filters.</td></tr>
+                <tr><td colSpan={6} className="px-5 py-12 text-center text-gray-400 text-sm">No leads match your filters.</td></tr>
               )}
               {filtered.map((lead) => {
                 const fresh = getLeadFreshness(lead)
-                const hot = getHotScore(lead.hot_score)
+                const sc = scoreLead(lead)
                 const tags: string[] = lead.tags ?? []
                 return (
                   <tr key={lead.id} className="hover:bg-gray-50 transition-colors">
@@ -145,6 +146,14 @@ export default function LeadsTable({ leads }: Props) {
                           </div>
                         </div>
                       </Link>
+                    </td>
+                    <td className="px-5 py-4">
+                      <div className="flex items-center gap-2">
+                        <div className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold" style={{ background: `${sc.score >= 75 ? '#FEE2E2' : sc.score >= 50 ? '#FEF3C7' : sc.score >= 30 ? '#E8F1F7' : '#F1F5F9'}`, color: `${sc.score >= 75 ? '#DC2626' : sc.score >= 50 ? '#D97706' : sc.score >= 30 ? '#46779A' : '#64748B'}` }}>
+                          {sc.score}
+                        </div>
+                        <span className="text-xs">{sc.emoji}</span>
+                      </div>
                     </td>
                     <td className="px-5 py-4 hidden md:table-cell">
                       <div className="space-y-0.5">

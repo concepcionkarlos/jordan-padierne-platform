@@ -90,3 +90,101 @@ export function getFollowupStatus(nextFollowup: string | null | undefined): { du
   if (diffDays === 1) return { due: false, overdue: false, today: false, label: 'Tomorrow' }
   return { due: false, overdue: false, today: false, label: `In ${diffDays}d` }
 }
+
+// ─── Automatic Lead Scoring (0–100) ──────────────────────────────────────────────
+// A "Smart Score" computed live from the data we already have — no AI, no migration.
+// Mirrors what BoldTrail/kvCORE call lead scoring: budget + engagement + intent.
+
+export interface LeadScore {
+  score: number          // 0–100
+  label: 'Hot' | 'Warm' | 'Cool' | 'Cold'
+  emoji: string
+  className: string
+  breakdown: { label: string; points: number }[]
+}
+
+export function scoreLead(lead: {
+  budget_max?: number | null
+  budget_min?: number | null
+  deal_value?: number | null
+  pipeline_stage: string
+  status?: string
+  timeline?: string | null
+  financing_status?: string | null
+  tags?: string[] | null
+  created_at: string
+  last_contact?: string | null
+  noteCount?: number
+  apptCount?: number
+}): LeadScore {
+  const breakdown: { label: string; points: number }[] = []
+  let score = 0
+  const add = (label: string, points: number) => { if (points !== 0) { score += points; breakdown.push({ label, points }) } }
+
+  // Budget / deal value — up to 25
+  const value = lead.deal_value ?? lead.budget_max ?? lead.budget_min ?? 0
+  let budgetPts = 0
+  if (value >= 1_500_000) budgetPts = 25
+  else if (value >= 1_000_000) budgetPts = 22
+  else if (value >= 750_000) budgetPts = 18
+  else if (value >= 500_000) budgetPts = 14
+  else if (value >= 300_000) budgetPts = 10
+  else if (value > 0) budgetPts = 6
+  add('Budget', budgetPts)
+
+  // Pipeline stage — up to 20
+  const stagePts: Record<string, number> = {
+    NEW: 3, QUALIFIED: 8, CONTACTED: 11, SHOWING_SCHEDULED: 15, NEGOTIATION: 20, CLOSED: 20, LOST: 0,
+  }
+  add('Stage', stagePts[lead.pipeline_stage] ?? 3)
+
+  // Engagement — up to 25 (activity logged + appointments)
+  const notes = lead.noteCount ?? 0
+  const appts = lead.apptCount ?? 0
+  const engagementPts = Math.min(25, notes * 4 + appts * 7)
+  add('Engagement', engagementPts)
+
+  // Financing / readiness — up to 15
+  const fin = (lead.financing_status ?? '').toLowerCase()
+  const tags = lead.tags ?? []
+  let finPts = 0
+  if (tags.includes('cash_buyer') || fin.includes('cash')) finPts = 15
+  else if (tags.includes('pre_approved') || fin.includes('approved')) finPts = 12
+  else if (fin.includes('process') || fin.includes('pre-approval')) finPts = 7
+  add('Financing', finPts)
+
+  // Timeline urgency — up to 10
+  const tl = (lead.timeline ?? '').toLowerCase()
+  let tlPts = 0
+  if (tl.includes('asap') || tl.includes('1-30')) tlPts = 10
+  else if (tl.includes('1-3')) tlPts = 7
+  else if (tl.includes('3-6')) tlPts = 5
+  else if (tl.includes('6-12')) tlPts = 2
+  add('Timeline', tlPts)
+
+  // Priority tags — up to 5
+  if (tags.includes('vip')) add('VIP', 5)
+  else if (tags.includes('hot')) add('Hot tag', 3)
+
+  // Freshness penalty
+  const fresh = getLeadFreshness(lead as any)
+  if (fresh.level === 'stale') add('Going stale', -8)
+  else if (fresh.level === 'cold' && lead.status !== 'closed') add('Cold', -15)
+
+  score = Math.max(0, Math.min(100, Math.round(score)))
+
+  let label: LeadScore['label'], emoji: string, className: string
+  if (score >= 75) { label = 'Hot'; emoji = '🔥'; className = 'bg-red-50 text-red-600 border-red-200' }
+  else if (score >= 50) { label = 'Warm'; emoji = '🌤️'; className = 'bg-amber-50 text-amber-600 border-amber-200' }
+  else if (score >= 30) { label = 'Cool'; emoji = '🌥️'; className = 'bg-sky-50 text-sky-600 border-sky-200' }
+  else { label = 'Cold'; emoji = '❄️'; className = 'bg-slate-50 text-slate-500 border-slate-200' }
+
+  return { score, label, emoji, className, breakdown }
+}
+
+export function scoreColor(score: number): string {
+  if (score >= 75) return '#EF4444'
+  if (score >= 50) return '#F59E0B'
+  if (score >= 30) return '#7BA7C2'
+  return '#94A3B8'
+}

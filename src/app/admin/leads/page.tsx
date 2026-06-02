@@ -7,9 +7,23 @@ import { getLeadFreshness } from '@/lib/leads'
 async function getLeads(): Promise<any[]> {
   return safeQuery((db) => db.from('leads').select('*').order('created_at', { ascending: false }).limit(500), [])
 }
+async function getNotes(): Promise<any[]> {
+  return safeQuery((db) => db.from('notes').select('lead_id').limit(2000), [])
+}
+async function getAppts(): Promise<any[]> {
+  return safeQuery((db) => db.from('appointments').select('lead_id').limit(2000), [])
+}
 
 export default async function LeadsPage() {
-  const leads = await getLeads()
+  const [rawLeads, notes, appts] = await Promise.all([getLeads(), getNotes(), getAppts()])
+
+  // Engagement counts per lead → feed the smart score
+  const noteCounts: Record<string, number> = {}
+  for (const n of notes) if (n.lead_id) noteCounts[n.lead_id] = (noteCounts[n.lead_id] ?? 0) + 1
+  const apptCounts: Record<string, number> = {}
+  for (const a of appts) if (a.lead_id) apptCounts[a.lead_id] = (apptCounts[a.lead_id] ?? 0) + 1
+
+  const leads = rawLeads.map((l) => ({ ...l, noteCount: noteCounts[l.id] ?? 0, apptCount: apptCounts[l.id] ?? 0 }))
 
   const stats = {
     total: leads.length,

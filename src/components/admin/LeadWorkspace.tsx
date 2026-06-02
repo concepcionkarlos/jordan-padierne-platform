@@ -10,9 +10,10 @@ import {
   formatDate, formatPhone, formatRelativeTime, formatCurrency,
   getPipelineStageLabel, getPipelineStageColor,
 } from '@/lib/utils'
-import { LEAD_TAGS, getTagDef, HOT_SCORES, getHotScore, getLeadFreshness } from '@/lib/leads'
+import { LEAD_TAGS, getTagDef, HOT_SCORES, getHotScore, getLeadFreshness, scoreLead, scoreColor } from '@/lib/leads'
 import { commissionFor } from '@/lib/goals'
 import TemplatesPanel from './TemplatesPanel'
+import ProgressRing from './ProgressRing'
 
 const STAGES = ['NEW', 'QUALIFIED', 'CONTACTED', 'SHOWING_SCHEDULED', 'NEGOTIATION', 'CLOSED', 'LOST']
 
@@ -55,6 +56,7 @@ export default function LeadWorkspace({ lead: initialLead, initialNotes, initial
   const dealValue = lead.deal_value ?? lead.budget_max ?? 0
   const commRate = lead.commission_rate ?? 3
   const commission = dealValue ? commissionFor(dealValue, commRate) : 0
+  const smart = scoreLead({ ...lead, noteCount: notes.length, apptCount: appts.length })
 
   // ─── Lead patch helper ───
   async function patchLead(updates: Record<string, unknown>) {
@@ -151,6 +153,30 @@ export default function LeadWorkspace({ lead: initialLead, initialNotes, initial
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* ─── Left column: contact + actions ─── */}
       <div className="lg:col-span-1 space-y-4">
+        {/* Smart Score */}
+        <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">⚡ Smart Score</p>
+            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold border ${smart.className}`}>{smart.emoji} {smart.label}</span>
+          </div>
+          <div className="flex items-center gap-4">
+            <ProgressRing value={smart.score} max={100} size={68} stroke={7} color={scoreColor(smart.score)} trackColor="#F1F5F9">
+              <div className="text-center">
+                <p className="font-serif text-xl font-bold text-navy-900 leading-none">{smart.score}</p>
+                <p className="text-[9px] text-gray-400">/ 100</p>
+              </div>
+            </ProgressRing>
+            <div className="flex-1 space-y-1">
+              {smart.breakdown.slice(0, 4).map((b) => (
+                <div key={b.label} className="flex items-center justify-between text-xs">
+                  <span className="text-gray-500">{b.label}</span>
+                  <span className={`font-semibold ${b.points < 0 ? 'text-wine' : 'text-navy-700'}`}>{b.points > 0 ? '+' : ''}{b.points}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
         {/* Hot score + freshness */}
         <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
           <div className="flex items-center justify-between mb-4">
