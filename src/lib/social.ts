@@ -11,10 +11,9 @@ export const SOCIAL_LINKS = {
     active: true,
   },
   facebook: {
-    // TODO: Update with Jordan's Facebook page URL
-    url: 'https://www.facebook.com/',
+    url: 'https://www.facebook.com/share/1D4osW7eJa/?mibextid=wwXIfr',
     label: 'Facebook',
-    active: false,
+    active: true,
   },
   linkedin: {
     // TODO: Update with Jordan's LinkedIn profile URL
