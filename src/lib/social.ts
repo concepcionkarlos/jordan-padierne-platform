@@ -21,10 +21,9 @@ export const SOCIAL_LINKS = {
     active: true,
   },
   zillow: {
-    // TODO: Update with Jordan's Zillow profile URL
-    url: 'https://www.zillow.com/',
+    url: 'https://www.zillow.com/invite/details?token=2cd62984-77cd-4865-a1a3-2342d42333fb',
     label: 'Zillow',
-    active: false,
+    active: true,
   },
 }
 
