@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { Phone, Mail, MapPin, Shield } from 'lucide-react'
 import { SOCIAL_LINKS, CONTACT_INFO } from '@/lib/social'
 import SocialIcons from '@/components/ui/SocialIcons'
@@ -40,6 +41,18 @@ export default function Footer() {
             <p className="text-navy-200 text-sm leading-relaxed mb-5">
               {t('footer.tagline')}
             </p>
+            {/* eXp Realty brokerage logo */}
+            <div className="mb-5">
+              <p className="text-navy-400 text-[10px] uppercase tracking-widest mb-2">Brokered by</p>
+              <Image
+                src="/exp-realty-logo.jpeg"
+                alt="eXp Realty"
+                width={120}
+                height={60}
+                className="h-8 w-auto opacity-90"
+                style={{ filter: 'brightness(0) invert(1)' }}
+              />
+            </div>
             <div className="space-y-3 mb-6">
               <a
                 href={CONTACT_INFO.phoneHref}

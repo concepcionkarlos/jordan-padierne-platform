@@ -25,6 +25,11 @@ export const SOCIAL_LINKS = {
     label: 'Zillow',
     active: true,
   },
+  youtube: {
+    url: 'https://www.youtube.com/@JordanPadierneRealtor',
+    label: 'YouTube',
+    active: true,
+  },
 }
 
 export const CONTACT_INFO = {
