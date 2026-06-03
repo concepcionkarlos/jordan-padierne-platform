@@ -41,17 +41,18 @@ export default function Footer() {
             <p className="text-navy-200 text-sm leading-relaxed mb-5">
               {t('footer.tagline')}
             </p>
-            {/* eXp Realty brokerage logo */}
+            {/* eXp Realty brokerage logo — shown on a clean white badge */}
             <div className="mb-5">
               <p className="text-navy-400 text-[10px] uppercase tracking-widest mb-2">Brokered by</p>
-              <Image
-                src="/exp-realty-logo.jpeg"
-                alt="eXp Realty"
-                width={120}
-                height={60}
-                className="h-8 w-auto opacity-90"
-                style={{ filter: 'brightness(0) invert(1)' }}
-              />
+              <div className="inline-flex bg-white rounded-xl px-4 py-3 shadow-sm">
+                <Image
+                  src="/exp-realty-logo.jpeg"
+                  alt="eXp Realty"
+                  width={140}
+                  height={70}
+                  className="h-9 w-auto"
+                />
+              </div>
             </div>
             <div className="space-y-3 mb-6">
               <a

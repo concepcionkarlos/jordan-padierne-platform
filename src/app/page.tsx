@@ -5,6 +5,7 @@ import WhyJordanSection from '@/components/home/WhyJordanSection'
 import ServicesSection from '@/components/home/ServicesSection'
 import PreConstructionSection from '@/components/home/PreConstructionSection'
 import AreasSection from '@/components/home/AreasSection'
+import VideosSection from '@/components/home/VideosSection'
 import TestimonialsSection from '@/components/home/TestimonialsSection'
 import ContactCTASection from '@/components/home/ContactCTASection'
 import StructuredData from '@/components/StructuredData'
@@ -22,6 +23,7 @@ export default function HomePage() {
       <ServicesSection />
       <PreConstructionSection />
       <AreasSection />
+      <VideosSection />
       <TestimonialsSection />
       <ContactCTASection />
     </PublicLayout>
