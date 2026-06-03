@@ -7,6 +7,10 @@ import { AREAS, TIMELINES, FINANCING_OPTIONS } from '@/lib/utils'
 
 interface FormData {
   intent: string
+  // contact (only collected when the lead isn't already known)
+  full_name: string
+  email: string
+  phone: string
   // buyer
   budget_min: string
   budget_max: string
@@ -29,10 +33,11 @@ interface FormData {
   contact_method: string
 }
 
-export default function QualificationForm({ leadId, firstName }: { leadId: string; firstName: string }) {
+export default function QualificationForm({ leadId, firstName, known = true }: { leadId: string; firstName: string; known?: boolean }) {
   const [step, setStep] = useState(1)
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
   const { register, handleSubmit, trigger, watch, formState: { errors } } = useForm<FormData>({ defaultValues: { intent: 'Buy' } })
 
   const intent = watch('intent')
@@ -50,8 +55,9 @@ export default function QualificationForm({ leadId, firstName }: { leadId: strin
 
   const onSubmit = async (data: FormData) => {
     setLoading(true)
+    setError('')
     try {
-      await fetch('/api/qualify', {
+      const res = await fetch('/api/qualify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -62,7 +68,14 @@ export default function QualificationForm({ leadId, firstName }: { leadId: strin
           expected_price: data.expected_price ? Number(data.expected_price) : null,
         }),
       })
+      const d = await res.json().catch(() => ({ success: false }))
+      if (!res.ok || !d.success) {
+        setError('Something went wrong. Please try again or call 305-799-6973.')
+        return
+      }
       setSubmitted(true)
+    } catch {
+      setError('Something went wrong. Please try again or call 305-799-6973.')
     } finally {
       setLoading(false)
     }
@@ -83,6 +96,29 @@ export default function QualificationForm({ leadId, firstName }: { leadId: strin
       </div>
     )
   }
+
+  // Collected only when the lead isn't already known (resilient/broken-link path).
+  const contactBlock = !known ? (
+    <div className="space-y-4 pb-4 mb-2 border-b border-gray-100">
+      <p className="text-sm text-gray-600 font-medium">First, how can Jordan reach you?</p>
+      <div>
+        <label className="label">Full name *</label>
+        <input {...register('full_name', { required: 'Required' })} className="input-field" placeholder="Your name" />
+        {errors.full_name && <p className="text-wine text-xs mt-1">{errors.full_name.message}</p>}
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="label">Email *</label>
+          <input {...register('email', { required: 'Required' })} type="email" className="input-field" placeholder="you@email.com" />
+          {errors.email && <p className="text-wine text-xs mt-1">{errors.email.message}</p>}
+        </div>
+        <div>
+          <label className="label">Phone</label>
+          <input {...register('phone')} type="tel" className="input-field" placeholder="305-555-0123" />
+        </div>
+      </div>
+    </div>
+  ) : null
 
   return (
     <div>
@@ -183,6 +219,7 @@ export default function QualificationForm({ leadId, firstName }: { leadId: strin
         {isSeller && step === 4 && (
           <div className="space-y-5 animate-fade-in">
             <h3 className="font-serif text-xl font-bold text-navy-900 text-center">Almost done!</h3>
+            {contactBlock}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="label">Price you hope to get ($)</label>
@@ -207,6 +244,7 @@ export default function QualificationForm({ leadId, firstName }: { leadId: strin
                 <select {...register('best_time')} className="input-field"><option>Morning</option><option>Afternoon</option><option>Evening</option><option>Anytime</option></select>
               </div>
             </div>
+            {error && <p className="text-wine text-sm text-center font-medium">{error}</p>}
             <div className="flex gap-3">
               <button type="button" onClick={() => setStep(3)} className="btn-secondary"><ArrowLeft size={16} /></button>
               <button type="submit" disabled={loading} className="btn-wine cta-shine flex-1 justify-center py-4 disabled:opacity-60">
@@ -281,6 +319,7 @@ export default function QualificationForm({ leadId, firstName }: { leadId: strin
         {!isSeller && step === 4 && (
           <div className="space-y-5 animate-fade-in">
             <h3 className="font-serif text-xl font-bold text-navy-900 text-center">Almost done!</h3>
+            {contactBlock}
             <div>
               <label className="label">What&apos;s most important to you in this move?</label>
               <textarea {...register('motivation')} rows={3} className="input-field resize-none" placeholder="Tell Jordan what matters most — location, timing, getting the best deal, a fresh start…" />
@@ -295,6 +334,7 @@ export default function QualificationForm({ leadId, firstName }: { leadId: strin
                 <select {...register('best_time')} className="input-field"><option>Morning</option><option>Afternoon</option><option>Evening</option><option>Anytime</option></select>
               </div>
             </div>
+            {error && <p className="text-wine text-sm text-center font-medium">{error}</p>}
             <div className="flex gap-3">
               <button type="button" onClick={() => setStep(3)} className="btn-secondary"><ArrowLeft size={16} /></button>
               <button type="submit" disabled={loading} className="btn-wine cta-shine flex-1 justify-center py-4 disabled:opacity-60">
