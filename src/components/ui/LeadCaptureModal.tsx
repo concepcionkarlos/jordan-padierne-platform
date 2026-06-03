@@ -38,8 +38,8 @@ export default function LeadCaptureModal() {
     const onMouseOut = (e: MouseEvent) => {
       if (e.clientY <= 0) trigger()
     }
-    // 3) Fallback timer (35s)
-    const timer = window.setTimeout(trigger, 35000)
+    // 3) Auto-show after 10 seconds on the page
+    const timer = window.setTimeout(trigger, 10000)
 
     window.addEventListener('scroll', onScroll, { passive: true })
     document.addEventListener('mouseout', onMouseOut)
