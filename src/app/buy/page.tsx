@@ -5,9 +5,9 @@ import PublicLayout from '@/components/layout/PublicLayout'
 import { CheckCircle2, ArrowRight, Home, Search, FileText, Key } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'Buy a Home',
+  title: 'Buy a Home in Miami',
   description:
-    'Ready to buy a home in South Florida? Jordan Padierne guides buyers through every step in Miami-Dade, Brickell, Doral, Coral Gables, and more.',
+    'Buy a home or condo in Miami with Realtor Jordan Padierne. Expert buyer guidance in Brickell, Doral, Coral Gables, Downtown Miami & Hialeah. First-time buyers, luxury & international clients welcome. Bilingual. Call 305-799-6973.',
 }
 
 const steps = [

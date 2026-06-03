@@ -11,9 +11,9 @@ import { Phone, Mail, Clock, MapPin } from 'lucide-react'
 import { CONTACT_INFO } from '@/lib/social'
 
 export const metadata: Metadata = {
-  title: 'Contact',
+  title: 'Contact Jordan Padierne — Miami Realtor',
   description:
-    'Contact Jordan Padierne, South Florida Realtor. Schedule a free consultation, request a showing, or fill out our buyer and investor forms.',
+    'Contact Miami Realtor Jordan Padierne. Schedule a free consultation, request a showing, or get expert real estate guidance in Brickell, Doral, Coral Gables & Miami-Dade. Call or text 305-799-6973. Hablamos Español.',
 }
 
 const contactInfo = [

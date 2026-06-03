@@ -5,9 +5,9 @@ import PublicLayout from '@/components/layout/PublicLayout'
 import { CheckCircle2, ArrowRight, Award, Globe, Heart } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'About Jordan',
+  title: 'About Jordan Padierne — Miami Realtor',
   description:
-    'Meet Jordan Padierne — South Florida Realtor with eXp Realty. Born in Cuba, based in Miami. Helping buyers, investors, and international clients with a personal, family-oriented approach.',
+    'Meet Jordan Padierne, a trusted Miami Realtor with eXp Realty. Born in Cuba, based in Miami, bilingual (English/Español). Family-oriented real estate expert helping buyers, investors & international clients across Miami-Dade.',
 }
 
 const highlights = [

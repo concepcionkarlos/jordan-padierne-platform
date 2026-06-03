@@ -5,9 +5,9 @@ import PublicLayout from '@/components/layout/PublicLayout'
 import { CheckCircle2, ArrowRight, Zap, TrendingUp, Building2 } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'Pre-Construction',
+  title: 'Pre-Construction Condos in Miami',
   description:
-    "Jordan Padierne's specialty — pre-construction opportunities in Miami. Get first access to exclusive projects in Brickell, Downtown, Doral, and more.",
+    'Miami pre-construction condos & new developments with Jordan Padierne. Get early access to exclusive pre-launch projects in Brickell, Downtown Miami, Doral & Edgewater at the best pricing. Pre-construction specialist. Call 305-799-6973.',
 }
 
 const benefits = [

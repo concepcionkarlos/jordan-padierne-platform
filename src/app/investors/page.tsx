@@ -5,9 +5,9 @@ import PublicLayout from '@/components/layout/PublicLayout'
 import { TrendingUp, DollarSign, BarChart2, CheckCircle2, ArrowRight } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'Investors',
+  title: 'Miami Investment Properties',
   description:
-    'Investment properties in South Florida with Jordan Padierne. ROI analysis, pre-construction, short-term rentals, and long-term portfolio growth in Miami-Dade.',
+    'Invest in Miami real estate with Jordan Padierne. High-ROI investment properties, pre-construction, Airbnb short-term & long-term rentals across Miami-Dade. Strategy for first-time & seasoned investors. Bilingual. Call 305-799-6973.',
 }
 
 const investmentTypes = [

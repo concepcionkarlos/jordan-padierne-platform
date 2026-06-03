@@ -7,9 +7,9 @@ import { safeQuery } from '@/lib/db'
 import PropertiesGrid from '@/components/PropertiesGrid'
 
 export const metadata: Metadata = {
-  title: 'Properties',
+  title: 'Homes & Condos for Sale in Miami',
   description:
-    'Search properties in South Florida with Jordan Padierne — condos, luxury homes, pre-construction, and investment opportunities in Miami-Dade.',
+    'Browse homes, condos & properties for sale and rent in Miami with Realtor Jordan Padierne. Brickell, Doral, Coral Gables, Downtown & more — for sale, rentals & investment listings. Bilingual service. Call 305-799-6973.',
 }
 
 // Sample fallback shown only when no listings exist in the database yet.

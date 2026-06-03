@@ -6,6 +6,7 @@ import PreConstructionSection from '@/components/home/PreConstructionSection'
 import AreasSection from '@/components/home/AreasSection'
 import TestimonialsSection from '@/components/home/TestimonialsSection'
 import ContactCTASection from '@/components/home/ContactCTASection'
+import StructuredData from '@/components/StructuredData'
 
 // Refresh periodically so new testimonials appear without a redeploy.
 export const revalidate = 120
@@ -13,6 +14,7 @@ export const revalidate = 120
 export default function HomePage() {
   return (
     <PublicLayout showLeadModal>
+      <StructuredData />
       <HeroSection />
       <WhyJordanSection />
       <ServicesSection />

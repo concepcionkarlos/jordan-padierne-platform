@@ -5,9 +5,9 @@ import HomeValuationForm from '@/components/forms/HomeValuationForm'
 import { TrendingUp, DollarSign, Clock, CheckCircle2 } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'What\'s My Home Worth?',
+  title: 'What\'s My Miami Home Worth? Free Valuation',
   description:
-    'Get a free, no-obligation home valuation from Jordan Padierne. Find out what your South Florida property is worth in today\'s market — Miami-Dade, Brickell, Doral, Coral Gables, Hialeah.',
+    'Sell your Miami home with confidence. Get a FREE, no-obligation home valuation from Realtor Jordan Padierne. Find out what your property in Brickell, Doral, Coral Gables, Hialeah or Miami-Dade is worth today. Call 305-799-6973.',
 }
 
 const benefits = [
