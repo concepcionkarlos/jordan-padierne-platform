@@ -1,27 +1,59 @@
 export const dynamic = 'force-dynamic'
-import { Users, MessageSquare, TrendingUp, AlertCircle, UserCircle, Phone, Clock, Flame, CalendarClock, ArrowRight, Target, Zap, CheckSquare, Calendar } from 'lucide-react'
+import { Users, MessageSquare, TrendingUp, AlertCircle, UserCircle, Phone, Clock, Flame, CalendarClock, ArrowRight, Target, Zap, CheckSquare, Calendar, Sparkles } from 'lucide-react'
 import { safeQuery } from '@/lib/db'
 import { isSupabaseConfigured } from '@/lib/supabase'
 import { formatRelativeTime, getPipelineStageColor, getPipelineStageLabel, formatCurrency } from '@/lib/utils'
 import { getLeadFreshness, getFollowupStatus, getTagDef } from '@/lib/leads'
 import { buildActivityDays, calcStreak, countTodayActivity, commissionFor, weightedDealValue, isThisMonth } from '@/lib/goals'
+import { getNextAction, urgencyMeta, urgencyRank } from '@/lib/coach'
 import ProgressRing from '@/components/admin/ProgressRing'
+import GettingStarted from '@/components/admin/GettingStarted'
 import Link from 'next/link'
 
 const DAILY_GOAL = 5
 const MONTHLY_CLOSE_GOAL = 2
 
 async function getData() {
-  const [leads, messages, notes, appointments, doneTasks, todoTasks]: any[] = await Promise.all([
+  const [leads, messages, notes, appointments, doneTasks, todoTasks, properties, testimonials]: any[] = await Promise.all([
     safeQuery((db) => db.from('leads').select('*').order('created_at', { ascending: false }).limit(400), []),
     safeQuery((db) => db.from('messages').select('id, full_name, status, created_at').order('created_at', { ascending: false }).limit(10), []),
-    safeQuery((db) => db.from('notes').select('created_at').order('created_at', { ascending: false }).limit(400), []),
+    safeQuery((db) => db.from('notes').select('created_at, lead_id').order('created_at', { ascending: false }).limit(800), []),
     safeQuery((db) => db.from('appointments').select('*, leads(full_name, phone)').order('starts_at', { ascending: true }).limit(200), []),
     safeQuery((db) => db.from('tasks').select('completed_at').eq('status', 'done').limit(400), []),
     safeQuery((db) => db.from('tasks').select('*').eq('status', 'todo').order('due_date', { ascending: true }).limit(100), []),
+    safeQuery((db) => db.from('properties').select('id').limit(1), []),
+    safeQuery((db) => db.from('testimonials').select('id').limit(1), []),
   ])
 
   const active = leads.filter((l: any) => !['closed', 'lost'].includes(l.status))
+
+  // ─── Coach Action Feed: the single best move per active lead, prioritized ───
+  const noteCountBy: Record<string, number> = {}
+  const lastNoteBy: Record<string, string> = {}
+  for (const n of notes) {
+    if (!n.lead_id) continue
+    noteCountBy[n.lead_id] = (noteCountBy[n.lead_id] ?? 0) + 1
+    if (!lastNoteBy[n.lead_id]) lastNoteBy[n.lead_id] = n.created_at // notes are desc, first seen is latest
+  }
+  const nowD = new Date()
+  const apptByLead: Record<string, any[]> = {}
+  for (const a of appointments) { if (a.lead_id) (apptByLead[a.lead_id] ??= []).push(a) }
+
+  const actionFeed = active.map((l: any) => {
+    const la: any[] = apptByLead[l.id] ?? []
+    const upcoming = la.find((a: any) => new Date(a.starts_at) >= nowD && a.status === 'scheduled')
+    const pastAppt = la.find((a: any) => new Date(a.starts_at) < nowD)
+    const lastNote = lastNoteBy[l.id]
+    const action = getNextAction(l, {
+      noteCount: noteCountBy[l.id] ?? 0,
+      hasUpcomingAppt: !!upcoming,
+      nextApptAt: upcoming?.starts_at ?? null,
+      hasPastApptNoFollowup: !!pastAppt && (!lastNote || new Date(lastNote) < new Date(pastAppt.starts_at)),
+    })
+    return { lead: l, action }
+  })
+    .sort((a: any, b: any) => urgencyRank(a.action.urgency) - urgencyRank(b.action.urgency))
+    .slice(0, 12)
 
   // Gamification
   const activityDays = buildActivityDays(notes, appointments, doneTasks)
@@ -60,8 +92,12 @@ async function getData() {
     totalLeads: leads.length, newLeads: leads.filter((l: any) => l.status === 'new').length,
     unreadMessages: messages.filter((m: any) => m.status === 'unread').length, activePipeline: active.length,
     streak, todayCount, earnedThisMonth, forecastValue, closedCount,
-    todaysAppts, followupsDue, overdueTasks, staleLeads, hotLeads,
+    todaysAppts, followupsDue, overdueTasks, staleLeads, hotLeads, actionFeed,
     recentLeads: leads.slice(0, 5),
+    onboarding: {
+      leads: leads.length, properties: properties.length, notes: notes.length,
+      appointments: appointments.length, testimonials: testimonials.length,
+    },
     planCount: todaysAppts.length + followupsDue.length + overdueTasks.length,
   }
 }
@@ -133,6 +169,9 @@ export default async function AdminDashboard() {
         </div>
       </div>
 
+      {/* ─── Getting Started (auto-hides when complete) ─── */}
+      <GettingStarted stats={d.onboarding} />
+
       {/* ─── Stat cards ─── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
@@ -155,6 +194,38 @@ export default async function AdminDashboard() {
           )
         })}
       </div>
+
+      {/* ─── Coach Action Feed: what to do, per lead, prioritized ─── */}
+      {d.actionFeed.length > 0 && (
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-6">
+          <div className="px-5 py-4 border-b border-gray-50 flex items-center gap-2 bg-gradient-to-r from-navy-900/5 to-transparent">
+            <Sparkles size={16} className="text-wine" />
+            <h2 className="font-semibold text-navy-900 text-sm">Your Coach — Next Moves</h2>
+            <span className="text-gray-400 text-xs ml-auto">Smart-prioritized across {d.activePipeline} active leads</span>
+          </div>
+          <div className="divide-y divide-gray-50">
+            {d.actionFeed.map(({ lead, action }: any) => {
+              const um = urgencyMeta(action.urgency)
+              return (
+                <div key={lead.id} className="flex items-center gap-3 px-5 py-3.5 hover:bg-gray-50 transition-colors group">
+                  <span className="text-xl shrink-0">{action.emoji}</span>
+                  <Link href={`/admin/leads/${lead.id}`} className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="font-semibold text-navy-900 text-sm truncate">{action.title}</p>
+                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${um.className} shrink-0`}>{um.label}</span>
+                    </div>
+                    <p className="text-gray-400 text-xs truncate">{lead.full_name} · {action.reason}</p>
+                  </Link>
+                  {lead.phone && (
+                    <a href={`tel:${lead.phone}`} className="w-8 h-8 rounded-lg bg-gray-50 group-hover:bg-sky-50 flex items-center justify-center text-sky-500 shrink-0" aria-label="Call"><Phone size={14} /></a>
+                  )}
+                  <Link href={`/admin/leads/${lead.id}`} className="hidden sm:inline-flex items-center gap-1 text-xs font-semibold text-wine shrink-0">{action.actionLabel}<ArrowRight size={12} /></Link>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
 
       {/* ─── Today's Plan ─── */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-6">
@@ -184,15 +255,15 @@ export default async function AdminDashboard() {
           ))}
           {/* Follow-ups */}
           {d.followupsDue.map(({ lead, fu }: any) => (
-            <Link key={lead.id} href={`/admin/leads/${lead.id}`} className="flex items-center gap-3 px-5 py-3 hover:bg-gray-50 transition-colors">
+            <div key={lead.id} className="flex items-center gap-3 px-5 py-3 hover:bg-gray-50 transition-colors">
               <CalendarClock size={18} className="text-wine shrink-0" />
-              <div className="flex-1 min-w-0">
+              <Link href={`/admin/leads/${lead.id}`} className="flex-1 min-w-0">
                 <p className="font-semibold text-navy-900 text-sm truncate">Follow up with {lead.full_name}</p>
                 <p className="text-gray-400 text-xs">{lead.client_type}</p>
-              </div>
-              <a href={`tel:${lead.phone}`} onClick={(e) => e.stopPropagation()} className="text-sky-400 hover:text-sky-600" aria-label="Call"><Phone size={15} /></a>
+              </Link>
+              <a href={`tel:${lead.phone}`} className="text-sky-400 hover:text-sky-600" aria-label="Call"><Phone size={15} /></a>
               <span className={`badge text-xs ${fu.overdue ? 'bg-wine-50 text-wine' : 'bg-amber-50 text-amber-600'}`}>{fu.label}</span>
-            </Link>
+            </div>
           ))}
           {/* Overdue tasks */}
           {d.overdueTasks.map((t: any) => (

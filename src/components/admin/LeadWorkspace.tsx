@@ -12,8 +12,11 @@ import {
 } from '@/lib/utils'
 import { LEAD_TAGS, getTagDef, HOT_SCORES, getHotScore, getLeadFreshness, scoreLead, scoreColor } from '@/lib/leads'
 import { commissionFor } from '@/lib/goals'
+import { getNextAction, urgencyMeta } from '@/lib/coach'
+import { TEMPLATES, fillTemplate } from '@/lib/templates'
 import TemplatesPanel from './TemplatesPanel'
 import ProgressRing from './ProgressRing'
+import { Sparkles, ArrowRight } from 'lucide-react'
 
 const STAGES = ['NEW', 'QUALIFIED', 'CONTACTED', 'SHOWING_SCHEDULED', 'NEGOTIATION', 'CLOSED', 'LOST']
 
@@ -57,6 +60,40 @@ export default function LeadWorkspace({ lead: initialLead, initialNotes, initial
   const commRate = lead.commission_rate ?? 3
   const commission = dealValue ? commissionFor(dealValue, commRate) : 0
   const smart = scoreLead({ ...lead, noteCount: notes.length, apptCount: appts.length })
+
+  // ─── Coach: next best action ───
+  const now = new Date()
+  const upcoming = appts.find((a) => new Date(a.starts_at) >= now && a.status === 'scheduled')
+  const pastAppt = appts.find((a) => new Date(a.starts_at) < now)
+  const lastNoteAt = notes[0]?.created_at
+  const hasPastApptNoFollowup = !!pastAppt && (!lastNoteAt || new Date(lastNoteAt) < new Date(pastAppt.starts_at))
+  const nextAction = getNextAction(lead, {
+    noteCount: notes.length,
+    hasUpcomingAppt: !!upcoming,
+    nextApptAt: upcoming?.starts_at ?? null,
+    hasPastApptNoFollowup,
+  })
+  const uMeta = urgencyMeta(nextAction.urgency)
+
+  // Resolve the coach button into a concrete one-click action
+  function runCoachAction() {
+    const a = nextAction
+    if (a.actionType === 'call') { window.location.href = `tel:${lead.phone}`; return }
+    if (a.actionType === 'schedule') { setShowApptForm(true); document.getElementById('appt-anchor')?.scrollIntoView({ behavior: 'smooth' }); return }
+    if (a.actionType === 'advance' && a.stage) {
+      patchLead({ pipeline_stage: a.stage, status: a.stage === 'QUALIFIED' ? 'qualified' : lead.status })
+      return
+    }
+    if ((a.actionType === 'template' || a.actionType === 'whatsapp') && a.templateId) {
+      const tpl = TEMPLATES.find((t) => t.id === a.templateId)
+      if (tpl) {
+        const text = fillTemplate(tpl.en, lead.full_name)
+        const phone = (lead.phone ?? '').replace(/\D/g, '')
+        window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, '_blank')
+      }
+      return
+    }
+  }
 
   // ─── Lead patch helper ───
   async function patchLead(updates: Record<string, unknown>) {
@@ -150,7 +187,31 @@ export default function LeadWorkspace({ lead: initialLead, initialNotes, initial
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div className="space-y-6">
+      {/* ─── Coach: Next Best Action ─── */}
+      <div className="bg-gradient-to-r from-navy-900 to-navy-700 rounded-2xl p-5 lg:p-6 shadow-card relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-48 h-48 bg-sky-500/10 rounded-full blur-3xl" />
+        <div className="relative flex flex-col sm:flex-row sm:items-center gap-4">
+          <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center shrink-0 text-2xl">
+            {nextAction.emoji}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="flex items-center gap-1 text-xs font-bold text-sky-300 uppercase tracking-wide">
+                <Sparkles size={12} /> Your Next Move
+              </span>
+              <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${uMeta.className}`}>{uMeta.label}</span>
+            </div>
+            <p className="text-white font-serif text-lg font-bold leading-tight">{nextAction.title}</p>
+            <p className="text-navy-200 text-sm mt-0.5">{nextAction.reason}</p>
+          </div>
+          <button type="button" onClick={runCoachAction} className="btn-wine cta-shine shrink-0 whitespace-nowrap">
+            {nextAction.actionLabel} <ArrowRight size={15} />
+          </button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* ─── Left column: contact + actions ─── */}
       <div className="lg:col-span-1 space-y-4">
         {/* Smart Score */}
@@ -348,7 +409,7 @@ export default function LeadWorkspace({ lead: initialLead, initialNotes, initial
         </div>
 
         {/* Appointments */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
+        <div id="appt-anchor" className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm scroll-mt-24">
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-semibold text-navy-900 text-sm flex items-center gap-2">
               <CalendarPlus size={14} className="text-sky-400" /> Appointments
@@ -520,6 +581,7 @@ export default function LeadWorkspace({ lead: initialLead, initialNotes, initial
 
         {/* Quick message templates */}
         <TemplatesPanel leadName={lead.full_name} leadPhone={lead.phone} leadEmail={lead.email} />
+      </div>
       </div>
     </div>
   )
