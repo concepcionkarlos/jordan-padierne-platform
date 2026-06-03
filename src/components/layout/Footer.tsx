@@ -162,9 +162,6 @@ export default function Footer() {
           </div>
           <div className="flex items-center gap-4">
             <SocialIcons variant="minimal" />
-            <Link href="/admin" className="text-navy-600 hover:text-navy-400 text-xs transition-colors">
-              Admin
-            </Link>
           </div>
         </div>
       </div>
