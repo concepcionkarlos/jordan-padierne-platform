@@ -287,6 +287,39 @@ export async function sendQualificationAlert(data: {
   return send(adminEmail, `${tempEmoji} ${data.full_name} qualified as a ${data.temperature} lead`, html)
 }
 
+// ─── Google review request after a closing ───
+export async function sendReviewRequest(
+  clientEmail: string,
+  clientName: string,
+  reviewUrl: string
+): Promise<boolean> {
+  const first = (clientName || '').trim().split(' ')[0] || 'there'
+  const stars = '⭐️⭐️⭐️⭐️⭐️'
+  const html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#F4F7FA;font-family:'Segoe UI',Arial,sans-serif">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#F4F7FA;padding:32px 16px"><tr><td>
+<table width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;margin:0 auto">
+  <tr><td style="background:#0A1628;padding:28px;border-radius:12px 12px 0 0;text-align:center">
+    <p style="margin:0;font-size:22px;font-weight:700;color:#fff;font-family:Georgia,serif">Jordan Padierne</p>
+    <p style="margin:6px 0 0;font-size:10px;color:#7BA7C2;text-transform:uppercase;letter-spacing:1.5px">Realtor · eXp Realty · South Florida</p>
+  </td></tr>
+  <tr><td style="background:#fff;padding:34px 28px;border-radius:0 0 12px 12px;text-align:center">
+    <p style="font-size:30px;margin:0 0 6px;letter-spacing:2px">${stars}</p>
+    <h2 style="margin:0 0 12px;font-size:22px;color:#0A1628;font-family:Georgia,serif">Thank you, ${first}!</h2>
+    <p style="margin:0 0 22px;font-size:15px;color:#475569;line-height:1.75">It was a true pleasure helping you. If you were happy with the experience, a quick Google review would mean the world to me — and it helps other families find someone they can trust. It only takes a minute.</p>
+    <div style="margin:0 0 24px">
+      <a href="${reviewUrl}" style="display:inline-block;background:#8B1A2F;color:#fff;padding:14px 34px;border-radius:8px;font-size:15px;font-weight:700;text-decoration:none">Leave a Google Review ${stars}</a>
+    </div>
+    <p style="margin:0;font-size:13px;color:#94A3B8;line-height:1.7">Thank you for trusting me with one of life's biggest decisions.<br>— Jordan</p>
+    <p style="margin:18px 0 0;padding-top:16px;border-top:1px solid #E2E8F0;font-size:11px;color:#CBD5E1">
+      Questions anytime? <a href="tel:+13057996973" style="color:#7BA7C2;font-weight:600">305-799-6973</a> · eXp Realty · License SL3641062
+    </p>
+  </td></tr>
+</table></td></tr></table></body></html>`
+
+  return send(clientEmail, `${first}, how did I do? ${stars}`, html, 'info@jordanpadierne.com')
+}
+
 // ─── Reminder to a client who hasn't completed their profile yet ───
 export async function sendProfileReminder(clientEmail: string, clientName: string, leadId: string): Promise<boolean> {
   const first = (clientName || '').trim().split(' ')[0] || 'there'

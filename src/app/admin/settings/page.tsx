@@ -1,6 +1,7 @@
 import { Settings, Phone, Mail, Shield, Globe, MessageSquare, Bell, CheckCircle2, XCircle } from 'lucide-react'
 import { isEmailConfigured } from '@/lib/email'
 import { isSupabaseConfigured } from '@/lib/supabase'
+import ReviewLinkSetting from '@/components/admin/ReviewLinkSetting'
 
 export default function SettingsPage() {
   const emailConnected = isEmailConfigured()
@@ -87,6 +88,9 @@ export default function SettingsPage() {
             </div>
           </div>
         </div>
+
+        {/* Google Reviews auto-request */}
+        <ReviewLinkSetting />
 
         {/* Integrations */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">

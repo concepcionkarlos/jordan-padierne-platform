@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase'
+import { requestReviewForLead } from '@/lib/reviews'
 
 export async function GET() {
   try {
@@ -43,6 +44,11 @@ export async function PATCH(req: NextRequest) {
 
     // Log pipeline move
     await supabase.from('pipeline_entries').insert({ lead_id, stage })
+
+    // Deal closed → ask the happy client for a Google review (self-guards against repeats)
+    if (stage === 'CLOSED') {
+      requestReviewForLead(lead_id).catch(() => {})
+    }
 
     return NextResponse.json({ success: true })
   } catch (err) {

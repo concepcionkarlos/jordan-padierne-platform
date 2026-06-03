@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase'
+import { requestReviewForLead } from '@/lib/reviews'
 
 export async function GET(req: NextRequest) {
   try {
@@ -53,6 +54,11 @@ export async function PATCH(req: NextRequest) {
 
     const { data, error } = await supabase.from('leads').update(updates).eq('id', id).select().single()
     if (error) throw error
+
+    // Deal closed → ask the happy client for a Google review (self-guards against repeats)
+    if (updates.pipeline_stage === 'CLOSED' || updates.status === 'closed') {
+      requestReviewForLead(id).catch(() => {})
+    }
 
     return NextResponse.json({ success: true, data })
   } catch (err) {
