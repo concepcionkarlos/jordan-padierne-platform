@@ -7,6 +7,7 @@ import BuyerQualificationForm from '@/components/forms/BuyerQualificationForm'
 import InvestorForm from '@/components/forms/InvestorForm'
 import PreConstructionForm from '@/components/forms/PreConstructionForm'
 import SocialIcons from '@/components/ui/SocialIcons'
+import AuroraBackground from '@/components/ui/AuroraBackground'
 import { Phone, Mail, Clock, MapPin } from 'lucide-react'
 import { CONTACT_INFO } from '@/lib/social'
 
@@ -27,8 +28,9 @@ export default function ContactPage() {
   return (
     <PublicLayout>
       {/* Hero */}
-      <section className="bg-navy-900 pt-28 pb-16">
-        <div className="container-max section-padding text-center">
+      <section className="bg-navy-900 pt-28 pb-16 relative overflow-hidden">
+        <AuroraBackground variant="dark" className="mix-blend-screen" />
+        <div className="container-max section-padding text-center relative">
           <p className="text-sky-400 font-semibold text-sm uppercase tracking-widest mb-4">Contact</p>
           <h1 className="font-serif text-4xl sm:text-5xl font-bold text-white mb-6">
             Let&apos;s Find Your{' '}

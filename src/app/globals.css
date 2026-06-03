@@ -194,11 +194,38 @@
 }
 .animate-slide-up-bar { animation: slideUpBar 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
 
+/* ─── Aurora / smoke background (brand-colored soft drifting orbs) ─────────── */
+/* Uses soft radial gradients (no heavy blur filter) + transform-only animation
+   so it's GPU-accelerated and smooth on phones and low-end devices. */
+.aurora { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.aurora-orb {
+  position: absolute;
+  border-radius: 9999px;
+  will-change: transform;
+  opacity: 0.55;
+}
+@keyframes auroraDrift1 {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(9%, -7%, 0) scale(1.18); }
+}
+@keyframes auroraDrift2 {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1.05); }
+  50% { transform: translate3d(-11%, 9%, 0) scale(0.92); }
+}
+@keyframes auroraDrift3 {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(0.95); }
+  50% { transform: translate3d(7%, 11%, 0) scale(1.12); }
+}
+.aurora-1 { animation: auroraDrift1 22s ease-in-out infinite; }
+.aurora-2 { animation: auroraDrift2 28s ease-in-out infinite; }
+.aurora-3 { animation: auroraDrift3 25s ease-in-out infinite; }
+
 /* Respect reduced motion — disable all the above */
 @media (prefers-reduced-motion: reduce) {
   .reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
   .animate-ken-burns, .cta-shine::after, .pulse-glow, .animate-float,
-  .text-gradient-animate, .animate-modal-pop, .animate-slide-up-bar {
+  .text-gradient-animate, .animate-modal-pop, .animate-slide-up-bar,
+  .aurora-1, .aurora-2, .aurora-3 {
     animation: none !important;
   }
 }

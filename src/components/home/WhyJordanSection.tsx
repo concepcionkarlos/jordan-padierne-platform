@@ -2,6 +2,7 @@
 
 import { Shield, Handshake, MapPin, Building2, Users } from 'lucide-react'
 import Reveal from '@/components/ui/Reveal'
+import AuroraBackground from '@/components/ui/AuroraBackground'
 import { useT } from '@/components/LanguageProvider'
 
 const reasons = [
@@ -42,14 +43,17 @@ export default function WhyJordanSection() {
           })}
         </div>
 
-        <Reveal variant="scale" className="mt-16 bg-navy-900 rounded-3xl p-8 lg:p-12 text-center">
-          <blockquote className="font-serif text-2xl lg:text-3xl font-semibold text-white leading-relaxed max-w-3xl mx-auto">
-            {t('why.quote')}
-          </blockquote>
-          <div className="mt-6 flex items-center justify-center gap-3">
-            <div className="h-px w-12 bg-sky-500" />
-            <p className="text-sky-400 font-semibold text-sm">Jordan Padierne · eXp Realty</p>
-            <div className="h-px w-12 bg-sky-500" />
+        <Reveal variant="scale" className="mt-16 bg-navy-900 rounded-3xl p-8 lg:p-12 text-center relative overflow-hidden">
+          <AuroraBackground variant="dark" className="mix-blend-screen opacity-70" />
+          <div className="relative">
+            <blockquote className="font-serif text-2xl lg:text-3xl font-semibold text-white leading-relaxed max-w-3xl mx-auto">
+              {t('why.quote')}
+            </blockquote>
+            <div className="mt-6 flex items-center justify-center gap-3">
+              <div className="h-px w-12 bg-sky-500" />
+              <p className="text-sky-400 font-semibold text-sm">Jordan Padierne · eXp Realty</p>
+              <div className="h-px w-12 bg-sky-500" />
+            </div>
           </div>
         </Reveal>
       </div>

@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { ArrowRight, Phone } from 'lucide-react'
 import SocialIcons from '@/components/ui/SocialIcons'
 import Reveal from '@/components/ui/Reveal'
+import AuroraBackground from '@/components/ui/AuroraBackground'
 import { useT } from '@/components/LanguageProvider'
 
 export default function HeroSection() {
@@ -26,6 +27,8 @@ export default function HeroSection() {
         </div>
         <div className="absolute inset-0 bg-gradient-to-r from-navy-900/90 via-navy-900/70 to-transparent" />
         <div className="absolute inset-0 bg-gradient-to-t from-navy-900/60 via-transparent to-navy-900/20" />
+        {/* Subtle brand aurora drifting over the gradient */}
+        <AuroraBackground variant="dark" className="mix-blend-screen" />
       </div>
 
       <div className="relative z-10 container-max section-padding pt-28 pb-20 lg:pt-36 lg:pb-28">
