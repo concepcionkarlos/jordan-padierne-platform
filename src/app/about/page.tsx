@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
 import PublicLayout from '@/components/layout/PublicLayout'
+import AuroraBackground from '@/components/ui/AuroraBackground'
 import { CheckCircle2, ArrowRight, Award, Globe, Heart } from 'lucide-react'
 
 export const metadata: Metadata = {
@@ -46,6 +47,7 @@ export default function AboutPage() {
       {/* Hero */}
       <section className="relative pt-28 pb-0 bg-navy-900 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-navy-900 via-navy-800 to-navy-900" />
+        <AuroraBackground variant="dark" className="mix-blend-screen" />
         <div className="container-max section-padding relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-end">
             <div className="pb-16 lg:pb-24">
@@ -162,7 +164,8 @@ export default function AboutPage() {
       </section>
 
       {/* CTA */}
-      <section className="py-16 bg-navy-900">
+      <section className="py-16 bg-navy-900 relative overflow-hidden">
+        <AuroraBackground variant="dark" className="mix-blend-screen" />
         <div className="container-max section-padding text-center">
           <h2 className="font-serif text-3xl font-bold text-white mb-4">
             Ready to Work With Jordan?

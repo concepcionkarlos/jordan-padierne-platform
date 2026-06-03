@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
 import PublicLayout from '@/components/layout/PublicLayout'
+import AuroraBackground from '@/components/ui/AuroraBackground'
 import { CheckCircle2, ArrowRight, Zap, TrendingUp, Building2 } from 'lucide-react'
 
 export const metadata: Metadata = {
@@ -34,6 +35,7 @@ export default function PreConstructionPage() {
           />
           <div className="absolute inset-0 bg-gradient-to-r from-navy-900/90 via-navy-900/75 to-navy-900/30" />
         </div>
+        <AuroraBackground variant="dark" className="mix-blend-screen" />
         <div className="container-max section-padding relative z-10 py-24">
           <div className="inline-flex items-center gap-2 bg-wine/80 backdrop-blur-sm border border-wine/30 rounded-full px-4 py-1.5 mb-6">
             <Zap size={13} className="text-white" fill="currentColor" />
@@ -139,7 +141,8 @@ export default function PreConstructionPage() {
       </section>
 
       {/* CTA */}
-      <section className="py-16 bg-navy-900">
+      <section className="py-16 bg-navy-900 relative overflow-hidden">
+        <AuroraBackground variant="dark" className="mix-blend-screen" />
         <div className="container-max section-padding text-center">
           <Zap size={32} className="text-wine mx-auto mb-4" fill="currentColor" />
           <h2 className="font-serif text-3xl font-bold text-white mb-4">

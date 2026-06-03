@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
 import PublicLayout from '@/components/layout/PublicLayout'
+import AuroraBackground from '@/components/ui/AuroraBackground'
 import { CheckCircle2, ArrowRight, Home, Search, FileText, Key } from 'lucide-react'
 
 export const metadata: Metadata = {
@@ -56,6 +57,7 @@ export default function BuyPage() {
           />
           <div className="absolute inset-0 bg-navy-900/75" />
         </div>
+        <AuroraBackground variant="dark" className="mix-blend-screen" />
         <div className="container-max section-padding relative z-10 py-20">
           <p className="text-sky-400 font-semibold text-sm uppercase tracking-widest mb-4">
             Buy a Home
@@ -152,7 +154,8 @@ export default function BuyPage() {
       </section>
 
       {/* Buyer Qualification CTA */}
-      <section className="py-16 bg-navy-900">
+      <section className="py-16 bg-navy-900 relative overflow-hidden">
+        <AuroraBackground variant="dark" className="mix-blend-screen" />
         <div className="container-max section-padding text-center">
           <h2 className="font-serif text-3xl font-bold text-white mb-4">
             Are You Ready to Buy?

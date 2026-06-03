@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import PublicLayout from '@/components/layout/PublicLayout'
+import AuroraBackground from '@/components/ui/AuroraBackground'
 import { Search, Phone, Building2, Home, DollarSign } from 'lucide-react'
 import { safeQuery } from '@/lib/db'
 import PropertiesGrid from '@/components/PropertiesGrid'
@@ -23,8 +24,9 @@ export default async function PropertiesPage() {
   return (
     <PublicLayout>
       {/* Hero */}
-      <section className="bg-navy-900 pt-28 pb-16">
-        <div className="container-max section-padding">
+      <section className="bg-navy-900 pt-28 pb-16 relative overflow-hidden">
+        <AuroraBackground variant="dark" className="mix-blend-screen" />
+        <div className="container-max section-padding relative">
           <div className="text-center max-w-2xl mx-auto">
             <p className="text-sky-400 font-semibold text-sm uppercase tracking-widest mb-4">Listings</p>
             <h1 className="font-serif text-4xl sm:text-5xl font-bold text-white mb-6">

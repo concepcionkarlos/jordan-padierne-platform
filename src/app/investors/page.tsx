@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
 import PublicLayout from '@/components/layout/PublicLayout'
+import AuroraBackground from '@/components/ui/AuroraBackground'
 import { TrendingUp, DollarSign, BarChart2, CheckCircle2, ArrowRight } from 'lucide-react'
 
 export const metadata: Metadata = {
@@ -52,6 +53,7 @@ export default function InvestorsPage() {
           />
           <div className="absolute inset-0 bg-gradient-to-r from-navy-900/90 via-navy-900/70 to-navy-900/20" />
         </div>
+        <AuroraBackground variant="dark" className="mix-blend-screen" />
         <div className="container-max section-padding relative z-10 py-24">
           <p className="text-sky-400 font-semibold text-sm uppercase tracking-widest mb-4">
             For Investors
@@ -148,7 +150,8 @@ export default function InvestorsPage() {
       </section>
 
       {/* CTA */}
-      <section className="py-16 bg-navy-900">
+      <section className="py-16 bg-navy-900 relative overflow-hidden">
+        <AuroraBackground variant="dark" className="mix-blend-screen" />
         <div className="container-max section-padding text-center">
           <h2 className="font-serif text-3xl font-bold text-white mb-4">
             Ready to Invest in South Florida?

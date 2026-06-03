@@ -3,14 +3,16 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { CheckCircle2, ArrowRight, Zap } from 'lucide-react'
+import AuroraBackground from '@/components/ui/AuroraBackground'
 import { useT } from '@/components/LanguageProvider'
 
 export default function PreConstructionSection() {
   const { t } = useT()
   const benefits = ['precon.benefit1', 'precon.benefit2', 'precon.benefit3', 'precon.benefit4', 'precon.benefit5', 'precon.benefit6']
   return (
-    <section className="py-20 lg:py-28 bg-white overflow-hidden">
-      <div className="container-max section-padding">
+    <section className="py-20 lg:py-28 bg-white overflow-hidden relative">
+      <AuroraBackground variant="light" />
+      <div className="container-max section-padding relative">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
           {/* Image */}
           <div className="relative order-2 lg:order-1">

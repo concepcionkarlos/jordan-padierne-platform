@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import PublicLayout from '@/components/layout/PublicLayout'
+import AuroraBackground from '@/components/ui/AuroraBackground'
 import HomeValuationForm from '@/components/forms/HomeValuationForm'
 import { TrendingUp, DollarSign, Clock, CheckCircle2 } from 'lucide-react'
 
@@ -25,6 +26,7 @@ export default function HomeValuePage() {
           <Image src="/images/jordan-luxury.png" alt="" fill className="object-cover opacity-20" />
           <div className="absolute inset-0 bg-gradient-to-b from-navy-900/80 to-navy-900" />
         </div>
+        <AuroraBackground variant="dark" className="mix-blend-screen" />
         <div className="container-max section-padding relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             {/* Copy */}
