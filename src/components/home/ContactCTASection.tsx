@@ -55,7 +55,7 @@ export default function ContactCTASection() {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4">
-              <Link href="/contact#consultation" className="btn-wine"><Calendar size={16} />{t('contactCta.scheduleBtn')}</Link>
+              <Link href="/book" className="btn-wine"><Calendar size={16} />{t('contactCta.scheduleBtn')}</Link>
               <Link href="/contact" className="btn-secondary">{t('contactCta.messageBtn')}</Link>
             </div>
           </div>

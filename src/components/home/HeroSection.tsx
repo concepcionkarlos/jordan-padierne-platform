@@ -58,7 +58,7 @@ export default function HeroSection() {
 
           <Reveal delay={340}>
             <div className="flex flex-col sm:flex-row gap-4">
-              <Link href="/contact#consultation" className="btn-wine cta-shine pulse-glow text-base px-8 py-4 shadow-premium">
+              <Link href="/book" className="btn-wine cta-shine pulse-glow text-base px-8 py-4 shadow-premium">
                 {t('hero.cta1')}
                 <ArrowRight size={18} />
               </Link>

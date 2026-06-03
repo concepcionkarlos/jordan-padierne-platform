@@ -287,6 +287,65 @@ export async function sendQualificationAlert(data: {
   return send(adminEmail, `${tempEmoji} ${data.full_name} qualified as a ${data.temperature} lead`, html)
 }
 
+// ─── Consultation booking: confirmation to client + alert to Jordan ───
+export async function sendBookingConfirmation(
+  clientEmail: string, clientName: string, whenLabel: string, topic: string
+): Promise<boolean> {
+  const first = (clientName || '').trim().split(' ')[0] || 'there'
+  const html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#F4F7FA;font-family:'Segoe UI',Arial,sans-serif">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#F4F7FA;padding:32px 16px"><tr><td>
+<table width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;margin:0 auto">
+  <tr><td style="background:#0A1628;padding:28px;border-radius:12px 12px 0 0;text-align:center">
+    <p style="margin:0;font-size:22px;font-weight:700;color:#fff;font-family:Georgia,serif">Jordan Padierne</p>
+    <p style="margin:6px 0 0;font-size:10px;color:#7BA7C2;text-transform:uppercase;letter-spacing:1.5px">Realtor · eXp Realty · South Florida</p>
+  </td></tr>
+  <tr><td style="background:#fff;padding:32px 28px;border-radius:0 0 12px 12px;text-align:center">
+    <p style="font-size:32px;margin:0 0 10px">📅</p>
+    <h2 style="margin:0 0 8px;font-size:21px;color:#0A1628;font-family:Georgia,serif">You're confirmed, ${first}!</h2>
+    <p style="margin:0 0 22px;font-size:15px;color:#64748B;line-height:1.7">Your consultation with Jordan is booked. He'll call you at the time below.</p>
+    <div style="background:linear-gradient(135deg,#0A1628,#1A3A6B);border-radius:12px;padding:22px;margin-bottom:22px">
+      <p style="margin:0 0 4px;font-size:11px;color:#7BA7C2;text-transform:uppercase;letter-spacing:1px">Your appointment</p>
+      <p style="margin:0;font-size:19px;font-weight:700;color:#fff">${whenLabel}</p>
+      <p style="margin:8px 0 0;font-size:13px;color:#B8D4E8">Topic: ${topic}</p>
+    </div>
+    <div style="background:#F4F7FA;border-radius:10px;padding:16px;text-align:left">
+      <p style="margin:0 0 8px;font-size:11px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.5px">Need to reschedule?</p>
+      <p style="margin:0;font-size:14px;color:#0A1628">Just reply to this email or call <a href="tel:+13057996973" style="color:#1A3A6B;font-weight:600">305-799-6973</a>.</p>
+    </div>
+    <p style="margin:22px 0 0;font-size:11px;color:#CBD5E1">eXp Realty · License SL3641062 · English / Español</p>
+  </td></tr>
+</table></td></tr></table></body></html>`
+  return send(clientEmail, `Confirmed: your consultation with Jordan — ${whenLabel}`, html, 'info@jordanpadierne.com')
+}
+
+export async function sendBookingAlert(data: {
+  full_name: string; email: string; phone?: string; whenLabel: string; topic: string; message?: string; lead_id?: string
+}): Promise<boolean> {
+  const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL || 'info@jordanpadierne.com'
+  const dashUrl = `https://jordan-padierne-platform.vercel.app/admin/leads${data.lead_id ? `/${data.lead_id}` : ''}`
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:0;background:#F4F7FA;font-family:'Segoe UI',Arial,sans-serif">
+<table width="100%" cellpadding="0" cellspacing="0" style="padding:32px 16px"><tr><td>
+<table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;margin:0 auto">
+  <tr><td style="background:#8B1A2F;padding:22px 28px;border-radius:12px 12px 0 0">
+    <p style="margin:0;font-size:12px;color:#fff;opacity:.85;text-transform:uppercase;letter-spacing:1px">📅 Consultation Booked</p>
+    <p style="margin:4px 0 0;font-size:22px;font-weight:700;color:#fff;font-family:Georgia,serif">${data.full_name}</p>
+  </td></tr>
+  <tr><td style="background:#fff;padding:24px 28px;border-radius:0 0 12px 12px">
+    <p style="margin:0 0 14px;font-size:18px;font-weight:700;color:#0A1628">${data.whenLabel}</p>
+    <p style="margin:0 0 6px;font-size:14px;color:#475569"><strong>Topic:</strong> ${data.topic}</p>
+    <p style="margin:0 0 6px;font-size:14px;color:#475569"><strong>Phone:</strong> <a href="tel:${data.phone ?? ''}" style="color:#1A3A6B">${data.phone ?? '—'}</a></p>
+    <p style="margin:0 0 6px;font-size:14px;color:#475569"><strong>Email:</strong> <a href="mailto:${data.email}" style="color:#1A3A6B">${data.email}</a></p>
+    ${data.message ? `<div style="margin:14px 0;padding:12px 16px;background:#F4F7FA;border-left:4px solid #7BA7C2;border-radius:0 8px 8px 0;font-size:14px;color:#0A1628;white-space:pre-wrap">${data.message}</div>` : ''}
+    <div style="margin-top:20px;text-align:center">
+      <a href="${dashUrl}" style="display:inline-block;background:#0A1628;color:#fff;padding:12px 26px;border-radius:8px;font-size:14px;font-weight:600;text-decoration:none">Open in CRM →</a>
+    </div>
+  </td></tr>
+</table></td></tr></table></body></html>`
+  return send(adminEmail, `📅 ${data.full_name} booked a consultation — ${data.whenLabel}`, html, data.email)
+}
+
 // ─── Google review request after a closing ───
 export async function sendReviewRequest(
   clientEmail: string,

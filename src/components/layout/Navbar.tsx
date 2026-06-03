@@ -133,7 +133,7 @@ export default function Navbar() {
               <Phone size={14} />
               305-799-6973
             </a>
-            <Link href="/contact" className="btn-wine text-xs px-5 py-2.5">
+            <Link href="/book" className="btn-wine text-xs px-5 py-2.5">
               {t('nav.schedule')}
             </Link>
           </div>
@@ -194,7 +194,7 @@ export default function Navbar() {
                 305-799-6973
               </a>
               <Link
-                href="/contact"
+                href="/book"
                 onClick={() => setMobileOpen(false)}
                 className="btn-wine w-full text-center text-sm"
               >

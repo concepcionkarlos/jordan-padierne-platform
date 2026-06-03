@@ -25,7 +25,7 @@ export default function StickyCTA() {
         <a href="tel:+13057996973" className="w-12 h-12 rounded-xl bg-navy-50 flex items-center justify-center text-navy-700 shrink-0" aria-label="Call Jordan">
           <Phone size={20} />
         </a>
-        <Link href="/contact#consultation" className="btn-wine cta-shine flex-1 justify-center py-3.5">
+        <Link href="/book" className="btn-wine cta-shine flex-1 justify-center py-3.5">
           <Calendar size={16} /> {t('sticky.schedule')}
         </Link>
       </div>
