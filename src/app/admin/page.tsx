@@ -8,6 +8,7 @@ import { buildActivityDays, calcStreak, countTodayActivity, commissionFor, weigh
 import { getNextAction, urgencyMeta, urgencyRank } from '@/lib/coach'
 import ProgressRing from '@/components/admin/ProgressRing'
 import GettingStarted from '@/components/admin/GettingStarted'
+import TipBanner from '@/components/admin/TipBanner'
 import Link from 'next/link'
 
 const DAILY_GOAL = 5
@@ -196,6 +197,11 @@ export default async function AdminDashboard() {
       </div>
 
       {/* ─── Coach Action Feed: what to do, per lead, prioritized ─── */}
+      {d.actionFeed.length > 0 && (
+        <TipBanner id="coach">
+          💡 <strong>Your Coach</strong> tells you exactly what to do next with each client, ranked by urgency. Work the list top to bottom — each lead you touch keeps your 🔥 streak alive.
+        </TipBanner>
+      )}
       {d.actionFeed.length > 0 && (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-6">
           <div className="px-5 py-4 border-b border-gray-50 flex items-center gap-2 bg-gradient-to-r from-navy-900/5 to-transparent">

@@ -22,15 +22,15 @@
 
 @layer components {
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 bg-navy-900 text-white px-6 py-3 rounded-lg font-semibold font-sans text-sm transition-all duration-200 hover:bg-navy-600 hover:shadow-premium active:scale-95;
+    @apply inline-flex items-center justify-center gap-2 bg-navy-900 text-white px-6 py-3 rounded-lg font-semibold font-sans text-sm transition-all duration-200 hover:bg-navy-600 hover:shadow-premium hover:-translate-y-0.5 active:translate-y-0 active:scale-95;
   }
 
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 bg-white text-navy-900 border border-gray-200 px-6 py-3 rounded-lg font-semibold font-sans text-sm transition-all duration-200 hover:border-navy-900 hover:shadow-card active:scale-95;
+    @apply inline-flex items-center justify-center gap-2 bg-white text-navy-900 border border-gray-200 px-6 py-3 rounded-lg font-semibold font-sans text-sm transition-all duration-200 hover:border-navy-900 hover:shadow-card hover:-translate-y-0.5 active:translate-y-0 active:scale-95;
   }
 
   .btn-wine {
-    @apply inline-flex items-center justify-center gap-2 bg-wine text-white px-6 py-3 rounded-lg font-semibold font-sans text-sm transition-all duration-200 hover:bg-wine-700 hover:shadow-premium active:scale-95;
+    @apply inline-flex items-center justify-center gap-2 bg-wine text-white px-6 py-3 rounded-lg font-semibold font-sans text-sm transition-all duration-200 hover:bg-wine-700 hover:shadow-premium hover:-translate-y-0.5 active:translate-y-0 active:scale-95;
   }
 
   .btn-outline-white {

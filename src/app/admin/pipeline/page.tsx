@@ -3,6 +3,7 @@ import { safeQuery } from '@/lib/db'
 import { getPipelineStageLabel, formatCurrency, formatRelativeTime } from '@/lib/utils'
 import { weightedDealValue, commissionFor } from '@/lib/goals'
 import { UserCircle, Phone, Flame } from 'lucide-react'
+import TipBanner from '@/components/admin/TipBanner'
 import Link from 'next/link'
 
 const STAGES = ['NEW', 'QUALIFIED', 'CONTACTED', 'SHOWING_SCHEDULED', 'NEGOTIATION', 'CLOSED', 'LOST'] as const
@@ -70,6 +71,10 @@ export default async function PipelinePage() {
           </div>
         </div>
       </div>
+
+      <TipBanner id="pipeline">
+        💡 Open a lead and use the <strong>stage picker</strong> to move it forward. When you mark a deal <strong>Closed</strong>, you&apos;ll get a celebration 🎉 and it counts toward your monthly goal &amp; commission.
+      </TipBanner>
 
       <div className="flex gap-4 overflow-x-auto pb-4">
         {STAGES.map((stage) => {

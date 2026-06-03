@@ -3,6 +3,7 @@ import { safeQuery } from '@/lib/db'
 import LeadsTable from '@/components/admin/LeadsTable'
 import AddLeadModal from '@/components/admin/AddLeadModal'
 import ImportLeadsModal from '@/components/admin/ImportLeadsModal'
+import TipBanner from '@/components/admin/TipBanner'
 import { getLeadFreshness } from '@/lib/leads'
 
 async function getLeads(): Promise<any[]> {
@@ -65,6 +66,10 @@ export default async function LeadsPage() {
           <p className="font-serif text-2xl font-bold text-green-600 mt-1">{stats.active}</p>
         </div>
       </div>
+
+      <TipBanner id="leads">
+        💡 Sort by <strong>⚡ Smart Score</strong> to see who&apos;s most ready to buy. The colored dot shows lead freshness — green is fresh, red is going cold. Click any lead to open its Coach.
+      </TipBanner>
 
       <LeadsTable leads={leads} />
     </div>

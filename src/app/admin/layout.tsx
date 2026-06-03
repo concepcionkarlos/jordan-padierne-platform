@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import AdminSidebar from '@/components/admin/AdminSidebar'
+import { Toaster } from '@/lib/toast'
 
 export const metadata: Metadata = {
   title: {
@@ -16,6 +17,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <main className="flex-1 overflow-y-auto scrollbar-thin">
         {children}
       </main>
+      <Toaster />
     </div>
   )
 }

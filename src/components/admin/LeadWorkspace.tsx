@@ -14,8 +14,11 @@ import { LEAD_TAGS, getTagDef, HOT_SCORES, getHotScore, getLeadFreshness, scoreL
 import { commissionFor } from '@/lib/goals'
 import { getNextAction, urgencyMeta } from '@/lib/coach'
 import { TEMPLATES, fillTemplate } from '@/lib/templates'
+import { toast } from '@/lib/toast'
+import { fireConfetti } from '@/lib/confetti'
 import TemplatesPanel from './TemplatesPanel'
 import ProgressRing from './ProgressRing'
+import Tooltip from './Tooltip'
 import { Sparkles, ArrowRight } from 'lucide-react'
 
 const STAGES = ['NEW', 'QUALIFIED', 'CONTACTED', 'SHOWING_SCHEDULED', 'NEGOTIATION', 'CLOSED', 'LOST']
@@ -81,7 +84,7 @@ export default function LeadWorkspace({ lead: initialLead, initialNotes, initial
     if (a.actionType === 'call') { window.location.href = `tel:${lead.phone}`; return }
     if (a.actionType === 'schedule') { setShowApptForm(true); document.getElementById('appt-anchor')?.scrollIntoView({ behavior: 'smooth' }); return }
     if (a.actionType === 'advance' && a.stage) {
-      patchLead({ pipeline_stage: a.stage, status: a.stage === 'QUALIFIED' ? 'qualified' : lead.status })
+      setStage(a.stage)
       return
     }
     if ((a.actionType === 'template' || a.actionType === 'whatsapp') && a.templateId) {
@@ -106,6 +109,23 @@ export default function LeadWorkspace({ lead: initialLead, initialNotes, initial
     router.refresh()
   }
 
+  // ─── Stage change with celebration ───
+  async function setStage(stage: string) {
+    const status = stage === 'QUALIFIED' ? 'qualified' : stage === 'CLOSED' ? 'closed' : stage === 'LOST' ? 'lost' : 'active'
+    const extra: Record<string, unknown> = { pipeline_stage: stage, status }
+    if (stage === 'CLOSED') extra.closed_at = new Date().toISOString()
+    await patchLead(extra)
+    if (stage === 'CLOSED') {
+      fireConfetti()
+      const comm = commission ? ` · ${formatCurrency(commission)} commission 💰` : ''
+      toast(`Deal closed! 🎉${comm}`, { type: 'celebrate', duration: 4000 })
+    } else if (stage === 'LOST') {
+      toast('Moved to Lost', { type: 'warn', emoji: '📦' })
+    } else {
+      toast(`Moved to ${getPipelineStageLabel(stage)}`, { type: 'success', emoji: '✅' })
+    }
+  }
+
   // ─── Notes ───
   async function addNote() {
     if (!noteText.trim()) return
@@ -120,6 +140,7 @@ export default function LeadWorkspace({ lead: initialLead, initialNotes, initial
       setNotes((prev) => [json.data, ...prev])
       setNoteText('')
       setLead((prev: any) => ({ ...prev, last_contact: new Date().toISOString() }))
+      toast('Activity logged — streak kept alive! 🔥', { type: 'success' })
     }
     setSavingNote(false)
   }
@@ -131,8 +152,11 @@ export default function LeadWorkspace({ lead: initialLead, initialNotes, initial
 
   // ─── Tags ───
   async function toggleTag(tagId: string) {
-    const next = tags.includes(tagId) ? tags.filter((t) => t !== tagId) : [...tags, tagId]
+    const adding = !tags.includes(tagId)
+    const next = adding ? [...tags, tagId] : tags.filter((t) => t !== tagId)
+    const def = getTagDef(tagId)
     await patchLead({ tags: next })
+    toast(adding ? `Tagged ${def.emoji} ${def.label}` : `Removed ${def.label}`, { type: 'success', emoji: adding ? def.emoji : '➖' })
   }
 
   // ─── Tasks ───
@@ -155,12 +179,14 @@ export default function LeadWorkspace({ lead: initialLead, initialNotes, initial
       setTaskTitle('')
       setTaskDue('')
       setShowTaskForm(false)
+      toast('Task added', { type: 'success', emoji: '📋' })
     }
   }
 
   async function toggleTask(task: Task) {
     const newStatus = task.status === 'done' ? 'todo' : 'done'
     setTasks((prev) => prev.map((t) => (t.id === task.id ? { ...t, status: newStatus } : t)))
+    if (newStatus === 'done') toast('Task complete! ✓', { type: 'success' })
     await fetch('/api/tasks', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -183,6 +209,7 @@ export default function LeadWorkspace({ lead: initialLead, initialNotes, initial
     if (json.success) {
       setAppts((prev) => [...prev, json.data].sort((a, b) => +new Date(a.starts_at) - +new Date(b.starts_at)))
       setApptTitle(''); setApptWhen(''); setApptLocation(''); setShowApptForm(false)
+      toast('Appointment scheduled 📅', { type: 'success' })
     }
   }
 
@@ -217,7 +244,10 @@ export default function LeadWorkspace({ lead: initialLead, initialNotes, initial
         {/* Smart Score */}
         <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
           <div className="flex items-center justify-between mb-3">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">⚡ Smart Score</p>
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide flex items-center gap-1">
+              ⚡ Smart Score
+              <Tooltip text="Auto-calculated 0–100 from budget, pipeline stage, how engaged they are (calls/notes/showings), financing readiness, and timeline. Higher = more ready to buy." />
+            </p>
             <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold border ${smart.className}`}>{smart.emoji} {smart.label}</span>
           </div>
           <div className="flex items-center gap-4">
@@ -252,8 +282,8 @@ export default function LeadWorkspace({ lead: initialLead, initialNotes, initial
               <button
                 key={s.value}
                 type="button"
-                onClick={() => patchLead({ hot_score: s.value })}
-                className={`flex-1 flex flex-col items-center gap-1 py-2.5 rounded-xl border-2 transition-all ${
+                onClick={() => { patchLead({ hot_score: s.value }); toast(`Marked ${s.label}`, { emoji: s.emoji }) }}
+                className={`flex-1 flex flex-col items-center gap-1 py-2.5 rounded-xl border-2 transition-all active:scale-95 ${
                   lead.hot_score === s.value
                     ? `${s.className} border-transparent`
                     : 'bg-gray-50 text-gray-400 border-transparent hover:bg-gray-100'
@@ -332,7 +362,7 @@ export default function LeadWorkspace({ lead: initialLead, initialNotes, initial
                 <button
                   key={stage}
                   type="button"
-                  onClick={() => { patchLead({ pipeline_stage: stage }); setShowStagePicker(false) }}
+                  onClick={() => { setStage(stage); setShowStagePicker(false) }}
                   className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
                     lead.pipeline_stage === stage ? 'bg-navy-900 text-white font-semibold' : 'text-navy-700 hover:bg-gray-50'
                   }`}
