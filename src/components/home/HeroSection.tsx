@@ -7,6 +7,7 @@ import SocialIcons from '@/components/ui/SocialIcons'
 import Reveal from '@/components/ui/Reveal'
 import AuroraBackground from '@/components/ui/AuroraBackground'
 import Particles from '@/components/ui/Particles'
+import AnimatedWave from '@/components/ui/AnimatedWave'
 import { useT } from '@/components/LanguageProvider'
 
 export default function HeroSection() {
@@ -95,10 +96,13 @@ export default function HeroSection() {
         </div>
       </div>
 
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1.5 animate-bounce">
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1.5 animate-bounce z-20">
         <div className="w-px h-8 bg-white/30" />
         <div className="w-1.5 h-1.5 rounded-full bg-white/40" />
       </div>
+
+      {/* Animated wave at the bottom edge */}
+      <AnimatedWave className="z-10" />
     </section>
   )
 }

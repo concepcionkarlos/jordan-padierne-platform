@@ -228,26 +228,33 @@
 /* Floating light particles (clearly visible upward drift, like embers) */
 @keyframes floatParticle {
   0% { transform: translate3d(0, 0, 0); opacity: 0; }
-  10% { opacity: 1; }
-  85% { opacity: 1; }
-  100% { transform: translate3d(var(--px, 10px), -160px, 0); opacity: 0; }
+  8% { opacity: 1; }
+  88% { opacity: 1; }
+  100% { transform: translate3d(var(--px, 10px), -88vh, 0); opacity: 0; }
 }
 .particle {
   position: absolute;
-  bottom: -10px;
+  bottom: -12px;
   border-radius: 9999px;
-  background: rgba(168, 199, 219, 0.9);
-  box-shadow: 0 0 8px rgba(123, 167, 194, 0.8);
+  background: rgba(200, 220, 235, 0.95);
+  box-shadow: 0 0 12px 2px rgba(123, 167, 194, 0.9);
   will-change: transform, opacity;
   animation: floatParticle linear infinite;
 }
+
+/* Animated wave divider */
+@keyframes waveSlide {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.wave-track { animation: waveSlide linear infinite; will-change: transform; }
 
 /* Respect reduced motion — disable all the above */
 @media (prefers-reduced-motion: reduce) {
   .reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
   .animate-ken-burns, .cta-shine::after, .pulse-glow, .animate-float,
   .text-gradient-animate, .animate-modal-pop, .animate-slide-up-bar,
-  .aurora-1, .aurora-2, .aurora-3, .aurora-4, .particle {
+  .aurora-1, .aurora-2, .aurora-3, .aurora-4, .particle, .wave-track {
     animation: none !important;
   }
   .particle { opacity: 0 !important; }
