@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import AdminSidebar from '@/components/admin/AdminSidebar'
 import { Toaster } from '@/lib/toast'
+import WelcomeTour from '@/components/admin/WelcomeTour'
 
 export const metadata: Metadata = {
   title: {
@@ -18,6 +19,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {children}
       </main>
       <Toaster />
+      <WelcomeTour />
     </div>
   )
 }
