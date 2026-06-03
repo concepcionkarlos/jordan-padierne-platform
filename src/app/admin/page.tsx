@@ -9,6 +9,7 @@ import { getNextAction, urgencyMeta, urgencyRank } from '@/lib/coach'
 import ProgressRing from '@/components/admin/ProgressRing'
 import GettingStarted from '@/components/admin/GettingStarted'
 import TipBanner from '@/components/admin/TipBanner'
+import DailyMissions from '@/components/admin/DailyMissions'
 import Link from 'next/link'
 
 const DAILY_GOAL = 5
@@ -61,6 +62,19 @@ async function getData() {
   const streak = calcStreak(activityDays)
   const todayCount = countTodayActivity(notes, appointments, doneTasks)
 
+  // Daily missions — measurable from today's real data
+  const isToday = (d?: string | null) => {
+    if (!d) return false
+    const x = new Date(d)
+    return x.getFullYear() === nowD.getFullYear() && x.getMonth() === nowD.getMonth() && x.getDate() === nowD.getDate()
+  }
+  const missions = {
+    activities: { done: todayCount, target: 5 },
+    newLeads: { done: leads.filter((l: any) => isToday(l.created_at)).length, target: 1 },
+    appointments: { done: appointments.filter((a: any) => isToday(a.created_at)).length, target: 1 },
+    tasks: { done: doneTasks.filter((t: any) => isToday(t.completed_at)).length, target: 1 },
+  }
+
   // Commission: earned this month (closed) + weighted forecast (pipeline)
   const closedThisMonth = leads.filter((l: any) => l.status === 'closed' && isThisMonth(l.closed_at ?? l.updated_at))
   const earnedThisMonth = closedThisMonth.reduce((s: number, l: any) => s + commissionFor(l.deal_value ?? l.budget_max ?? 0, l.commission_rate ?? 3), 0)
@@ -92,7 +106,7 @@ async function getData() {
   return {
     totalLeads: leads.length, newLeads: leads.filter((l: any) => l.status === 'new').length,
     unreadMessages: messages.filter((m: any) => m.status === 'unread').length, activePipeline: active.length,
-    streak, todayCount, earnedThisMonth, forecastValue, closedCount,
+    streak, todayCount, earnedThisMonth, forecastValue, closedCount, missions,
     todaysAppts, followupsDue, overdueTasks, staleLeads, hotLeads, actionFeed,
     recentLeads: leads.slice(0, 5),
     onboarding: {
@@ -169,6 +183,9 @@ export default async function AdminDashboard() {
           </div>
         </div>
       </div>
+
+      {/* ─── Daily Missions (gamified daily goals) ─── */}
+      <DailyMissions missions={d.missions} />
 
       {/* ─── Getting Started (auto-hides when complete) ─── */}
       <GettingStarted stats={d.onboarding} />
