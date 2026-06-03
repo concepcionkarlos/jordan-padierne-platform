@@ -28,18 +28,21 @@ export default function LeadCaptureModal() {
       cleanup()
     }
 
-    // 1) Scroll depth (~55%)
+    // Pro timing: let the visitor engage first. The popup appears when they've
+    // shown real interest — deep scroll, exit intent, or after a relaxed delay.
+
+    // 1) Scroll depth (~60%) — they're genuinely reading
     const onScroll = () => {
       const scrolled = window.scrollY + window.innerHeight
       const pct = scrolled / document.documentElement.scrollHeight
-      if (pct > 0.55) trigger()
+      if (pct > 0.6) trigger()
     }
-    // 2) Exit intent (desktop — mouse leaves toward top)
+    // 2) Exit intent (desktop — mouse leaves toward the top, about to leave)
     const onMouseOut = (e: MouseEvent) => {
       if (e.clientY <= 0) trigger()
     }
-    // 3) Auto-show after 10 seconds on the page
-    const timer = window.setTimeout(trigger, 10000)
+    // 3) Relaxed fallback after 25 seconds on the page
+    const timer = window.setTimeout(trigger, 25000)
 
     window.addEventListener('scroll', onScroll, { passive: true })
     document.addEventListener('mouseout', onMouseOut)
