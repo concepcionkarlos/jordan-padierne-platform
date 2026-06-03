@@ -63,6 +63,7 @@ export default function LeadWorkspace({ lead: initialLead, initialNotes, initial
   const commRate = lead.commission_rate ?? 3
   const commission = dealValue ? commissionFor(dealValue, commRate) : 0
   const smart = scoreLead({ ...lead, noteCount: notes.length, apptCount: appts.length })
+  const aiNote = notes.find((n) => n.author === 'AI Evaluation')
 
   // ─── Coach: next best action ───
   const now = new Date()
@@ -237,6 +238,21 @@ export default function LeadWorkspace({ lead: initialLead, initialNotes, initial
           </button>
         </div>
       </div>
+
+      {/* ─── AI Evaluation summary (when the client completed their profile) ─── */}
+      {aiNote && (
+        <div className="bg-gradient-to-br from-sky-50 to-white rounded-2xl border-2 border-sky-100 p-5 shadow-sm">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-8 h-8 rounded-lg bg-sky-100 flex items-center justify-center">
+              <Sparkles size={15} className="text-sky-600" />
+            </div>
+            <h3 className="font-semibold text-navy-900 text-sm">AI Evaluation</h3>
+            <span className="text-xs text-sky-600 bg-sky-100 px-2 py-0.5 rounded-full font-semibold ml-auto">Profile completed</span>
+          </div>
+          <p className="text-navy-700 text-sm leading-relaxed whitespace-pre-wrap">{aiNote.content}</p>
+          <p className="text-gray-400 text-xs mt-3">Auto-evaluated · {formatRelativeTime(aiNote.created_at)}</p>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* ─── Left column: contact + actions ─── */}

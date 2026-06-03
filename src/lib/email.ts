@@ -276,3 +276,26 @@ export async function sendQualificationAlert(data: {
 
   return send(adminEmail, `${tempEmoji} ${data.full_name} qualified as a ${data.temperature} lead`, html)
 }
+
+// ─── Reminder to a client who hasn't completed their profile yet ───
+export async function sendProfileReminder(clientEmail: string, clientName: string, leadId: string): Promise<boolean> {
+  const first = (clientName || '').trim().split(' ')[0] || 'there'
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:0;background:#F4F7FA;font-family:'Segoe UI',Arial,sans-serif">
+<table width="100%" cellpadding="0" cellspacing="0" style="padding:32px 16px"><tr><td>
+<table width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;margin:0 auto">
+  <tr><td style="background:#0A1628;padding:28px;border-radius:12px 12px 0 0;text-align:center">
+    <p style="margin:0;font-size:22px;font-weight:700;color:#fff;font-family:Georgia,serif">Jordan Padierne</p>
+    <p style="margin:6px 0 0;font-size:10px;color:#7BA7C2;text-transform:uppercase;letter-spacing:1.5px">Realtor · eXp Realty · South Florida</p>
+  </td></tr>
+  <tr><td style="background:#fff;padding:32px 28px;border-radius:0 0 12px 12px;text-align:center">
+    <p style="font-size:32px;margin:0 0 12px">👋</p>
+    <h2 style="margin:0 0 8px;font-size:20px;color:#0A1628;font-family:Georgia,serif">Still looking, ${first}?</h2>
+    <p style="margin:0 0 24px;font-size:15px;color:#64748B;line-height:1.7">Jordan noticed you haven't finished your profile yet. It takes just 60 seconds and helps him match you with the right opportunities before your first call.</p>
+    <a href="https://jordanpadierne.com/qualify/${leadId}" style="display:inline-block;background:#8B1A2F;color:#fff;padding:14px 32px;border-radius:8px;font-size:15px;font-weight:700;text-decoration:none">Complete My Profile →</a>
+    <p style="margin:24px 0 0;font-size:13px;color:#94A3B8">Prefer to talk? Call or text Jordan at <a href="tel:+13057996973" style="color:#1A3A6B;font-weight:600">305-799-6973</a></p>
+  </td></tr>
+</table></td></tr></table></body></html>`
+
+  return send(clientEmail, `${first}, complete your profile — Jordan Padierne Realtor`, html, 'info@jordanpadierne.com')
+}
