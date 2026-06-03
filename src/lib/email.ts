@@ -215,6 +215,16 @@ async function send(
   }
 }
 
+// Generic branded sender for nurture/drip emails built elsewhere (see lib/drip).
+export async function sendEmail(
+  to: string,
+  subject: string,
+  html: string,
+  replyTo: string = 'info@jordanpadierne.com'
+): Promise<boolean> {
+  return send(to, subject, html, replyTo)
+}
+
 export async function sendAdminNotification(data: LeadEmailData): Promise<boolean> {
   const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL || 'info@jordanpadierne.com'
   const supportEmail = process.env.SUPPORT_NOTIFICATION_EMAIL

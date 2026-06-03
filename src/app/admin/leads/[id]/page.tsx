@@ -35,6 +35,9 @@ export default async function LeadDetailPage({ params }: { params: { id: string 
   if (!lead) notFound()
 
   const tags: string[] = lead.tags ?? []
+  const meta = (lead.metadata ?? {}) as Record<string, any>
+  const dripSent: number[] = Array.isArray(meta.drip_sent) ? meta.drip_sent : []
+  const dripActive = lead.status === 'new' && !meta.drip_stopped
 
   return (
     <div className="p-6 lg:p-8">
@@ -52,6 +55,20 @@ export default async function LeadDetailPage({ params }: { params: { id: string 
             })}
           </div>
           <p className="text-gray-400 text-sm mt-1">{lead.client_type} · Added {formatRelativeTime(lead.created_at)}</p>
+          {(dripActive || dripSent.length > 0) && (
+            <span
+              className={`inline-flex items-center gap-1.5 mt-2 px-2.5 py-1 rounded-full text-xs font-semibold border ${
+                dripActive
+                  ? 'bg-sky-50 text-sky-700 border-sky-200'
+                  : 'bg-gray-50 text-gray-500 border-gray-200'
+              }`}
+              title={dripActive
+                ? 'Automated follow-up emails are sending. They stop the moment you move this lead out of New.'
+                : 'Follow-up paused — you took over this lead.'}
+            >
+              🔁 Auto follow-up · {dripSent.length} sent{dripActive ? ' · active' : ' · paused'}
+            </span>
+          )}
         </div>
         <div className="flex gap-2">
           <span className={`badge ${getPipelineStageColor(lead.pipeline_stage)}`}>{getPipelineStageLabel(lead.pipeline_stage)}</span>
