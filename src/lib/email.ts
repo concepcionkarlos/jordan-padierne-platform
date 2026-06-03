@@ -102,7 +102,7 @@ function buildAdminHtml(data: LeadEmailData): string {
 </table></td></tr></table></body></html>`
 }
 
-function buildClientHtml(clientName: string, formType: string): string {
+function buildClientHtml(clientName: string, formType: string, leadId?: string): string {
   const msgs: Record<string, string> = {
     contact: 'Your message has been received. Jordan will get back to you shortly.',
     buyer_qualification: 'Your buyer profile has been received. Jordan will review your details and reach out to discuss your home search.',
@@ -124,6 +124,12 @@ function buildClientHtml(clientName: string, formType: string): string {
     <p style="font-size:32px;margin:0 0 12px">✉️</p>
     <h2 style="margin:0 0 8px;font-size:20px;color:#0A1628;font-family:Georgia,serif">Thank you, ${clientName}!</h2>
     <p style="margin:0 0 24px;font-size:15px;color:#64748B;line-height:1.7">${msgs[formType] ?? msgs.contact}</p>
+    ${leadId ? `
+    <div style="background:linear-gradient(135deg,#0A1628,#1A3A6B);border-radius:12px;padding:22px;margin-bottom:24px">
+      <p style="margin:0 0 6px;font-size:16px;font-weight:700;color:#fff">Help Jordan help you faster ⚡</p>
+      <p style="margin:0 0 16px;font-size:13px;color:#B8D4E8;line-height:1.6">Take 60 seconds to tell us exactly what you're looking for. Jordan will match you with the right opportunities before your first call.</p>
+      <a href="https://jordanpadierne.com/qualify/${leadId}" style="display:inline-block;background:#8B1A2F;color:#fff;padding:13px 28px;border-radius:8px;font-size:14px;font-weight:700;text-decoration:none">Complete My Profile →</a>
+    </div>` : ''}
     <div style="background:#F4F7FA;border-radius:10px;padding:18px;margin-bottom:24px;text-align:left">
       <p style="margin:0 0 10px;font-size:11px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.5px">Contact Jordan directly</p>
       <p style="margin:0 0 6px;font-size:14px;color:#0A1628">📞 <a href="tel:+13057996973" style="color:#1A3A6B;font-weight:600">305-799-6973</a></p>
@@ -223,10 +229,50 @@ export async function sendAdminNotification(data: LeadEmailData): Promise<boolea
 export async function sendClientAutoReply(
   clientEmail: string,
   clientName: string,
-  formType: string
+  formType: string,
+  leadId?: string
 ): Promise<boolean> {
-  const html = buildClientHtml(clientName, formType)
+  // Only show the profile questionnaire CTA for general first-touch forms,
+  // not for forms that already collected detailed info.
+  const showProfileCta = formType === 'contact' || formType === 'showing_request' || formType === 'open_house'
+  const html = buildClientHtml(clientName, formType, showProfileCta ? leadId : undefined)
   const subject = 'Thank you for contacting Jordan Padierne — eXp Realty'
 
   return send(clientEmail, subject, html, 'info@jordanpadierne.com')
+}
+
+// ─── Jordan's alert when a lead completes their qualification profile ───
+export async function sendQualificationAlert(data: {
+  full_name: string; email: string; phone: string | null
+  temperature: string; summary: string; tasks: string[]; lead_id: string
+}): Promise<boolean> {
+  const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL || 'info@jordanpadierne.com'
+  const tempColor = data.temperature === 'Hot' ? '#8B1A2F' : data.temperature === 'Warm' ? '#D97706' : '#46779A'
+  const tempEmoji = data.temperature === 'Hot' ? '🔥' : data.temperature === 'Warm' ? '🌤️' : '❄️'
+  const dashUrl = `https://jordan-padierne-platform.vercel.app/admin/leads/${data.lead_id}`
+
+  const taskList = data.tasks.map((t) => `<li style="margin:0 0 6px;font-size:14px;color:#0A1628">${t}</li>`).join('')
+
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:0;background:#F4F7FA;font-family:'Segoe UI',Arial,sans-serif">
+<table width="100%" cellpadding="0" cellspacing="0" style="padding:32px 16px"><tr><td>
+<table width="100%" cellpadding="0" cellspacing="0" style="max-width:580px;margin:0 auto">
+  <tr><td style="background:${tempColor};padding:22px 28px;border-radius:12px 12px 0 0">
+    <p style="margin:0;font-size:12px;color:#fff;opacity:.8;text-transform:uppercase;letter-spacing:1px">Lead Qualified · Auto-Evaluated</p>
+    <p style="margin:4px 0 0;font-size:22px;font-weight:700;color:#fff;font-family:Georgia,serif">${tempEmoji} ${data.full_name} — ${data.temperature} Lead</p>
+  </td></tr>
+  <tr><td style="background:#fff;padding:24px 28px;border-radius:0 0 12px 12px">
+    <p style="margin:0 0 6px;font-size:13px;color:#64748B"><a href="tel:${data.phone}" style="color:#1A3A6B">${data.phone ?? ''}</a> · <a href="mailto:${data.email}" style="color:#1A3A6B">${data.email}</a></p>
+    <div style="background:#F4F7FA;border-left:4px solid ${tempColor};border-radius:0 8px 8px 0;padding:14px 18px;margin:16px 0">
+      <pre style="margin:0;font-family:'Segoe UI',Arial,sans-serif;font-size:13px;color:#0A1628;line-height:1.7;white-space:pre-wrap">${data.summary}</pre>
+    </div>
+    <p style="margin:20px 0 8px;font-size:12px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.5px">Your tasks (already added to the CRM)</p>
+    <ul style="margin:0 0 20px;padding-left:20px">${taskList}</ul>
+    <div style="text-align:center">
+      <a href="${dashUrl}" style="display:inline-block;background:#0A1628;color:#fff;padding:13px 28px;border-radius:8px;font-size:14px;font-weight:600;text-decoration:none">Open in CRM →</a>
+    </div>
+  </td></tr>
+</table></td></tr></table></body></html>`
+
+  return send(adminEmail, `${tempEmoji} ${data.full_name} qualified as a ${data.temperature} lead`, html)
 }

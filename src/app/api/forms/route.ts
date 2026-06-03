@@ -111,7 +111,7 @@ export async function POST(req: NextRequest) {
     // Fire both emails concurrently — await but don't throw on failure
     const [adminSent, clientSent] = await Promise.allSettled([
       sendAdminNotification(emailData),
-      sendClientAutoReply(String(formData.email), String(formData.full_name), form_type),
+      sendClientAutoReply(String(formData.email), String(formData.full_name), form_type, lead?.id),
     ])
 
     const emailStatus = {
