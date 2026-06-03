@@ -2,6 +2,7 @@
 
 import { MapPin } from 'lucide-react'
 import Reveal from '@/components/ui/Reveal'
+import AuroraBackground from '@/components/ui/AuroraBackground'
 import { useT } from '@/components/LanguageProvider'
 
 const areas = [
@@ -18,8 +19,9 @@ const pattern = `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='
 export default function AreasSection() {
   const { t } = useT()
   return (
-    <section className="py-20 lg:py-28 bg-light-gray">
-      <div className="container-max section-padding">
+    <section className="py-20 lg:py-28 bg-light-gray relative overflow-hidden">
+      <AuroraBackground variant="light" />
+      <div className="container-max section-padding relative">
         <Reveal className="text-center max-w-2xl mx-auto mb-16">
           <p className="text-wine font-semibold text-sm uppercase tracking-widest mb-3">{t('areas.eyebrow')}</p>
           <h2 className="section-title mb-4">

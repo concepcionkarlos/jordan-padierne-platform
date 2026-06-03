@@ -4,14 +4,16 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { Phone, Mail, ArrowRight, Calendar } from 'lucide-react'
 import SocialIcons from '@/components/ui/SocialIcons'
+import AuroraBackground from '@/components/ui/AuroraBackground'
 import { CONTACT_INFO } from '@/lib/social'
 import { useT } from '@/components/LanguageProvider'
 
 export default function ContactCTASection() {
   const { t } = useT()
   return (
-    <section className="py-20 lg:py-28 bg-white">
-      <div className="container-max section-padding">
+    <section className="py-20 lg:py-28 bg-white relative overflow-hidden">
+      <AuroraBackground variant="light" />
+      <div className="container-max section-padding relative">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           {/* Content */}
           <div>
