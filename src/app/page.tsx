@@ -1,5 +1,6 @@
 import PublicLayout from '@/components/layout/PublicLayout'
 import HeroSection from '@/components/home/HeroSection'
+import QuickLeadForm from '@/components/home/QuickLeadForm'
 import WhyJordanSection from '@/components/home/WhyJordanSection'
 import ServicesSection from '@/components/home/ServicesSection'
 import PreConstructionSection from '@/components/home/PreConstructionSection'
@@ -16,6 +17,7 @@ export default function HomePage() {
     <PublicLayout showLeadModal>
       <StructuredData />
       <HeroSection />
+      <QuickLeadForm />
       <WhyJordanSection />
       <ServicesSection />
       <PreConstructionSection />

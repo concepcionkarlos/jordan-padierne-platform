@@ -132,6 +132,22 @@ export const dict: Record<Lang, Record<string, string>> = {
     'footer.rights': 'All rights reserved.',
 
     // CTAs / modal
+    // Quick lead form (after hero)
+    'quick.eyebrow': 'Start Here — It\'s Free',
+    'quick.title': 'Tell Jordan what you\'re looking for',
+    'quick.subtitle': 'Get a personalized plan and the right opportunities — no pressure, no obligation.',
+    'quick.name': 'First name',
+    'quick.phone': 'Phone',
+    'quick.intentLabel': 'I want to…',
+    'quick.intent.buy': 'Buy a home',
+    'quick.intent.sell': 'Sell my home',
+    'quick.intent.invest': 'Invest',
+    'quick.intent.rent': 'Rent',
+    'quick.cta': 'Get Started',
+    'quick.trust': '✓ 100% Free  ✓ No obligation  ✓ Reply within 24h  ✓ English / Español',
+    'quick.thanksTitle': 'Got it! 🎉',
+    'quick.thanksSub': 'Jordan will personally reach out shortly. Talk soon!',
+
     'sticky.schedule': 'Schedule Consultation',
     'modal.title': 'Free Consultation',
     'modal.subtitle': 'Get expert, no-pressure guidance on buying, selling, or investing in South Florida.',
@@ -276,6 +292,22 @@ export const dict: Record<Lang, Record<string, string>> = {
     'footer.rights': 'Todos los derechos reservados.',
 
     // CTAs / modal
+    // Quick lead form (after hero)
+    'quick.eyebrow': 'Empieza Aquí — Es Gratis',
+    'quick.title': 'Dile a Jordan qué estás buscando',
+    'quick.subtitle': 'Recibe un plan personalizado y las mejores oportunidades — sin presión, sin compromiso.',
+    'quick.name': 'Nombre',
+    'quick.phone': 'Teléfono',
+    'quick.intentLabel': 'Quiero…',
+    'quick.intent.buy': 'Comprar casa',
+    'quick.intent.sell': 'Vender mi casa',
+    'quick.intent.invest': 'Invertir',
+    'quick.intent.rent': 'Rentar',
+    'quick.cta': 'Empezar',
+    'quick.trust': '✓ 100% Gratis  ✓ Sin compromiso  ✓ Respuesta en 24h  ✓ English / Español',
+    'quick.thanksTitle': '¡Listo! 🎉',
+    'quick.thanksSub': 'Jordan te contactará personalmente muy pronto. ¡Hablamos!',
+
     'sticky.schedule': 'Agenda una Consulta',
     'modal.title': 'Consulta Gratis',
     'modal.subtitle': 'Recibe asesoría experta y sin compromiso para comprar, vender o invertir en el Sur de la Florida.',
