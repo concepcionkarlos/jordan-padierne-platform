@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase'
 import { sendAdminNotification, sendClientAutoReply } from '@/lib/email'
+import { sendPushToAll } from '@/lib/push'
 import type { ClientType, LeadSource } from '@/lib/types'
 
 export async function POST(req: NextRequest) {
@@ -107,6 +108,15 @@ export async function POST(req: NextRequest) {
       form_type,
       lead_id: lead?.id,
     }
+
+    // Instant push to Jordan's phone — speed-to-lead is the #1 conversion factor
+    const isWarmLead = formData.source === 'Website Popup' || form_type === 'home_valuation'
+    sendPushToAll({
+      title: `${isWarmLead ? '🔥' : '🏠'} New lead: ${formData.full_name}`,
+      body: `${clientTypeMap[form_type] ?? 'Buyer'}${formData.phone ? ` · ${formData.phone}` : ''}${formData.preferred_area ? ` · ${formData.preferred_area}` : ''} — tap to call now`,
+      url: lead?.id ? `/admin/leads/${lead.id}` : '/admin/leads',
+      tag: `lead-${lead?.id ?? 'new'}`,
+    }).catch(() => {})
 
     // Fire both emails concurrently — await but don't throw on failure
     const [adminSent, clientSent] = await Promise.allSettled([

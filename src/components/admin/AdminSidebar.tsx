@@ -24,6 +24,7 @@ import { cn } from '@/lib/utils'
 import InstallPrompt from './InstallPrompt'
 import CommandPalette from './CommandPalette'
 import TrainingButton from './TrainingButton'
+import PushToggle from './PushToggle'
 
 const navItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true },
@@ -88,6 +89,8 @@ export default function AdminSidebar() {
 
       {/* Bottom */}
       <div className="px-3 py-4 border-t border-navy-800 space-y-2">
+        {/* Push alerts */}
+        <PushToggle />
         {/* Training */}
         <TrainingButton />
         {/* Quick contact */}
