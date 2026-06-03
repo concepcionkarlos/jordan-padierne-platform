@@ -5,24 +5,27 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Menu, X, Phone, ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useT } from '@/components/LanguageProvider'
+import LanguageToggle from '@/components/LanguageToggle'
 
 const navLinks = [
-  { href: '/', label: 'Home' },
-  { href: '/about', label: 'About' },
+  { href: '/', k: 'nav.home' },
+  { href: '/about', k: 'nav.about' },
   {
-    label: 'Services',
+    k: 'nav.services',
     children: [
-      { href: '/buy', label: 'Buy a Home' },
-      { href: '/pre-construction', label: 'Pre-Construction' },
-      { href: '/investors', label: 'Investors' },
-      { href: '/home-value', label: 'Sell — Home Value' },
+      { href: '/buy', k: 'nav.buy' },
+      { href: '/pre-construction', k: 'nav.preconstruction' },
+      { href: '/investors', k: 'nav.investors' },
+      { href: '/home-value', k: 'nav.sell' },
     ],
   },
-  { href: '/properties', label: 'Properties' },
-  { href: '/contact', label: 'Contact' },
+  { href: '/properties', k: 'nav.properties' },
+  { href: '/contact', k: 'nav.contact' },
 ]
 
 export default function Navbar() {
+  const { t } = useT()
   const [scrolled, setScrolled] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [servicesOpen, setServicesOpen] = useState(false)
@@ -68,7 +71,7 @@ export default function Navbar() {
             {navLinks.map((link) =>
               link.children ? (
                 <div
-                  key={link.label}
+                  key={link.k}
                   className="relative"
                   onMouseEnter={() => setServicesOpen(true)}
                   onMouseLeave={() => setServicesOpen(false)}
@@ -80,7 +83,7 @@ export default function Navbar() {
                       'hover:bg-sky/10'
                     )}
                   >
-                    {link.label}
+                    {t(link.k)}
                     <ChevronDown
                       size={14}
                       className={cn('transition-transform duration-200', servicesOpen && 'rotate-180')}
@@ -94,7 +97,7 @@ export default function Navbar() {
                           href={child.href}
                           className="block px-4 py-3 text-sm font-medium text-navy-700 hover:bg-sky-50 hover:text-navy-900 transition-colors"
                         >
-                          {child.label}
+                          {t(child.k)}
                         </Link>
                       ))}
                     </div>
@@ -111,7 +114,7 @@ export default function Navbar() {
                     pathname === link.href && 'font-semibold'
                   )}
                 >
-                  {link.label}
+                  {t(link.k)}
                 </Link>
               )
             )}
@@ -119,6 +122,7 @@ export default function Navbar() {
 
           {/* CTA + Phone */}
           <div className="hidden lg:flex items-center gap-3">
+            <LanguageToggle light={isHome && !scrolled} />
             <a
               href="tel:+13057996973"
               className={cn(
@@ -129,11 +133,8 @@ export default function Navbar() {
               <Phone size={14} />
               305-799-6973
             </a>
-            <Link
-              href="/contact"
-              className="btn-wine text-xs px-5 py-2.5"
-            >
-              Schedule Consultation
+            <Link href="/contact" className="btn-wine text-xs px-5 py-2.5">
+              {t('nav.schedule')}
             </Link>
           </div>
 
@@ -154,9 +155,9 @@ export default function Navbar() {
           <div className="section-padding py-4 space-y-1">
             {navLinks.map((link) =>
               link.children ? (
-                <div key={link.label}>
+                <div key={link.k}>
                   <div className="px-4 py-2 text-xs font-bold text-gray-400 uppercase tracking-widest">
-                    {link.label}
+                    {t(link.k)}
                   </div>
                   {link.children.map((child) => (
                     <Link
@@ -165,7 +166,7 @@ export default function Navbar() {
                       onClick={() => setMobileOpen(false)}
                       className="block px-6 py-2.5 text-sm font-medium text-navy-700 hover:bg-sky-50 rounded-lg"
                     >
-                      {child.label}
+                      {t(child.k)}
                     </Link>
                   ))}
                 </div>
@@ -179,11 +180,12 @@ export default function Navbar() {
                     pathname === link.href && 'bg-sky-50 text-navy-900 font-semibold'
                   )}
                 >
-                  {link.label}
+                  {t(link.k)}
                 </Link>
               )
             )}
             <div className="pt-4 border-t border-gray-100 space-y-2">
+              <div className="px-4 pb-1"><LanguageToggle /></div>
               <a
                 href="tel:+13057996973"
                 className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-navy-700"
@@ -196,7 +198,7 @@ export default function Navbar() {
                 onClick={() => setMobileOpen(false)}
                 className="btn-wine w-full text-center text-sm"
               >
-                Schedule Consultation
+                {t('nav.schedule')}
               </Link>
             </div>
           </div>

@@ -1,26 +1,30 @@
+'use client'
+
 import Link from 'next/link'
 import { Phone, Mail, MapPin, Shield } from 'lucide-react'
 import { SOCIAL_LINKS, CONTACT_INFO } from '@/lib/social'
 import SocialIcons from '@/components/ui/SocialIcons'
+import { useT } from '@/components/LanguageProvider'
 
 const footerLinks = {
   Services: [
-    { href: '/buy', label: 'Buy a Home' },
-    { href: '/home-value', label: 'Sell — What\'s My Home Worth?' },
-    { href: '/pre-construction', label: 'Pre-Construction' },
-    { href: '/investors', label: 'Investment Properties' },
-    { href: '/properties', label: 'Search Properties' },
+    { href: '/buy', k: 'nav.buy' },
+    { href: '/home-value', k: 'nav.sell' },
+    { href: '/pre-construction', k: 'nav.preconstruction' },
+    { href: '/investors', k: 'nav.investors' },
+    { href: '/properties', k: 'nav.properties' },
   ],
   Company: [
-    { href: '/about', label: 'About Jordan' },
-    { href: '/contact', label: 'Contact' },
-    { href: '/contact#consultation', label: 'Schedule Consultation' },
+    { href: '/about', k: 'nav.about' },
+    { href: '/contact', k: 'nav.contact' },
+    { href: '/contact#consultation', k: 'nav.schedule' },
   ],
 }
 
 const areas = ['Miami-Dade', 'Brickell', 'Downtown', 'Doral', 'Coral Gables', 'Hialeah']
 
 export default function Footer() {
+  const { t } = useT()
   return (
     <footer className="bg-navy-900 text-white">
       <div className="container-max section-padding pt-16 pb-8">
@@ -34,8 +38,7 @@ export default function Footer() {
               </p>
             </div>
             <p className="text-navy-200 text-sm leading-relaxed mb-5">
-              Helping buyers, investors, and international clients find the right real estate
-              opportunities in South Florida.
+              {t('footer.tagline')}
             </p>
             <div className="space-y-3 mb-6">
               <a
@@ -64,9 +67,7 @@ export default function Footer() {
 
           {/* Services */}
           <div>
-            <h4 className="text-white font-semibold text-sm uppercase tracking-wider mb-4">
-              Services
-            </h4>
+            <h4 className="text-white font-semibold text-sm uppercase tracking-wider mb-4">{t('footer.services')}</h4>
             <ul className="space-y-2.5">
               {footerLinks.Services.map((link) => (
                 <li key={link.href}>
@@ -74,7 +75,7 @@ export default function Footer() {
                     href={link.href}
                     className="text-navy-300 hover:text-white text-sm transition-colors"
                   >
-                    {link.label}
+                    {t(link.k)}
                   </Link>
                 </li>
               ))}
@@ -83,9 +84,7 @@ export default function Footer() {
 
           {/* Company */}
           <div>
-            <h4 className="text-white font-semibold text-sm uppercase tracking-wider mb-4">
-              Company
-            </h4>
+            <h4 className="text-white font-semibold text-sm uppercase tracking-wider mb-4">{t('footer.company')}</h4>
             <ul className="space-y-2.5">
               {footerLinks.Company.map((link) => (
                 <li key={link.href}>
@@ -93,7 +92,7 @@ export default function Footer() {
                     href={link.href}
                     className="text-navy-300 hover:text-white text-sm transition-colors"
                   >
-                    {link.label}
+                    {t(link.k)}
                   </Link>
                 </li>
               ))}
@@ -101,9 +100,7 @@ export default function Footer() {
 
             {/* Instagram highlight */}
             <div className="mt-8">
-              <h4 className="text-white font-semibold text-sm uppercase tracking-wider mb-3">
-                Follow Jordan
-              </h4>
+              <h4 className="text-white font-semibold text-sm uppercase tracking-wider mb-3">{t('footer.followJordan')}</h4>
               <a
                 href={SOCIAL_LINKS.instagram.url}
                 target="_blank"
@@ -125,9 +122,7 @@ export default function Footer() {
 
           {/* Areas */}
           <div>
-            <h4 className="text-white font-semibold text-sm uppercase tracking-wider mb-4">
-              Areas Served
-            </h4>
+            <h4 className="text-white font-semibold text-sm uppercase tracking-wider mb-4">{t('footer.areasServed')}</h4>
             <ul className="space-y-2.5">
               {areas.map((area) => (
                 <li key={area} className="text-navy-300 text-sm">
@@ -145,7 +140,7 @@ export default function Footer() {
                 className="inline-flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition-colors"
               >
                 <WhatsAppIcon className="w-4 h-4" />
-                Chat on WhatsApp
+                {t('footer.whatsappCta')}
               </a>
             </div>
           </div>
@@ -154,7 +149,7 @@ export default function Footer() {
         {/* Bottom Bar */}
         <div className="border-t border-navy-800 pt-8 flex flex-col sm:flex-row justify-between items-center gap-4">
           <div className="text-navy-400 text-xs text-center sm:text-left">
-            <p>© {new Date().getFullYear()} Jordan Padierne. All rights reserved.</p>
+            <p>© {new Date().getFullYear()} Jordan Padierne. {t('footer.rights')}</p>
             <div className="flex items-center gap-1.5 mt-1">
               <Shield size={11} className="text-sky-500" />
               <span>License: SL3641062 · eXp Realty · English / Español</span>

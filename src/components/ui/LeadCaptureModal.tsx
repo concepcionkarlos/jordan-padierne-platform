@@ -2,12 +2,14 @@
 
 import { useEffect, useState } from 'react'
 import { X, Gift, ArrowRight, CheckCircle2, Phone } from 'lucide-react'
+import { useT } from '@/components/LanguageProvider'
 
 // Smart conversion modal: appears once when the visitor scrolls deep OR shows
 // exit-intent on desktop. Offers a free home valuation / consultation.
 // Dismissal is remembered so it never nags.
 
 export default function LeadCaptureModal() {
+  const { t } = useT()
   const [show, setShow] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -93,12 +95,10 @@ export default function LeadCaptureModal() {
               <Gift size={26} className="text-white" />
             </div>
             <h2 className="font-serif text-2xl font-bold text-white leading-tight">
-              {submitted ? 'You\'re all set! 🎉' : 'Free Consultation'}
+              {submitted ? t('modal.thanksTitle') : t('modal.title')}
             </h2>
             <p className="text-navy-200 text-sm mt-2">
-              {submitted
-                ? 'Jordan will reach out shortly. Talk soon!'
-                : 'Get expert, no-pressure guidance on buying, selling, or investing in South Florida.'}
+              {submitted ? t('modal.thanksSub') : t('modal.subtitle')}
             </p>
           </div>
         </div>
@@ -108,39 +108,19 @@ export default function LeadCaptureModal() {
           {submitted ? (
             <div className="text-center">
               <CheckCircle2 size={40} className="text-green-500 mx-auto mb-3" />
-              <p className="text-gray-500 text-sm mb-5">Prefer to talk now?</p>
               <a href="tel:+13057996973" className="btn-wine w-full justify-center">
-                <Phone size={16} /> Call 305-799-6973
+                <Phone size={16} /> {t('modal.callNow')}
               </a>
             </div>
           ) : (
             <form onSubmit={submit} className="space-y-3">
-              <input
-                value={form.full_name}
-                onChange={(e) => setForm({ ...form, full_name: e.target.value })}
-                placeholder="Your name *"
-                className="input-field"
-                required
-              />
-              <input
-                value={form.phone}
-                onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                type="tel"
-                placeholder="Phone *"
-                className="input-field"
-                required
-              />
-              <input
-                value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
-                type="email"
-                placeholder="Email (optional)"
-                className="input-field"
-              />
+              <input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} placeholder={t('modal.name')} className="input-field" required />
+              <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} type="tel" placeholder={t('modal.phone')} className="input-field" required />
+              <input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} type="email" placeholder={t('modal.email')} className="input-field" />
               <button type="submit" disabled={loading} className="btn-wine cta-shine w-full justify-center py-3.5 text-base disabled:opacity-60">
-                {loading ? 'Sending…' : <>Get My Free Consultation <ArrowRight size={16} /></>}
+                {loading ? t('common.sending') : <>{t('modal.submit')} <ArrowRight size={16} /></>}
               </button>
-              <p className="text-center text-gray-400 text-xs">100% free · No obligation · English / Español</p>
+              <p className="text-center text-gray-400 text-xs">{t('modal.fineprint')}</p>
             </form>
           )}
         </div>

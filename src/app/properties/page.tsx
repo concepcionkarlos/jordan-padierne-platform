@@ -12,21 +12,13 @@ export const metadata: Metadata = {
     'Browse homes, condos & properties for sale and rent in Miami with Realtor Jordan Padierne. Brickell, Doral, Coral Gables, Downtown & more — for sale, rentals & investment listings. Bilingual service. Call 305-799-6973.',
 }
 
-// Sample fallback shown only when no listings exist in the database yet.
-const sampleProperties = [
-  { id: 's1', title: 'Luxury Waterfront Condo', city: 'Brickell', price: 1250000, bedrooms: 3, bathrooms: 2, sqft: 1800, type: 'condo', status: 'available', listing_type: 'sale', is_pre_construction: false, images: ['/images/jordan-luxury.png'] },
-  { id: 's2', title: 'Modern Pre-Construction Unit', city: 'Downtown Miami', price: 680000, bedrooms: 2, bathrooms: 2, sqft: 1200, type: 'pre-construction', status: 'available', listing_type: 'investment', is_pre_construction: true, images: ['/images/jordan-modern.png'] },
-  { id: 's3', title: 'Brickell Rental Apartment', city: 'Brickell', price: 3500, bedrooms: 2, bathrooms: 2, sqft: 1100, type: 'condo', status: 'available', listing_type: 'rent', is_pre_construction: false, images: ['/images/jordan-house.png'] },
-]
-
 async function getProperties(): Promise<any[]> {
   return safeQuery((db) => db.from('properties').select('*').neq('status', 'off-market').order('featured', { ascending: false }).order('created_at', { ascending: false }).limit(60), [])
 }
 
 export default async function PropertiesPage() {
-  const dbProperties = await getProperties()
-  const properties = dbProperties.length > 0 ? dbProperties : sampleProperties
-  const usingSamples = dbProperties.length === 0
+  const properties = await getProperties()
+  const hasListings = properties.length > 0
 
   return (
     <PublicLayout>
@@ -52,11 +44,31 @@ export default async function PropertiesPage() {
       {/* Listings */}
       <section className="py-20 bg-white">
         <div className="container-max section-padding">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="font-serif text-2xl font-bold text-navy-900">{usingSamples ? 'Featured Properties' : 'Available Properties'}</h2>
-            <span className="text-sm text-gray-400">{usingSamples ? 'Sample listings · contact for more' : `${properties.length} listings`}</span>
-          </div>
-          <PropertiesGrid properties={properties} />
+          {hasListings ? (
+            <>
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="font-serif text-2xl font-bold text-navy-900">Available Properties</h2>
+                <span className="text-sm text-gray-400">{properties.length} listings</span>
+              </div>
+              <PropertiesGrid properties={properties} />
+            </>
+          ) : (
+            <div className="max-w-xl mx-auto text-center py-12">
+              <div className="w-16 h-16 rounded-2xl bg-navy-50 flex items-center justify-center mx-auto mb-6">
+                <Building2 size={28} className="text-navy-600" />
+              </div>
+              <h2 className="font-serif text-2xl font-bold text-navy-900 mb-3">Let&apos;s Find Your Perfect Property</h2>
+              <p className="text-gray-500 leading-relaxed mb-8">
+                Jordan has full access to the South Florida MLS — including off-market and
+                pre-construction opportunities not listed publicly. Tell him what you&apos;re
+                looking for and he&apos;ll send you a personalized list of matches.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link href="/contact" className="btn-wine cta-shine"><Search size={16} /> Start Your Search</Link>
+                <a href="tel:+13057996973" className="btn-secondary"><Phone size={16} /> Call Jordan</a>
+              </div>
+            </div>
+          )}
         </div>
       </section>
 

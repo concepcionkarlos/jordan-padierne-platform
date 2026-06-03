@@ -3,10 +3,12 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Calendar, Phone } from 'lucide-react'
+import { useT } from '@/components/LanguageProvider'
 
 // Slides up a persistent "Schedule Consultation" bar once the user scrolls past
 // the hero — keeps the primary conversion action one tap away. Mobile-first.
 export default function StickyCTA() {
+  const { t } = useT()
   const [show, setShow] = useState(false)
 
   useEffect(() => {
@@ -24,7 +26,7 @@ export default function StickyCTA() {
           <Phone size={20} />
         </a>
         <Link href="/contact#consultation" className="btn-wine cta-shine flex-1 justify-center py-3.5">
-          <Calendar size={16} /> Schedule Consultation
+          <Calendar size={16} /> {t('sticky.schedule')}
         </Link>
       </div>
     </div>
