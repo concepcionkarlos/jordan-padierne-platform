@@ -220,17 +220,35 @@
   0%, 100% { transform: translate3d(0, 0, 0) scale(1.05); opacity: 0.55; }
   50% { transform: translate3d(-12%, -16%, 0) scale(1.2); opacity: 0.9; }
 }
-.aurora-1 { animation: auroraDrift1 16s ease-in-out infinite; }
-.aurora-2 { animation: auroraDrift2 20s ease-in-out infinite; }
-.aurora-3 { animation: auroraDrift3 18s ease-in-out infinite; }
-.aurora-4 { animation: auroraDrift4 22s ease-in-out infinite; }
+.aurora-1 { animation: auroraDrift1 9s ease-in-out infinite; }
+.aurora-2 { animation: auroraDrift2 11s ease-in-out infinite; }
+.aurora-3 { animation: auroraDrift3 8s ease-in-out infinite; }
+.aurora-4 { animation: auroraDrift4 12s ease-in-out infinite; }
+
+/* Floating light particles (clearly visible upward drift, like embers) */
+@keyframes floatParticle {
+  0% { transform: translate3d(0, 0, 0); opacity: 0; }
+  10% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { transform: translate3d(var(--px, 10px), -160px, 0); opacity: 0; }
+}
+.particle {
+  position: absolute;
+  bottom: -10px;
+  border-radius: 9999px;
+  background: rgba(168, 199, 219, 0.9);
+  box-shadow: 0 0 8px rgba(123, 167, 194, 0.8);
+  will-change: transform, opacity;
+  animation: floatParticle linear infinite;
+}
 
 /* Respect reduced motion — disable all the above */
 @media (prefers-reduced-motion: reduce) {
   .reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
   .animate-ken-burns, .cta-shine::after, .pulse-glow, .animate-float,
   .text-gradient-animate, .animate-modal-pop, .animate-slide-up-bar,
-  .aurora-1, .aurora-2, .aurora-3, .aurora-4 {
+  .aurora-1, .aurora-2, .aurora-3, .aurora-4, .particle {
     animation: none !important;
   }
+  .particle { opacity: 0 !important; }
 }
