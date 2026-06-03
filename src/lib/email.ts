@@ -185,12 +185,16 @@ async function sendViaSMTP(
     },
   })
 
+  // Always present as the brand inbox (info@), regardless of which mailbox
+  // authenticates the SMTP connection. Override with SMTP_FROM if ever needed.
+  const fromAddress = process.env.SMTP_FROM || 'info@jordanpadierne.com'
+
   await transporter.sendMail({
-    from: `"Jordan Padierne CRM" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,
+    from: `"Jordan Padierne" <${fromAddress}>`,
     to: Array.isArray(to) ? to.join(', ') : to,
     subject,
     html,
-    replyTo,
+    replyTo: replyTo || fromAddress,
   })
   return true
 }

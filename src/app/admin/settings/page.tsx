@@ -111,7 +111,7 @@ export default function SettingsPage() {
                     <p className="text-navy-900 text-sm font-medium">Email — Google Workspace SMTP</p>
                     <p className="text-gray-400 text-xs">
                       {emailConnected
-                        ? `Sending from ${process.env.SMTP_USER || 'info@jordanpadierne.com'}`
+                        ? `Sending from ${process.env.SMTP_FROM || 'info@jordanpadierne.com'}`
                         : 'Configure SMTP_USER and SMTP_PASSWORD in environment variables'}
                     </p>
                   </div>
