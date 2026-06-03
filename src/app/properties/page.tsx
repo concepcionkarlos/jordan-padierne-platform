@@ -1,11 +1,10 @@
 export const dynamic = 'force-dynamic'
 import type { Metadata } from 'next'
-import Image from 'next/image'
 import Link from 'next/link'
 import PublicLayout from '@/components/layout/PublicLayout'
-import { Search, Phone, ArrowRight, Building2, Home, DollarSign } from 'lucide-react'
+import { Search, Phone, Building2, Home, DollarSign } from 'lucide-react'
 import { safeQuery } from '@/lib/db'
-import { formatCurrency } from '@/lib/utils'
+import PropertiesGrid from '@/components/PropertiesGrid'
 
 export const metadata: Metadata = {
   title: 'Properties',
@@ -15,9 +14,9 @@ export const metadata: Metadata = {
 
 // Sample fallback shown only when no listings exist in the database yet.
 const sampleProperties = [
-  { id: 's1', title: 'Luxury Waterfront Condo', city: 'Brickell', price: 1250000, bedrooms: 3, bathrooms: 2, sqft: 1800, type: 'condo', status: 'available', is_pre_construction: false, images: ['/images/jordan-luxury.png'] },
-  { id: 's2', title: 'Modern Pre-Construction Unit', city: 'Downtown Miami', price: 680000, bedrooms: 2, bathrooms: 2, sqft: 1200, type: 'pre-construction', status: 'available', is_pre_construction: true, images: ['/images/jordan-modern.png'] },
-  { id: 's3', title: 'Single Family Home', city: 'Doral', price: 895000, bedrooms: 4, bathrooms: 3, sqft: 2800, type: 'house', status: 'available', is_pre_construction: false, images: ['/images/jordan-house.png'] },
+  { id: 's1', title: 'Luxury Waterfront Condo', city: 'Brickell', price: 1250000, bedrooms: 3, bathrooms: 2, sqft: 1800, type: 'condo', status: 'available', listing_type: 'sale', is_pre_construction: false, images: ['/images/jordan-luxury.png'] },
+  { id: 's2', title: 'Modern Pre-Construction Unit', city: 'Downtown Miami', price: 680000, bedrooms: 2, bathrooms: 2, sqft: 1200, type: 'pre-construction', status: 'available', listing_type: 'investment', is_pre_construction: true, images: ['/images/jordan-modern.png'] },
+  { id: 's3', title: 'Brickell Rental Apartment', city: 'Brickell', price: 3500, bedrooms: 2, bathrooms: 2, sqft: 1100, type: 'condo', status: 'available', listing_type: 'rent', is_pre_construction: false, images: ['/images/jordan-house.png'] },
 ]
 
 async function getProperties(): Promise<any[]> {
@@ -53,40 +52,11 @@ export default async function PropertiesPage() {
       {/* Listings */}
       <section className="py-20 bg-white">
         <div className="container-max section-padding">
-          <div className="flex items-center justify-between mb-10">
-            <h2 className="font-serif text-2xl font-bold text-navy-900">{usingSamples ? 'Featured Properties' : 'Current Listings'}</h2>
-            <span className="text-sm text-gray-400">{usingSamples ? 'Contact for full MLS access' : `${properties.length} available`}</span>
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="font-serif text-2xl font-bold text-navy-900">{usingSamples ? 'Featured Properties' : 'Available Properties'}</h2>
+            <span className="text-sm text-gray-400">{usingSamples ? 'Sample listings · contact for more' : `${properties.length} listings`}</span>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {properties.map((p) => (
-              <div key={p.id} className="card group">
-                <div className="relative h-56 overflow-hidden bg-gray-100">
-                  {p.images?.[0]
-                    ? <Image src={p.images[0]} alt={p.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
-                    : <div className="w-full h-full flex items-center justify-center"><Building2 size={36} className="text-gray-200" /></div>}
-                  <div className="absolute top-4 left-4 flex gap-2">
-                    {p.is_pre_construction && <span className="bg-wine text-white text-xs font-bold px-2.5 py-1 rounded-full">Pre-Construction</span>}
-                    <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${p.status === 'available' ? 'bg-green-500 text-white' : 'bg-gray-500 text-white'}`}>
-                      {p.status === 'available' ? 'Available' : p.status}
-                    </span>
-                  </div>
-                </div>
-                <div className="p-6">
-                  <p className="text-sky-500 text-xs font-semibold uppercase tracking-wider mb-1">{p.city}</p>
-                  <h3 className="font-serif text-lg font-bold text-navy-900 mb-3 truncate">{p.title}</h3>
-                  <p className="font-bold text-2xl text-navy-900 mb-4">{formatCurrency(Number(p.price))}</p>
-                  <div className="flex items-center gap-4 text-sm text-gray-500 pb-4 border-b border-gray-100">
-                    {p.bedrooms && <span className="flex items-center gap-1"><Home size={13} />{p.bedrooms} bd</span>}
-                    {p.bathrooms && <span>{p.bathrooms} ba</span>}
-                    {p.sqft && <span>{Number(p.sqft).toLocaleString()} sqft</span>}
-                  </div>
-                  <Link href="/contact" className="mt-4 flex items-center gap-1.5 text-navy-700 font-semibold text-sm hover:text-wine transition-colors">
-                    Request Info <ArrowRight size={13} />
-                  </Link>
-                </div>
-              </div>
-            ))}
-          </div>
+          <PropertiesGrid properties={properties} />
         </div>
       </section>
 

@@ -12,6 +12,7 @@ interface Property {
   title: string
   description: string
   price: number | string
+  listing_type: string
   bedrooms: number | string
   bathrooms: number | string
   sqft: number | string
@@ -27,10 +28,16 @@ interface Property {
 }
 
 const EMPTY: Property = {
-  title: '', description: '', price: '', bedrooms: '', bathrooms: '', sqft: '',
+  title: '', description: '', price: '', listing_type: 'sale', bedrooms: '', bathrooms: '', sqft: '',
   address: '', city: 'Brickell', state: 'FL', status: 'available', type: 'condo',
   is_pre_construction: false, is_luxury: false, featured: false, images: [],
 }
+
+const LISTING_TYPES = [
+  { id: 'sale', label: '🏷️ For Sale', short: 'For Sale', color: 'bg-green-50 text-green-700 border-green-200' },
+  { id: 'rent', label: '🔑 For Rent', short: 'For Rent', color: 'bg-sky-50 text-sky-700 border-sky-200' },
+  { id: 'investment', label: '📈 Investment', short: 'Investment', color: 'bg-purple-50 text-purple-700 border-purple-200' },
+]
 
 const statusColors: Record<string, string> = {
   available: 'bg-green-50 text-green-600',
@@ -125,7 +132,8 @@ export default function PropertyManager({ initial }: { initial: any[] }) {
                 {p.images?.[0]
                   ? <Image src={p.images[0]} alt={p.title} fill className="object-cover" />
                   : <div className="w-full h-full flex items-center justify-center"><Building2 size={32} className="text-gray-200" /></div>}
-                <div className="absolute top-3 left-3 flex gap-1.5">
+                <div className="absolute top-3 left-3 flex gap-1.5 flex-wrap">
+                  <span className="badge bg-white/90 text-navy-700 text-xs font-bold">{LISTING_TYPES.find((l) => l.id === (p.listing_type ?? 'sale'))?.short ?? 'For Sale'}</span>
                   {p.featured && <span className="badge bg-yellow-400 text-white text-xs flex items-center gap-0.5"><Star size={9} fill="currentColor" /> Featured</span>}
                   {p.is_pre_construction && <span className="badge bg-wine text-white text-xs">Pre-Con</span>}
                 </div>
@@ -136,7 +144,7 @@ export default function PropertyManager({ initial }: { initial: any[] }) {
               </div>
               <div className="p-4">
                 <div className="flex items-center justify-between mb-1">
-                  <p className="font-bold text-navy-900">{formatCurrency(Number(p.price))}</p>
+                  <p className="font-bold text-navy-900">{formatCurrency(Number(p.price))}{p.listing_type === 'rent' && <span className="text-gray-400 text-xs font-normal">/mo</span>}</p>
                   <span className={`badge text-xs ${statusColors[p.status] ?? 'bg-gray-100 text-gray-500'}`}>{p.status}</span>
                 </div>
                 <p className="font-serif text-sm font-bold text-navy-900 truncate">{p.title}</p>
@@ -180,14 +188,33 @@ export default function PropertyManager({ initial }: { initial: any[] }) {
                 </div>
               </div>
 
+              {/* Listing purpose */}
+              <div>
+                <label className="label">Listing Type</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {LISTING_TYPES.map((lt) => (
+                    <button
+                      key={lt.id}
+                      type="button"
+                      onClick={() => setForm({ ...form, listing_type: lt.id })}
+                      className={`py-2.5 rounded-xl border-2 text-sm font-semibold transition-all ${
+                        form.listing_type === lt.id ? lt.color : 'bg-gray-50 text-gray-400 border-transparent hover:bg-gray-100'
+                      }`}
+                    >
+                      {lt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <div>
                 <label className="label">Title *</label>
                 <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className="input-field" placeholder="Luxury Waterfront Condo" />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="label">Price ($) *</label>
-                  <input type="number" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} className="input-field" placeholder="850000" />
+                  <label className="label">{form.listing_type === 'rent' ? 'Monthly Rent ($) *' : 'Price ($) *'}</label>
+                  <input type="number" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} className="input-field" placeholder={form.listing_type === 'rent' ? '3500' : '850000'} />
                 </div>
                 <div>
                   <label className="label">Type</label>
