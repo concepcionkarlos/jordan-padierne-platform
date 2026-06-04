@@ -2,6 +2,7 @@ import { Settings, Phone, Mail, Shield, Globe, MessageSquare, Bell, CheckCircle2
 import { isEmailConfigured } from '@/lib/email'
 import { isSupabaseConfigured } from '@/lib/supabase'
 import ReviewLinkSetting from '@/components/admin/ReviewLinkSetting'
+import EmailTestButton from '@/components/admin/EmailTestButton'
 
 export default function SettingsPage() {
   const emailConnected = isEmailConfigured()
@@ -121,6 +122,7 @@ export default function SettingsPage() {
                   : <span className="badge bg-gray-100 text-gray-400 text-xs">Not Set Up</span>
                 }
               </div>
+              {emailConnected && <EmailTestButton />}
               {!emailConnected && (
                 <div className="mt-3 bg-white rounded-lg p-3 border border-gray-200 text-xs font-mono text-gray-600 space-y-1">
                   <p>SMTP_HOST=smtp.gmail.com</p>
