@@ -19,6 +19,7 @@ const navLinks = [
       { href: '/pre-construction', k: 'nav.preconstruction' },
       { href: '/investors', k: 'nav.investors' },
       { href: '/home-value', k: 'nav.sell' },
+      { href: '/apply', k: 'nav.apply' },
     ],
   },
   { href: '/properties', k: 'nav.properties' },

@@ -110,6 +110,7 @@ function buildClientHtml(clientName: string, formType: string, leadId?: string):
     pre_construction_interest: 'Your interest has been registered. Jordan will send you exclusive project details soon.',
     showing_request: 'Your showing request has been received. Jordan will confirm your appointment shortly.',
     open_house: 'Thank you for visiting! Jordan has your information and will follow up soon.',
+    rental_application: 'Your rental application has been received. Jordan will review it and reach out shortly about next steps, including the secure background & credit check.',
   }
 
   return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>

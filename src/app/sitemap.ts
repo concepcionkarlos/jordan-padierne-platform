@@ -4,7 +4,7 @@ import { safeQuery } from '@/lib/db'
 const BASE = 'https://jordanpadierne.com'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const routes = ['', '/about', '/buy', '/pre-construction', '/investors', '/properties', '/home-value', '/book', '/insights', '/contact']
+  const routes = ['', '/about', '/buy', '/pre-construction', '/investors', '/properties', '/home-value', '/apply', '/book', '/insights', '/contact']
   const now = new Date()
 
   const staticEntries: MetadataRoute.Sitemap = routes.map((path) => ({

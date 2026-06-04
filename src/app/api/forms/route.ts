@@ -31,6 +31,7 @@ export async function POST(req: NextRequest) {
       showing_request: formData.client_type ?? 'Buyer',
       open_house: formData.client_type ?? 'Buyer',
       home_valuation: 'Seller',
+      rental_application: 'Buyer',
     }
 
     const messageTypeMap: Record<string, string> = {
@@ -41,10 +42,11 @@ export async function POST(req: NextRequest) {
       showing_request: 'showing_request',
       open_house: 'open_house',
       home_valuation: 'contact',
+      rental_application: 'contact',
     }
 
-    // Leads that actively opted in (popup, home valuation) come in warmer.
-    const isWarm = formData.source === 'Website Popup' || form_type === 'home_valuation'
+    // Leads that actively opted in (popup, valuation, application) come in warmer.
+    const isWarm = formData.source === 'Website Popup' || form_type === 'home_valuation' || form_type === 'rental_application'
 
     // 2. Create lead in Supabase
     const { data: lead, error: leadError } = await supabase
@@ -65,7 +67,7 @@ export async function POST(req: NextRequest) {
         financing_status: formData.financing_status ?? null,
         message: formData.message ?? null,
         hot_score: isWarm ? 2 : 1,
-        tags: form_type === 'home_valuation' ? ['hot'] : (formData.source === 'Website Popup' ? ['hot'] : []),
+        tags: isWarm ? ['hot'] : [],
         metadata: body,
       })
       .select('id')
@@ -110,7 +112,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Instant push to Jordan's phone — speed-to-lead is the #1 conversion factor
-    const isWarmLead = formData.source === 'Website Popup' || form_type === 'home_valuation'
+    const isWarmLead = isWarm
     sendPushToAll({
       title: `${isWarmLead ? '🔥' : '🏠'} New lead: ${formData.full_name}`,
       body: `${clientTypeMap[form_type] ?? 'Buyer'}${formData.phone ? ` · ${formData.phone}` : ''}${formData.preferred_area ? ` · ${formData.preferred_area}` : ''} — tap to call now`,
@@ -153,6 +155,7 @@ function buildSubject(formType: string, data: Record<string, unknown>): string {
     showing_request: `Showing Request — ${data.full_name}`,
     open_house: `Open House Check-In — ${data.full_name}`,
     home_valuation: `🏠 Home Valuation Request — ${data.full_name}`,
+    rental_application: `🏘️ Rental Application — ${data.full_name}`,
   }
   return subjectMap[formType] ?? `Form Submission — ${data.full_name}`
 }
@@ -210,6 +213,56 @@ function buildMessageBody(formType: string, data: Record<string, unknown>): stri
     addLine('Sq Ft', data.sqft)
     addLine('Condition', data.condition)
     addLine('Selling Timeline', data.timeline)
+  }
+
+  if (formType === 'rental_application') {
+    lines.push('')
+    lines.push('── APPLICANT ──')
+    addLine('Date of Birth', data.date_of_birth)
+    addLine('SSN (last 4)', data.ssn_last4)
+    addLine('Applying for', data.property_address)
+    addLine('Desired Move-in', data.desired_move_in)
+    addLine('Occupants', data.occupants)
+    addLine('Pets', data.pets)
+    const curAddr = [data.current_address, data.current_city, data.current_state, data.current_zip].filter(Boolean).join(', ')
+    addLine('Current Address', curAddr)
+    addLine('Housing Status', data.housing_status)
+    addLine('Monthly Payment', data.monthly_payment)
+    addLine('Time at Address', data.residence_length)
+
+    lines.push('')
+    lines.push('── EMPLOYMENT ──')
+    addLine('Employer', data.employer)
+    addLine('Position', data.position)
+    addLine('Pay Type', data.employment_type)
+    addLine('Annual Income', data.annual_income ? `$${data.annual_income}` : null)
+    addLine('Employer Phone', data.employer_phone)
+    addLine('Time Employed', data.employment_length)
+    addLine('Employer Address', data.employer_address)
+
+    if (data.has_coapplicant) {
+      lines.push('')
+      lines.push('── CO-APPLICANT ──')
+      addLine('Name', data.co_full_name)
+      addLine('Date of Birth', data.co_dob)
+      addLine('Phone', data.co_phone)
+      addLine('Email', data.co_email)
+      addLine('Employer', data.co_employer)
+      addLine('Annual Income', data.co_income ? `$${data.co_income}` : null)
+    }
+
+    lines.push('')
+    lines.push('── EMERGENCY CONTACT ──')
+    addLine('Name', data.emergency_name)
+    addLine('Phone', data.emergency_phone)
+    addLine('Relationship', data.emergency_relationship)
+
+    lines.push('')
+    lines.push('── REFERENCE ──')
+    addLine('Name', data.reference_name)
+    addLine('Phone', data.reference_phone)
+
+    addLine('Authorized check', data.authorize ? 'Yes' : 'No')
   }
 
   if (data.message) {
