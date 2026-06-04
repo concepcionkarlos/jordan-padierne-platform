@@ -200,6 +200,8 @@ export const dict: Record<Lang, Record<string, string>> = {
     'insights.news.button': 'Subscribe',
     'insights.news.done': 'Subscribed! 🎉',
     'insights.error': 'Something went wrong. Please try again.',
+    'insights.home.title': 'Latest insights',
+    'insights.viewAll': 'View all articles',
 
     'sticky.schedule': 'Schedule Consultation',
     'modal.title': 'Free Consultation',
@@ -413,6 +415,8 @@ export const dict: Record<Lang, Record<string, string>> = {
     'insights.news.button': 'Suscribirme',
     'insights.news.done': '¡Suscrito! 🎉',
     'insights.error': 'Algo salió mal. Intenta de nuevo.',
+    'insights.home.title': 'Últimas publicaciones',
+    'insights.viewAll': 'Ver todos los artículos',
 
     'sticky.schedule': 'Agenda una Consulta',
     'modal.title': 'Consulta Gratis',

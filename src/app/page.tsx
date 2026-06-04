@@ -6,6 +6,7 @@ import ServicesSection from '@/components/home/ServicesSection'
 import PreConstructionSection from '@/components/home/PreConstructionSection'
 import AreasSection from '@/components/home/AreasSection'
 import VideosSection from '@/components/home/VideosSection'
+import HomeInsightsSection from '@/components/home/HomeInsightsSection'
 import TestimonialsSection from '@/components/home/TestimonialsSection'
 import ContactCTASection from '@/components/home/ContactCTASection'
 import StructuredData from '@/components/StructuredData'
@@ -24,6 +25,7 @@ export default function HomePage() {
       <PreConstructionSection />
       <AreasSection />
       <VideosSection />
+      <HomeInsightsSection />
       <TestimonialsSection />
       <ContactCTASection />
     </PublicLayout>
