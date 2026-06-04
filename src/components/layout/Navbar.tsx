@@ -58,18 +58,18 @@ export default function Navbar() {
       <div className="container-max section-padding">
         <div className="flex items-center justify-between h-16 lg:h-20">
           {/* Logo */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <Link href="/" className="flex flex-col leading-tight group">
-              <span className={cn('font-serif text-xl font-bold tracking-tight transition-colors', logoColor)}>
+              <span className={cn('font-serif text-lg sm:text-xl font-bold tracking-tight transition-colors', logoColor)}>
                 Jordan Padierne
               </span>
-              <span className={cn('text-xs font-medium tracking-widest uppercase transition-colors', logoSub)}>
+              <span className={cn('text-[10px] sm:text-xs font-medium tracking-widest uppercase transition-colors', logoSub)}>
                 Realtor · eXp Realty
               </span>
             </Link>
-            <span className={cn('hidden sm:block h-9 w-px transition-colors', isHome && !scrolled ? 'bg-white/25' : 'bg-navy-200')} />
-            <div className="hidden sm:flex items-center bg-white rounded-lg px-2.5 py-1.5 shadow-sm">
-              <Image src="/exp-realty-logo.jpeg" alt="eXp Realty" width={1157} height={601} className="h-5 w-auto" priority />
+            <span className={cn('block h-8 sm:h-9 w-px transition-colors', isHome && !scrolled ? 'bg-white/25' : 'bg-navy-200')} />
+            <div className="flex items-center bg-white rounded-lg px-2 py-1 sm:px-2.5 sm:py-1.5 shadow-sm">
+              <Image src="/exp-realty-logo.jpeg" alt="eXp Realty" width={1157} height={601} className="h-4 sm:h-5 w-auto" priority />
             </div>
           </div>
 
