@@ -23,14 +23,17 @@ create table if not exists public.posts (
 
 alter table public.posts enable row level security;
 
+drop policy if exists "Posts readable by all" on public.posts;
 create policy "Posts readable by all"
   on public.posts for select using (true);
 
+drop policy if exists "Posts writable by authenticated users" on public.posts;
 create policy "Posts writable by authenticated users"
   on public.posts for all using (auth.role() = 'authenticated');
 
 create index if not exists posts_published_idx on public.posts(published, created_at desc);
 
+drop trigger if exists posts_updated_at on public.posts;
 create trigger posts_updated_at
   before update on public.posts
   for each row execute procedure public.handle_updated_at();
@@ -161,4 +164,5 @@ El marketing correcto pone tu casa frente a cada comprador serio: el MLS, los po
 - Una amplia exposición trae a los compradores.
 
 Haz esto bien y el mercado te recompensa. ¿Quieres saber cuánto podría venderse tu casa hoy? Ese es el punto perfecto para empezar.$$
-);
+)
+on conflict (slug) do nothing;
