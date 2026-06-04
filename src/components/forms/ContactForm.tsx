@@ -5,8 +5,10 @@ import { useForm } from 'react-hook-form'
 import { Send, CheckCircle2 } from 'lucide-react'
 import type { ContactFormData } from '@/lib/types'
 import { AREAS, CLIENT_TYPES, TIMELINES, BUDGET_RANGES } from '@/lib/utils'
+import { useT } from '@/components/LanguageProvider'
 
 export default function ContactForm() {
+  const { t } = useT()
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -26,7 +28,7 @@ export default function ContactForm() {
       setSubmitted(true)
       reset()
     } catch {
-      setError('Something went wrong. Please try again or call 305-799-6973.')
+      setError(t('forms.error'))
     } finally {
       setLoading(false)
     }
@@ -36,8 +38,8 @@ export default function ContactForm() {
     return (
       <div className="text-center py-12">
         <CheckCircle2 size={48} className="text-sky-500 mx-auto mb-4" />
-        <h3 className="font-serif text-2xl font-bold text-navy-900 mb-2">Message Sent!</h3>
-        <p className="text-gray-500">Jordan will get back to you within 24 hours.</p>
+        <h3 className="font-serif text-2xl font-bold text-navy-900 mb-2">{t('forms.contact.successTitle')}</h3>
+        <p className="text-gray-500">{t('forms.contact.successSub')}</p>
       </div>
     )
   }
@@ -46,51 +48,49 @@ export default function ContactForm() {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <div>
-          <label className="label">Full Name *</label>
+          <label className="label">{t('forms.fullName')} *</label>
           <input
-            {...register('full_name', { required: 'Name is required' })}
+            {...register('full_name', { required: true })}
             className="input-field"
-            placeholder="Your full name"
+            placeholder={t('forms.namePlaceholder')}
           />
-          {errors.full_name && <p className="text-wine text-xs mt-1">{errors.full_name.message}</p>}
+          {errors.full_name && <p className="text-wine text-xs mt-1">{t('forms.error')}</p>}
         </div>
         <div>
-          <label className="label">Phone *</label>
+          <label className="label">{t('forms.phone')} *</label>
           <input
-            {...register('phone', { required: 'Phone is required' })}
+            {...register('phone', { required: true })}
             type="tel"
             className="input-field"
             placeholder="(305) 000-0000"
           />
-          {errors.phone && <p className="text-wine text-xs mt-1">{errors.phone.message}</p>}
         </div>
       </div>
 
       <div>
-        <label className="label">Email *</label>
+        <label className="label">{t('forms.email')} *</label>
         <input
           {...register('email', {
-            required: 'Email is required',
+            required: true,
             pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: 'Invalid email' },
           })}
           type="email"
           className="input-field"
           placeholder="your@email.com"
         />
-        {errors.email && <p className="text-wine text-xs mt-1">{errors.email.message}</p>}
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <div>
-          <label className="label">I am a...</label>
+          <label className="label">{t('forms.contact.iam')}</label>
           <select {...register('client_type')} className="input-field">
-            {CLIENT_TYPES.map((t) => <option key={t}>{t}</option>)}
+            {CLIENT_TYPES.map((c) => <option key={c}>{c}</option>)}
           </select>
         </div>
         <div>
-          <label className="label">Preferred Area</label>
+          <label className="label">{t('forms.preferredArea')}</label>
           <select {...register('preferred_area')} className="input-field">
-            <option value="">Select area...</option>
+            <option value="">{t('forms.select')}</option>
             {AREAS.map((a) => <option key={a}>{a}</option>)}
           </select>
         </div>
@@ -98,28 +98,28 @@ export default function ContactForm() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <div>
-          <label className="label">Budget Range</label>
+          <label className="label">{t('forms.budgetRange')}</label>
           <select {...register('budget')} className="input-field">
-            <option value="">Select budget...</option>
+            <option value="">{t('forms.select')}</option>
             {BUDGET_RANGES.map((b) => <option key={b}>{b}</option>)}
           </select>
         </div>
         <div>
-          <label className="label">Timeline</label>
+          <label className="label">{t('forms.timeline')}</label>
           <select {...register('timeline')} className="input-field">
-            <option value="">Select timeline...</option>
-            {TIMELINES.map((t) => <option key={t}>{t}</option>)}
+            <option value="">{t('forms.select')}</option>
+            {TIMELINES.map((tl) => <option key={tl}>{tl}</option>)}
           </select>
         </div>
       </div>
 
       <div>
-        <label className="label">Message</label>
+        <label className="label">{t('forms.contact.messageLabel')}</label>
         <textarea
           {...register('message')}
           rows={4}
           className="input-field resize-none"
-          placeholder="Tell Jordan how he can help you..."
+          placeholder={t('forms.contact.messagePlaceholder')}
         />
       </div>
 
@@ -136,10 +136,10 @@ export default function ContactForm() {
         disabled={loading}
         className="btn-wine w-full justify-center py-4 text-base disabled:opacity-60"
       >
-        {loading ? 'Sending...' : (
+        {loading ? t('forms.sending') : (
           <>
             <Send size={16} />
-            Send Message
+            {t('forms.contact.submit')}
           </>
         )}
       </button>

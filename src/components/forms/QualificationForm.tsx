@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { ArrowRight, ArrowLeft, CheckCircle2, Sparkles } from 'lucide-react'
 import { AREAS, TIMELINES, FINANCING_OPTIONS } from '@/lib/utils'
+import { useT } from '@/components/LanguageProvider'
 
 interface FormData {
   intent: string
@@ -34,6 +35,7 @@ interface FormData {
 }
 
 export default function QualificationForm({ leadId, firstName, known = true }: { leadId: string; firstName: string; known?: boolean }) {
+  const { t } = useT()
   const [step, setStep] = useState(1)
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -70,7 +72,7 @@ export default function QualificationForm({ leadId, firstName, known = true }: {
       })
       const d = await res.json().catch(() => ({ success: false }))
       if (!res.ok || !d.success) {
-        setError('Something went wrong. Please try again or call 305-799-6973.')
+        setError(t('forms.error'))
         return
       }
       setSubmitted(true)
@@ -87,11 +89,9 @@ export default function QualificationForm({ leadId, firstName, known = true }: {
         <div className="w-16 h-16 rounded-full bg-green-50 flex items-center justify-center mx-auto mb-5">
           <CheckCircle2 size={32} className="text-green-500" />
         </div>
-        <h3 className="font-serif text-2xl font-bold text-navy-900 mb-2">Perfect, {firstName}! 🎉</h3>
+        <h3 className="font-serif text-2xl font-bold text-navy-900 mb-2">{t('forms.qualify.successTitle').replace('{name}', firstName)}</h3>
         <p className="text-gray-500 max-w-md mx-auto">
-          {isSeller
-            ? 'Jordan will prepare a personalized market valuation for your home and reach out shortly with what it\'s worth today.'
-            : 'Jordan now knows exactly what you\'re looking for. He\'ll reach out shortly with opportunities matched to your goals.'}
+          {isSeller ? t('forms.qualify.successSeller') : t('forms.qualify.successBuyer')}
         </p>
       </div>
     )
@@ -143,7 +143,7 @@ export default function QualificationForm({ leadId, firstName, known = true }: {
                 </label>
               ))}
             </div>
-            <button type="button" onClick={next} className="btn-wine w-full justify-center py-4">Continue <ArrowRight size={16} /></button>
+            <button type="button" onClick={next} className="btn-wine w-full justify-center py-4">{t('forms.continue')} <ArrowRight size={16} /></button>
           </div>
         )}
 
@@ -173,8 +173,8 @@ export default function QualificationForm({ leadId, firstName, known = true }: {
               </select>
             </div>
             <div className="flex gap-3">
-              <button type="button" onClick={() => setStep(1)} className="btn-secondary" aria-label="Back"><ArrowLeft size={16} /></button>
-              <button type="button" onClick={next} className="btn-wine flex-1 justify-center py-4">Continue <ArrowRight size={16} /></button>
+              <button type="button" onClick={() => setStep(1)} className="btn-secondary" aria-label={t('forms.back')}><ArrowLeft size={16} /></button>
+              <button type="button" onClick={next} className="btn-wine flex-1 justify-center py-4">{t('forms.continue')} <ArrowRight size={16} /></button>
             </div>
           </div>
         )}
@@ -210,8 +210,8 @@ export default function QualificationForm({ leadId, firstName, known = true }: {
               </select>
             </div>
             <div className="flex gap-3">
-              <button type="button" onClick={() => setStep(2)} className="btn-secondary" aria-label="Back"><ArrowLeft size={16} /></button>
-              <button type="button" onClick={next} className="btn-wine flex-1 justify-center py-4">Continue <ArrowRight size={16} /></button>
+              <button type="button" onClick={() => setStep(2)} className="btn-secondary" aria-label={t('forms.back')}><ArrowLeft size={16} /></button>
+              <button type="button" onClick={next} className="btn-wine flex-1 justify-center py-4">{t('forms.continue')} <ArrowRight size={16} /></button>
             </div>
           </div>
         )}
@@ -246,9 +246,9 @@ export default function QualificationForm({ leadId, firstName, known = true }: {
             </div>
             {error && <p className="text-wine text-sm text-center font-medium">{error}</p>}
             <div className="flex gap-3">
-              <button type="button" onClick={() => setStep(3)} className="btn-secondary" aria-label="Back"><ArrowLeft size={16} /></button>
+              <button type="button" onClick={() => setStep(3)} className="btn-secondary" aria-label={t('forms.back')}><ArrowLeft size={16} /></button>
               <button type="submit" disabled={loading} className="btn-wine cta-shine flex-1 justify-center py-4 disabled:opacity-60">
-                {loading ? 'Submitting…' : <>Get My Valuation <Sparkles size={16} /></>}
+                {loading ? t('forms.submitting') : <>{t('forms.qualify.submitSeller')} <Sparkles size={16} /></>}
               </button>
             </div>
           </div>
@@ -280,8 +280,8 @@ export default function QualificationForm({ leadId, firstName, known = true }: {
               </select>
             </div>
             <div className="flex gap-3">
-              <button type="button" onClick={() => setStep(1)} className="btn-secondary" aria-label="Back"><ArrowLeft size={16} /></button>
-              <button type="button" onClick={next} className="btn-wine flex-1 justify-center py-4">Continue <ArrowRight size={16} /></button>
+              <button type="button" onClick={() => setStep(1)} className="btn-secondary" aria-label={t('forms.back')}><ArrowLeft size={16} /></button>
+              <button type="button" onClick={next} className="btn-wine flex-1 justify-center py-4">{t('forms.continue')} <ArrowRight size={16} /></button>
             </div>
           </div>
         )}
@@ -310,8 +310,8 @@ export default function QualificationForm({ leadId, firstName, known = true }: {
               <input {...register('must_haves')} className="input-field" placeholder="e.g. waterfront, pool, parking, near schools" />
             </div>
             <div className="flex gap-3">
-              <button type="button" onClick={() => setStep(2)} className="btn-secondary" aria-label="Back"><ArrowLeft size={16} /></button>
-              <button type="button" onClick={next} className="btn-wine flex-1 justify-center py-4">Continue <ArrowRight size={16} /></button>
+              <button type="button" onClick={() => setStep(2)} className="btn-secondary" aria-label={t('forms.back')}><ArrowLeft size={16} /></button>
+              <button type="button" onClick={next} className="btn-wine flex-1 justify-center py-4">{t('forms.continue')} <ArrowRight size={16} /></button>
             </div>
           </div>
         )}
@@ -336,9 +336,9 @@ export default function QualificationForm({ leadId, firstName, known = true }: {
             </div>
             {error && <p className="text-wine text-sm text-center font-medium">{error}</p>}
             <div className="flex gap-3">
-              <button type="button" onClick={() => setStep(3)} className="btn-secondary" aria-label="Back"><ArrowLeft size={16} /></button>
+              <button type="button" onClick={() => setStep(3)} className="btn-secondary" aria-label={t('forms.back')}><ArrowLeft size={16} /></button>
               <button type="submit" disabled={loading} className="btn-wine cta-shine flex-1 justify-center py-4 disabled:opacity-60">
-                {loading ? 'Submitting…' : <>Send to Jordan <Sparkles size={16} /></>}
+                {loading ? t('forms.submitting') : <>{t('forms.qualify.submitBuyer')} <Sparkles size={16} /></>}
               </button>
             </div>
           </div>

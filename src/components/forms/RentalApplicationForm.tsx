@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { ArrowRight, ArrowLeft, CheckCircle2, Home, Briefcase, Users, ShieldCheck } from 'lucide-react'
+import { useT } from '@/components/LanguageProvider'
 
 interface RentalData {
   // Applicant
@@ -59,6 +60,7 @@ const STEPS = [
 ]
 
 export default function RentalApplicationForm() {
+  const { t } = useT()
   const [step, setStep] = useState(1)
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -86,10 +88,10 @@ export default function RentalApplicationForm() {
         body: JSON.stringify({ form_type: 'rental_application', source: 'Website', ...data }),
       })
       const d = await res.json().catch(() => ({ success: false }))
-      if (!res.ok || !d.success) { setError('Something went wrong. Please try again or call 305-799-6973.'); return }
+      if (!res.ok || !d.success) { setError(t('forms.error')); return }
       setSubmitted(true)
     } catch {
-      setError('Something went wrong. Please try again or call 305-799-6973.')
+      setError(t('forms.error'))
     } finally {
       setLoading(false)
     }
@@ -101,11 +103,8 @@ export default function RentalApplicationForm() {
         <div className="w-16 h-16 rounded-full bg-green-50 flex items-center justify-center mx-auto mb-5">
           <CheckCircle2 size={34} className="text-green-500" />
         </div>
-        <h3 className="font-serif text-2xl font-bold text-navy-900 mb-2">Application received! 🎉</h3>
-        <p className="text-gray-500 max-w-md mx-auto">
-          Thank you. Jordan has your application and will review it and reach out shortly about next steps,
-          including the secure background &amp; credit check.
-        </p>
+        <h3 className="font-serif text-2xl font-bold text-navy-900 mb-2">{t('forms.rental.successTitle')}</h3>
+        <p className="text-gray-500 max-w-md mx-auto">{t('forms.rental.successSub')}</p>
       </div>
     )
   }
@@ -196,7 +195,7 @@ export default function RentalApplicationForm() {
               </div>
             </div>
 
-            <button type="button" onClick={next} className="btn-wine w-full justify-center py-4">Continue <ArrowRight size={16} /></button>
+            <button type="button" onClick={next} className="btn-wine w-full justify-center py-4">{t('forms.continue')} <ArrowRight size={16} /></button>
           </div>
         )}
 
@@ -237,8 +236,8 @@ export default function RentalApplicationForm() {
               <input {...register('employer_address')} className="input-field" placeholder="Street, City, State, ZIP" />
             </div>
             <div className="flex gap-3">
-              <button type="button" onClick={() => setStep(1)} className="btn-secondary" aria-label="Back"><ArrowLeft size={16} /></button>
-              <button type="button" onClick={next} className="btn-wine flex-1 justify-center py-4">Continue <ArrowRight size={16} /></button>
+              <button type="button" onClick={() => setStep(1)} className="btn-secondary" aria-label={t('forms.back')}><ArrowLeft size={16} /></button>
+              <button type="button" onClick={next} className="btn-wine flex-1 justify-center py-4">{t('forms.continue')} <ArrowRight size={16} /></button>
             </div>
           </div>
         )}
@@ -266,8 +265,8 @@ export default function RentalApplicationForm() {
             )}
 
             <div className="flex gap-3">
-              <button type="button" onClick={() => setStep(2)} className="btn-secondary" aria-label="Back"><ArrowLeft size={16} /></button>
-              <button type="button" onClick={() => setStep(4)} className="btn-wine flex-1 justify-center py-4">Continue <ArrowRight size={16} /></button>
+              <button type="button" onClick={() => setStep(2)} className="btn-secondary" aria-label={t('forms.back')}><ArrowLeft size={16} /></button>
+              <button type="button" onClick={() => setStep(4)} className="btn-wine flex-1 justify-center py-4">{t('forms.continue')} <ArrowRight size={16} /></button>
             </div>
           </div>
         )}
@@ -311,9 +310,9 @@ export default function RentalApplicationForm() {
             {error && <p className="text-wine text-sm text-center font-medium">{error}</p>}
 
             <div className="flex gap-3">
-              <button type="button" onClick={() => setStep(3)} className="btn-secondary" aria-label="Back"><ArrowLeft size={16} /></button>
+              <button type="button" onClick={() => setStep(3)} className="btn-secondary" aria-label={t('forms.back')}><ArrowLeft size={16} /></button>
               <button type="submit" disabled={loading} className="btn-wine cta-shine flex-1 justify-center py-4 disabled:opacity-60">
-                {loading ? 'Submitting…' : <>Submit application <CheckCircle2 size={16} /></>}
+                {loading ? t('forms.submitting') : <>{t('forms.rental.submit')} <CheckCircle2 size={16} /></>}
               </button>
             </div>
           </div>

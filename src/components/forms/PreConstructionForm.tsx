@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Send, CheckCircle2 } from 'lucide-react'
 import { AREAS, TIMELINES, BUDGET_RANGES } from '@/lib/utils'
+import { useT } from '@/components/LanguageProvider'
 
 interface FormData {
   full_name: string
@@ -19,6 +20,7 @@ interface FormData {
 }
 
 export default function PreConstructionForm() {
+  const { t } = useT()
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
 
@@ -42,8 +44,8 @@ export default function PreConstructionForm() {
     return (
       <div className="text-center py-10">
         <CheckCircle2 size={44} className="text-sky-500 mx-auto mb-4" />
-        <h3 className="font-serif text-xl font-bold text-navy-900 mb-2">Interest Registered!</h3>
-        <p className="text-gray-500 text-sm">Jordan will send you exclusive project information within 24 hours.</p>
+        <h3 className="font-serif text-xl font-bold text-navy-900 mb-2">{t('forms.precon.successTitle')}</h3>
+        <p className="text-gray-500 text-sm">{t('forms.precon.successSub')}</p>
       </div>
     )
   }
@@ -52,28 +54,28 @@ export default function PreConstructionForm() {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <div>
-          <label className="label">Full Name *</label>
-          <input {...register('full_name', { required: true })} className="input-field" placeholder="Your name" />
+          <label className="label">{t('forms.fullName')} *</label>
+          <input {...register('full_name', { required: true })} className="input-field" placeholder={t('forms.namePlaceholder')} />
         </div>
         <div>
-          <label className="label">Phone *</label>
+          <label className="label">{t('forms.phone')} *</label>
           <input {...register('phone', { required: true })} type="tel" className="input-field" placeholder="(305) 000-0000" />
         </div>
       </div>
       <div>
-        <label className="label">Email *</label>
+        <label className="label">{t('forms.email')} *</label>
         <input {...register('email', { required: true })} type="email" className="input-field" placeholder="your@email.com" />
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <div>
-          <label className="label">Preferred Area</label>
+          <label className="label">{t('forms.preferredArea')}</label>
           <select {...register('preferred_area')} className="input-field">
-            <option value="">Any area</option>
+            <option value="">{t('forms.anyArea')}</option>
             {AREAS.map((a) => <option key={a}>{a}</option>)}
           </select>
         </div>
         <div>
-          <label className="label">Unit Type</label>
+          <label className="label">{t('forms.precon.unitType')}</label>
           <select {...register('unit_type')} className="input-field">
             <option>Studio</option>
             <option>1 Bedroom</option>
@@ -85,32 +87,32 @@ export default function PreConstructionForm() {
         </div>
       </div>
       <div>
-        <label className="label">Budget Range</label>
+        <label className="label">{t('forms.budgetRange')}</label>
         <select {...register('budget')} className="input-field">
-          <option value="">Select range...</option>
+          <option value="">{t('forms.selectRange')}</option>
           {BUDGET_RANGES.map((b) => <option key={b}>{b}</option>)}
         </select>
       </div>
       <div>
-        <label className="label">Timeline to Purchase</label>
+        <label className="label">{t('forms.precon.timelineLabel')}</label>
         <select {...register('timeline')} className="input-field">
-          {TIMELINES.map((t) => <option key={t}>{t}</option>)}
+          {TIMELINES.map((tl) => <option key={tl}>{tl}</option>)}
         </select>
       </div>
       <div>
-        <label className="label">Specific Project Interest (optional)</label>
-        <input {...register('preferred_project')} className="input-field" placeholder="e.g. Brickell City Centre, or any new projects" />
+        <label className="label">{t('forms.precon.projectLabel')}</label>
+        <input {...register('preferred_project')} className="input-field" placeholder={t('forms.precon.projectPlaceholder')} />
       </div>
       <div className="flex items-center gap-3">
         <input {...register('is_investor')} type="checkbox" id="is_investor" className="w-4 h-4 accent-sky-500" />
-        <label htmlFor="is_investor" className="text-sm text-navy-700">I am purchasing as an investor (not primary residence)</label>
+        <label htmlFor="is_investor" className="text-sm text-navy-700">{t('forms.precon.investor')}</label>
       </div>
       <div>
-        <label className="label">Additional Comments</label>
-        <textarea {...register('message')} rows={3} className="input-field resize-none" placeholder="Questions, preferences, or anything else Jordan should know..." />
+        <label className="label">{t('forms.precon.commentsLabel')}</label>
+        <textarea {...register('message')} rows={3} className="input-field resize-none" placeholder={t('forms.precon.commentsPlaceholder')} />
       </div>
       <button type="submit" disabled={loading} className="btn-wine w-full justify-center py-4 text-base disabled:opacity-60">
-        {loading ? 'Submitting...' : <><Send size={16} /> Register My Interest</>}
+        {loading ? t('forms.submitting') : <><Send size={16} /> {t('forms.precon.submit')}</>}
       </button>
     </form>
   )
