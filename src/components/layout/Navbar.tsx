@@ -22,6 +22,7 @@ const navLinks = [
     ],
   },
   { href: '/properties', k: 'nav.properties' },
+  { href: '/insights', k: 'nav.insights' },
   { href: '/contact', k: 'nav.contact' },
 ]
 

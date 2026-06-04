@@ -20,6 +20,7 @@ import {
   MessageSquareQuote,
   Youtube,
   Rocket,
+  Newspaper,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import InstallPrompt from './InstallPrompt'
@@ -40,6 +41,7 @@ const navItems = [
   { href: '/admin/properties', label: 'Properties', icon: Building2 },
   { href: '/admin/testimonials', label: 'Testimonials', icon: MessageSquareQuote },
   { href: '/admin/videos', label: 'Videos', icon: Youtube },
+  { href: '/admin/insights', label: 'Insights', icon: Newspaper },
   { href: '/admin/automations', label: 'Growth Engine', icon: Rocket },
   { href: '/admin/settings', label: 'Settings', icon: Settings },
 ]
