@@ -6,7 +6,6 @@ import { ArrowRight, ArrowLeft, CheckCircle2, Home, Briefcase, Users, ShieldChec
 import { useT } from '@/components/LanguageProvider'
 
 interface RentalData {
-  // Applicant
   full_name: string
   email: string
   phone: string
@@ -23,7 +22,6 @@ interface RentalData {
   prev_city: string
   prev_state: string
   prev_zip: string
-  // Employment
   employer: string
   position: string
   employment_type: string
@@ -31,7 +29,6 @@ interface RentalData {
   employer_phone: string
   employment_length: string
   employer_address: string
-  // Co-applicant
   has_coapplicant: boolean
   co_full_name: string
   co_dob: string
@@ -39,7 +36,6 @@ interface RentalData {
   co_email: string
   co_employer: string
   co_income: string
-  // Rental details + references
   property_address: string
   desired_move_in: string
   occupants: string
@@ -53,10 +49,10 @@ interface RentalData {
 }
 
 const STEPS = [
-  { icon: Home, label: 'Applicant' },
-  { icon: Briefcase, label: 'Employment' },
-  { icon: Users, label: 'Co-applicant' },
-  { icon: ShieldCheck, label: 'Review' },
+  { icon: Home, key: 'forms.rental.stepApplicant' },
+  { icon: Briefcase, key: 'forms.rental.stepEmployment' },
+  { icon: Users, key: 'forms.rental.stepCoapplicant' },
+  { icon: ShieldCheck, key: 'forms.rental.stepReview' },
 ]
 
 export default function RentalApplicationForm() {
@@ -119,12 +115,12 @@ export default function RentalApplicationForm() {
           const active = n === step
           const done = n < step
           return (
-            <div key={s.label} className="flex-1 flex items-center">
+            <div key={s.key} className="flex-1 flex items-center">
               <div className="flex flex-col items-center flex-1">
                 <div className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors ${active ? 'bg-wine text-white' : done ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-400'}`}>
                   {done ? <CheckCircle2 size={16} /> : <Icon size={16} />}
                 </div>
-                <span className={`text-[10px] mt-1.5 font-medium ${active ? 'text-wine' : 'text-gray-400'}`}>{s.label}</span>
+                <span className={`text-[10px] mt-1.5 font-medium ${active ? 'text-wine' : 'text-gray-400'}`}>{t(s.key)}</span>
               </div>
               {i < STEPS.length - 1 && <div className={`h-0.5 flex-1 mb-4 ${done ? 'bg-green-500' : 'bg-gray-100'}`} />}
             </div>
@@ -136,60 +132,60 @@ export default function RentalApplicationForm() {
         {/* Step 1 — Applicant */}
         {step === 1 && (
           <div className="space-y-5 animate-fade-in">
-            <h3 className="font-serif text-xl font-bold text-navy-900">Applicant information</h3>
+            <h3 className="font-serif text-xl font-bold text-navy-900">{t('forms.rental.hApplicant')}</h3>
             <div className="grid sm:grid-cols-2 gap-4">
               <div>
-                <label className="label">Full name *</label>
-                <input {...register('full_name', { required: 'Required' })} className="input-field" placeholder="Your full name" />
-                {errors.full_name && <p className="text-wine text-xs mt-1">{errors.full_name.message}</p>}
+                <label className="label">{t('forms.fullName')} *</label>
+                <input {...register('full_name', { required: 'Required' })} className="input-field" placeholder={t('forms.namePlaceholder')} />
+                {errors.full_name && <p className="text-wine text-xs mt-1">{t('forms.fullName')}</p>}
               </div>
               <div>
-                <label className="label">Phone *</label>
+                <label className="label">{t('forms.phone')} *</label>
                 <input {...register('phone', { required: 'Required' })} type="tel" className="input-field" placeholder="(305) 000-0000" />
-                {errors.phone && <p className="text-wine text-xs mt-1">{errors.phone.message}</p>}
+                {errors.phone && <p className="text-wine text-xs mt-1">{t('forms.phone')}</p>}
               </div>
               <div>
-                <label className="label">Email *</label>
+                <label className="label">{t('forms.email')} *</label>
                 <input {...register('email', { required: 'Required', pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: 'Invalid email' } })} type="email" className="input-field" placeholder="you@email.com" />
-                {errors.email && <p className="text-wine text-xs mt-1">{errors.email.message}</p>}
+                {errors.email && <p className="text-wine text-xs mt-1">{t('forms.email')}</p>}
               </div>
               <div>
-                <label className="label">Date of birth</label>
+                <label className="label">{t('forms.dob')}</label>
                 <input {...register('date_of_birth')} type="date" className="input-field" />
               </div>
             </div>
             <div className="grid sm:grid-cols-2 gap-4">
               <div>
-                <label className="label">Last 4 of SSN</label>
+                <label className="label">{t('forms.rental.ssn')}</label>
                 <input {...register('ssn_last4', { pattern: { value: /^\d{0,4}$/, message: '4 digits' }, maxLength: 4 })} inputMode="numeric" maxLength={4} className="input-field" placeholder="••••" />
-                <p className="text-gray-400 text-[11px] mt-1">Only the last 4 — the full credit/background check is done securely & separately.</p>
+                <p className="text-gray-400 text-[11px] mt-1">{t('forms.rental.ssnNote')}</p>
               </div>
               <div>
-                <label className="label">Desired property / unit</label>
-                <input {...register('property_address')} className="input-field" placeholder="Address or building you're applying for" />
+                <label className="label">{t('forms.rental.desiredProperty')}</label>
+                <input {...register('property_address')} className="input-field" placeholder={t('forms.rental.desiredPropertyPh')} />
               </div>
             </div>
 
             <div className="pt-2 border-t border-gray-100">
-              <p className="text-sm font-semibold text-navy-800 mb-3">Current address</p>
+              <p className="text-sm font-semibold text-navy-800 mb-3">{t('forms.rental.currentAddress')}</p>
               <div>
-                <label className="label">Street address *</label>
+                <label className="label">{t('forms.rental.street')} *</label>
                 <input {...register('current_address', { required: 'Required' })} className="input-field" placeholder="123 Brickell Ave, Unit 1500" />
-                {errors.current_address && <p className="text-wine text-xs mt-1">{errors.current_address.message}</p>}
+                {errors.current_address && <p className="text-wine text-xs mt-1">{t('forms.rental.street')}</p>}
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3">
-                <div className="col-span-2 sm:col-span-1"><label className="label">City</label><input {...register('current_city')} className="input-field" /></div>
-                <div><label className="label">State</label><input {...register('current_state')} className="input-field" placeholder="FL" /></div>
-                <div><label className="label">ZIP</label><input {...register('current_zip')} className="input-field" /></div>
-                <div className="col-span-2 sm:col-span-1"><label className="label">How long?</label><input {...register('residence_length')} className="input-field" placeholder="2 years" /></div>
+                <div className="col-span-2 sm:col-span-1"><label className="label">{t('forms.city')}</label><input {...register('current_city')} className="input-field" /></div>
+                <div><label className="label">{t('forms.state')}</label><input {...register('current_state')} className="input-field" placeholder="FL" /></div>
+                <div><label className="label">{t('forms.zip')}</label><input {...register('current_zip')} className="input-field" /></div>
+                <div className="col-span-2 sm:col-span-1"><label className="label">{t('forms.howLong')}</label><input {...register('residence_length')} className="input-field" placeholder="2 years" /></div>
               </div>
               <div className="grid sm:grid-cols-2 gap-4 mt-3">
                 <div>
-                  <label className="label">Do you currently…</label>
+                  <label className="label">{t('forms.rental.housingStatus')}</label>
                   <select {...register('housing_status')} className="input-field"><option>Rent</option><option>Own</option><option>Live with family</option></select>
                 </div>
                 <div>
-                  <label className="label">Monthly payment / rent ($)</label>
+                  <label className="label">{t('forms.rental.monthlyPayment')}</label>
                   <input {...register('monthly_payment')} type="number" className="input-field" placeholder="2,200" />
                 </div>
               </div>
@@ -202,38 +198,38 @@ export default function RentalApplicationForm() {
         {/* Step 2 — Employment */}
         {step === 2 && (
           <div className="space-y-5 animate-fade-in">
-            <h3 className="font-serif text-xl font-bold text-navy-900">Employment &amp; income</h3>
+            <h3 className="font-serif text-xl font-bold text-navy-900">{t('forms.rental.hEmployment')}</h3>
             <div className="grid sm:grid-cols-2 gap-4">
               <div>
-                <label className="label">Current employer *</label>
+                <label className="label">{t('forms.rental.employerCurrent')} *</label>
                 <input {...register('employer', { required: 'Required' })} className="input-field" placeholder="Company name" />
-                {errors.employer && <p className="text-wine text-xs mt-1">{errors.employer.message}</p>}
+                {errors.employer && <p className="text-wine text-xs mt-1">{t('forms.rental.employerCurrent')}</p>}
               </div>
               <div>
-                <label className="label">Position / title</label>
+                <label className="label">{t('forms.position')}</label>
                 <input {...register('position')} className="input-field" placeholder="Your role" />
               </div>
               <div>
-                <label className="label">Pay type</label>
+                <label className="label">{t('forms.rental.payType')}</label>
                 <select {...register('employment_type')} className="input-field"><option>Salary</option><option>Hourly</option><option>Self-employed</option><option>Other</option></select>
               </div>
               <div>
-                <label className="label">Annual income ($) *</label>
+                <label className="label">{t('forms.annualIncome')} *</label>
                 <input {...register('annual_income', { required: 'Required' })} type="number" className="input-field" placeholder="85,000" />
-                {errors.annual_income && <p className="text-wine text-xs mt-1">{errors.annual_income.message}</p>}
+                {errors.annual_income && <p className="text-wine text-xs mt-1">{t('forms.annualIncome')}</p>}
               </div>
               <div>
-                <label className="label">Employer phone</label>
+                <label className="label">{t('forms.rental.employerPhone')}</label>
                 <input {...register('employer_phone')} type="tel" className="input-field" />
               </div>
               <div>
-                <label className="label">How long there?</label>
+                <label className="label">{t('forms.rental.timeEmployed')}</label>
                 <input {...register('employment_length')} className="input-field" placeholder="3 years" />
               </div>
             </div>
             <div>
-              <label className="label">Employer address</label>
-              <input {...register('employer_address')} className="input-field" placeholder="Street, City, State, ZIP" />
+              <label className="label">{t('forms.rental.employerAddress')}</label>
+              <input {...register('employer_address')} className="input-field" placeholder={t('forms.rental.employerAddressPh')} />
             </div>
             <div className="flex gap-3">
               <button type="button" onClick={() => setStep(1)} className="btn-secondary" aria-label={t('forms.back')}><ArrowLeft size={16} /></button>
@@ -245,21 +241,21 @@ export default function RentalApplicationForm() {
         {/* Step 3 — Co-applicant */}
         {step === 3 && (
           <div className="space-y-5 animate-fade-in">
-            <h3 className="font-serif text-xl font-bold text-navy-900">Co-applicant</h3>
+            <h3 className="font-serif text-xl font-bold text-navy-900">{t('forms.rental.stepCoapplicant')}</h3>
             <label className="flex items-center gap-3 p-4 rounded-xl border border-gray-200 cursor-pointer hover:border-navy-300">
               <input type="checkbox" {...register('has_coapplicant')} className="w-4 h-4" />
-              <span className="text-sm text-navy-800 font-medium">I&apos;m applying with a co-applicant or spouse</span>
+              <span className="text-sm text-navy-800 font-medium">{t('forms.rental.coToggle')}</span>
             </label>
 
             {hasCo && (
               <div className="space-y-4 animate-fade-in">
                 <div className="grid sm:grid-cols-2 gap-4">
-                  <div><label className="label">Co-applicant name</label><input {...register('co_full_name')} className="input-field" /></div>
-                  <div><label className="label">Date of birth</label><input {...register('co_dob')} type="date" className="input-field" /></div>
-                  <div><label className="label">Phone</label><input {...register('co_phone')} type="tel" className="input-field" /></div>
-                  <div><label className="label">Email</label><input {...register('co_email')} type="email" className="input-field" /></div>
-                  <div><label className="label">Employer</label><input {...register('co_employer')} className="input-field" /></div>
-                  <div><label className="label">Annual income ($)</label><input {...register('co_income')} type="number" className="input-field" /></div>
+                  <div><label className="label">{t('forms.rental.coName')}</label><input {...register('co_full_name')} className="input-field" /></div>
+                  <div><label className="label">{t('forms.dob')}</label><input {...register('co_dob')} type="date" className="input-field" /></div>
+                  <div><label className="label">{t('forms.phone')}</label><input {...register('co_phone')} type="tel" className="input-field" /></div>
+                  <div><label className="label">{t('forms.email')}</label><input {...register('co_email')} type="email" className="input-field" /></div>
+                  <div><label className="label">{t('forms.employer')}</label><input {...register('co_employer')} className="input-field" /></div>
+                  <div><label className="label">{t('forms.annualIncome')}</label><input {...register('co_income')} type="number" className="input-field" /></div>
                 </div>
               </div>
             )}
@@ -274,38 +270,35 @@ export default function RentalApplicationForm() {
         {/* Step 4 — Review / references / authorize */}
         {step === 4 && (
           <div className="space-y-5 animate-fade-in">
-            <h3 className="font-serif text-xl font-bold text-navy-900">A few last details</h3>
+            <h3 className="font-serif text-xl font-bold text-navy-900">{t('forms.rental.hLastDetails')}</h3>
             <div className="grid sm:grid-cols-2 gap-4">
-              <div><label className="label">Desired move-in date</label><input {...register('desired_move_in')} type="date" className="input-field" /></div>
-              <div><label className="label"># of occupants</label><input {...register('occupants')} type="number" className="input-field" placeholder="2" /></div>
+              <div><label className="label">{t('forms.rental.moveIn')}</label><input {...register('desired_move_in')} type="date" className="input-field" /></div>
+              <div><label className="label">{t('forms.rental.occupants')}</label><input {...register('occupants')} type="number" className="input-field" placeholder="2" /></div>
             </div>
-            <div><label className="label">Pets (type &amp; size)</label><input {...register('pets')} className="input-field" placeholder="e.g. 1 small dog, or None" /></div>
+            <div><label className="label">{t('forms.rental.pets')}</label><input {...register('pets')} className="input-field" placeholder={t('forms.rental.petsPh')} /></div>
 
             <div className="pt-2 border-t border-gray-100">
-              <p className="text-sm font-semibold text-navy-800 mb-3">Emergency contact</p>
+              <p className="text-sm font-semibold text-navy-800 mb-3">{t('forms.rental.hEmergency')}</p>
               <div className="grid sm:grid-cols-3 gap-3">
-                <div><label className="label">Name</label><input {...register('emergency_name')} className="input-field" /></div>
-                <div><label className="label">Phone</label><input {...register('emergency_phone')} type="tel" className="input-field" /></div>
-                <div><label className="label">Relationship</label><input {...register('emergency_relationship')} className="input-field" /></div>
+                <div><label className="label">{t('forms.name')}</label><input {...register('emergency_name')} className="input-field" /></div>
+                <div><label className="label">{t('forms.phone')}</label><input {...register('emergency_phone')} type="tel" className="input-field" /></div>
+                <div><label className="label">{t('forms.relationship')}</label><input {...register('emergency_relationship')} className="input-field" /></div>
               </div>
             </div>
 
             <div className="pt-2 border-t border-gray-100">
-              <p className="text-sm font-semibold text-navy-800 mb-3">Reference</p>
+              <p className="text-sm font-semibold text-navy-800 mb-3">{t('forms.rental.hReference')}</p>
               <div className="grid sm:grid-cols-2 gap-3">
-                <div><label className="label">Name</label><input {...register('reference_name')} className="input-field" /></div>
-                <div><label className="label">Phone</label><input {...register('reference_phone')} type="tel" className="input-field" /></div>
+                <div><label className="label">{t('forms.name')}</label><input {...register('reference_name')} className="input-field" /></div>
+                <div><label className="label">{t('forms.phone')}</label><input {...register('reference_phone')} type="tel" className="input-field" /></div>
               </div>
             </div>
 
             <label className="flex items-start gap-3 p-4 rounded-xl bg-navy-50 cursor-pointer">
               <input type="checkbox" {...register('authorize', { required: true })} className="w-4 h-4 mt-0.5" />
-              <span className="text-xs text-navy-700 leading-relaxed">
-                I authorize the verification of the information provided and a credit &amp; background check in connection with this rental application.
-                I understand the full check is performed through a secure screening service.
-              </span>
+              <span className="text-xs text-navy-700 leading-relaxed">{t('forms.rental.authorize')}</span>
             </label>
-            {errors.authorize && <p className="text-wine text-xs">Please authorize to submit.</p>}
+            {errors.authorize && <p className="text-wine text-xs">{t('forms.rental.authorizeRequired')}</p>}
 
             {error && <p className="text-wine text-sm text-center font-medium">{error}</p>}
 

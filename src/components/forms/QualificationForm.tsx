@@ -100,20 +100,20 @@ export default function QualificationForm({ leadId, firstName, known = true }: {
   // Collected only when the lead isn't already known (resilient/broken-link path).
   const contactBlock = !known ? (
     <div className="space-y-4 pb-4 mb-2 border-b border-gray-100">
-      <p className="text-sm text-gray-600 font-medium">First, how can Jordan reach you?</p>
+      <p className="text-sm text-gray-600 font-medium">{t('forms.qualify.contactIntro')}</p>
       <div>
-        <label className="label">Full name *</label>
-        <input {...register('full_name', { required: 'Required' })} className="input-field" placeholder="Your name" />
-        {errors.full_name && <p className="text-wine text-xs mt-1">{errors.full_name.message}</p>}
+        <label className="label">{t('forms.fullName')} *</label>
+        <input {...register('full_name', { required: 'Required' })} className="input-field" placeholder={t('forms.namePlaceholder')} />
+        {errors.full_name && <p className="text-wine text-xs mt-1">{t('forms.fullName')}</p>}
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="label">Email *</label>
+          <label className="label">{t('forms.email')} *</label>
           <input {...register('email', { required: 'Required' })} type="email" className="input-field" placeholder="you@email.com" />
-          {errors.email && <p className="text-wine text-xs mt-1">{errors.email.message}</p>}
+          {errors.email && <p className="text-wine text-xs mt-1">{t('forms.email')}</p>}
         </div>
         <div>
-          <label className="label">Phone</label>
+          <label className="label">{t('forms.phone')}</label>
           <input {...register('phone')} type="tel" className="input-field" placeholder="305-555-0123" />
         </div>
       </div>
@@ -132,13 +132,13 @@ export default function QualificationForm({ leadId, firstName, known = true }: {
         {/* Step 1 — Intent (shared) */}
         {step === 1 && (
           <div className="space-y-5 animate-fade-in">
-            <h3 className="font-serif text-xl font-bold text-navy-900 text-center">What brings you to the market?</h3>
+            <h3 className="font-serif text-xl font-bold text-navy-900 text-center">{t('forms.qualify.intentTitle')}</h3>
             <div className="grid grid-cols-2 gap-3">
               {['Buy', 'Sell', 'Invest', 'Rent'].map((opt) => (
                 <label key={opt} className="cursor-pointer">
                   <input type="radio" value={opt} {...register('intent', { required: true })} className="peer sr-only" />
                   <div className="p-4 rounded-xl border-2 border-gray-200 text-center font-semibold text-navy-700 peer-checked:border-wine peer-checked:bg-wine-50 peer-checked:text-wine transition-all hover:border-gray-300">
-                    {opt === 'Buy' ? '🏠 Buy a home' : opt === 'Sell' ? '💰 Sell my home' : opt === 'Invest' ? '📈 Invest' : '🔑 Rent'}
+                    {opt === 'Buy' ? t('forms.qualify.intentBuy') : opt === 'Sell' ? t('forms.qualify.intentSell') : opt === 'Invest' ? t('forms.qualify.intentInvest') : t('forms.qualify.intentRent')}
                   </div>
                 </label>
               ))}
@@ -150,20 +150,20 @@ export default function QualificationForm({ leadId, firstName, known = true }: {
         {/* ═══ SELLER FLOW ═══ */}
         {isSeller && step === 2 && (
           <div className="space-y-5 animate-fade-in">
-            <h3 className="font-serif text-xl font-bold text-navy-900 text-center">Tell us about your property</h3>
+            <h3 className="font-serif text-xl font-bold text-navy-900 text-center">{t('forms.qualify.sellerStep2')}</h3>
             <div>
-              <label className="label">Property Address *</label>
+              <label className="label">{t('forms.qualify.propAddress')} *</label>
               <input {...register('property_address', { required: 'Required' })} className="input-field" placeholder="123 Brickell Ave, Unit 1500" />
-              {errors.property_address && <p className="text-wine text-xs mt-1">{errors.property_address.message}</p>}
+              {errors.property_address && <p className="text-wine text-xs mt-1">{t('forms.qualify.propAddress')}</p>}
             </div>
             <div>
-              <label className="label">Property Type</label>
+              <label className="label">{t('forms.qualify.propType')}</label>
               <select {...register('property_type')} className="input-field">
                 <option>Condo</option><option>Single Family Home</option><option>Townhouse</option><option>Multi-Family</option><option>Land</option>
               </select>
             </div>
             <div>
-              <label className="label">Condition *</label>
+              <label className="label">{t('forms.qualify.condition')} *</label>
               <select {...register('condition', { required: true })} className="input-field">
                 <option value="">Select…</option>
                 <option>Excellent — recently renovated</option>
@@ -181,9 +181,9 @@ export default function QualificationForm({ leadId, firstName, known = true }: {
 
         {isSeller && step === 3 && (
           <div className="space-y-5 animate-fade-in">
-            <h3 className="font-serif text-xl font-bold text-navy-900 text-center">Your selling plans</h3>
+            <h3 className="font-serif text-xl font-bold text-navy-900 text-center">{t('forms.qualify.sellerStep3')}</h3>
             <div>
-              <label className="label">Why are you selling? *</label>
+              <label className="label">{t('forms.qualify.whySelling')} *</label>
               <select {...register('why_selling', { required: true })} className="input-field">
                 <option value="">Select…</option>
                 <option>Upgrading to a bigger home</option>
@@ -195,13 +195,13 @@ export default function QualificationForm({ leadId, firstName, known = true }: {
               </select>
             </div>
             <div>
-              <label className="label">When do you want to sell? *</label>
+              <label className="label">{t('forms.qualify.whenSell')} *</label>
               <select {...register('timeline', { required: true })} className="input-field">
-                {TIMELINES.map((t) => <option key={t}>{t}</option>)}
+                {TIMELINES.map((tl) => <option key={tl}>{tl}</option>)}
               </select>
             </div>
             <div>
-              <label className="label">Is the property…</label>
+              <label className="label">{t('forms.qualify.occupancy')}</label>
               <select {...register('occupancy')} className="input-field">
                 <option>Owner-occupied (I live there)</option>
                 <option>Vacant</option>
@@ -218,29 +218,29 @@ export default function QualificationForm({ leadId, firstName, known = true }: {
 
         {isSeller && step === 4 && (
           <div className="space-y-5 animate-fade-in">
-            <h3 className="font-serif text-xl font-bold text-navy-900 text-center">Almost done!</h3>
+            <h3 className="font-serif text-xl font-bold text-navy-900 text-center">{t('forms.qualify.almostDone')}</h3>
             {contactBlock}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="label">Price you hope to get ($)</label>
+                <label className="label">{t('forms.qualify.expectedPrice')}</label>
                 <input {...register('expected_price')} type="number" className="input-field" placeholder="850,000" />
               </div>
               <div>
-                <label className="label">Mortgage balance ($)</label>
+                <label className="label">{t('forms.qualify.mortgage')}</label>
                 <input {...register('mortgage_balance')} type="number" className="input-field" placeholder="optional" />
               </div>
             </div>
             <div>
-              <label className="label">Anything else Jordan should know?</label>
+              <label className="label">{t('forms.qualify.elseKnow')}</label>
               <textarea {...register('motivation')} rows={3} className="input-field resize-none" placeholder="Recent upgrades, urgency, special circumstances…" />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="label">Best way to reach you</label>
+                <label className="label">{t('forms.qualify.contactMethod')}</label>
                 <select {...register('contact_method')} className="input-field"><option>Call</option><option>Text</option><option>WhatsApp</option><option>Email</option></select>
               </div>
               <div>
-                <label className="label">Best time</label>
+                <label className="label">{t('forms.qualify.bestTime')}</label>
                 <select {...register('best_time')} className="input-field"><option>Morning</option><option>Afternoon</option><option>Evening</option><option>Anytime</option></select>
               </div>
             </div>
@@ -257,26 +257,26 @@ export default function QualificationForm({ leadId, firstName, known = true }: {
         {/* ═══ BUYER / INVESTOR / RENTER FLOW ═══ */}
         {!isSeller && step === 2 && (
           <div className="space-y-5 animate-fade-in">
-            <h3 className="font-serif text-xl font-bold text-navy-900 text-center">Budget & timeline</h3>
+            <h3 className="font-serif text-xl font-bold text-navy-900 text-center">{t('forms.qualify.buyerStep2')}</h3>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="label">Budget Min ($)</label>
+                <label className="label">{t('forms.budgetMin')}</label>
                 <input {...register('budget_min')} type="number" className="input-field" placeholder="300,000" />
               </div>
               <div>
-                <label className="label">Budget Max ($) *</label>
+                <label className="label">{t('forms.budgetMax')} *</label>
                 <input {...register('budget_max', { required: 'Required' })} type="number" className="input-field" placeholder="800,000" />
-                {errors.budget_max && <p className="text-wine text-xs mt-1">{errors.budget_max.message}</p>}
+                {errors.budget_max && <p className="text-wine text-xs mt-1">{t('forms.budgetMax')}</p>}
               </div>
             </div>
             <div>
-              <label className="label">When are you looking to move? *</label>
-              <select {...register('timeline', { required: true })} className="input-field">{TIMELINES.map((t) => <option key={t}>{t}</option>)}</select>
+              <label className="label">{t('forms.qualify.whenMove')} *</label>
+              <select {...register('timeline', { required: true })} className="input-field">{TIMELINES.map((tl) => <option key={tl}>{tl}</option>)}</select>
             </div>
             <div>
-              <label className="label">Financing</label>
+              <label className="label">{t('forms.financing')}</label>
               <select {...register('financing_status')} className="input-field">
-                <option value="">Select…</option>{FINANCING_OPTIONS.map((f) => <option key={f}>{f}</option>)}
+                <option value="">{t('forms.select')}</option>{FINANCING_OPTIONS.map((f) => <option key={f}>{f}</option>)}
               </select>
             </div>
             <div className="flex gap-3">
@@ -288,26 +288,26 @@ export default function QualificationForm({ leadId, firstName, known = true }: {
 
         {!isSeller && step === 3 && (
           <div className="space-y-5 animate-fade-in">
-            <h3 className="font-serif text-xl font-bold text-navy-900 text-center">What are you looking for?</h3>
+            <h3 className="font-serif text-xl font-bold text-navy-900 text-center">{t('forms.qualify.buyerStep3')}</h3>
             <div>
-              <label className="label">Preferred Area *</label>
+              <label className="label">{t('forms.preferredArea')} *</label>
               <select {...register('preferred_area', { required: true })} className="input-field">
-                <option value="">Select…</option>{AREAS.map((a) => <option key={a}>{a}</option>)}
+                <option value="">{t('forms.select')}</option>{AREAS.map((a) => <option key={a}>{a}</option>)}
               </select>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="label">Property Type</label>
+                <label className="label">{t('forms.qualify.propType')}</label>
                 <select {...register('property_type')} className="input-field"><option value="">Any</option><option>Condo</option><option>Single Family Home</option><option>Townhouse</option><option>Pre-Construction</option></select>
               </div>
               <div>
-                <label className="label">Bedrooms</label>
+                <label className="label">{t('forms.bedrooms')}</label>
                 <select {...register('bedrooms')} className="input-field"><option value="">Any</option>{['Studio', '1', '2', '3', '4', '5+'].map((b) => <option key={b}>{b}</option>)}</select>
               </div>
             </div>
             <div>
-              <label className="label">Must-haves (optional)</label>
-              <input {...register('must_haves')} className="input-field" placeholder="e.g. waterfront, pool, parking, near schools" />
+              <label className="label">{t('forms.qualify.mustHaves')}</label>
+              <input {...register('must_haves')} className="input-field" placeholder={t('forms.qualify.mustHavesPh')} />
             </div>
             <div className="flex gap-3">
               <button type="button" onClick={() => setStep(2)} className="btn-secondary" aria-label={t('forms.back')}><ArrowLeft size={16} /></button>
@@ -318,19 +318,19 @@ export default function QualificationForm({ leadId, firstName, known = true }: {
 
         {!isSeller && step === 4 && (
           <div className="space-y-5 animate-fade-in">
-            <h3 className="font-serif text-xl font-bold text-navy-900 text-center">Almost done!</h3>
+            <h3 className="font-serif text-xl font-bold text-navy-900 text-center">{t('forms.qualify.almostDone')}</h3>
             {contactBlock}
             <div>
-              <label className="label">What&apos;s most important to you in this move?</label>
+              <label className="label">{t('forms.qualify.buyerMotivation')}</label>
               <textarea {...register('motivation')} rows={3} className="input-field resize-none" placeholder="Tell Jordan what matters most — location, timing, getting the best deal, a fresh start…" />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="label">Best way to reach you</label>
+                <label className="label">{t('forms.qualify.contactMethod')}</label>
                 <select {...register('contact_method')} className="input-field"><option>Call</option><option>Text</option><option>WhatsApp</option><option>Email</option></select>
               </div>
               <div>
-                <label className="label">Best time</label>
+                <label className="label">{t('forms.qualify.bestTime')}</label>
                 <select {...register('best_time')} className="input-field"><option>Morning</option><option>Afternoon</option><option>Evening</option><option>Anytime</option></select>
               </div>
             </div>

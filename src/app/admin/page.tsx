@@ -124,8 +124,17 @@ function apptIcon(type: string) {
 export default async function AdminDashboard() {
   const configured = isSupabaseConfigured()
   const d = await getData()
-  const hour = new Date().getHours()
-  const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening'
+  // Greet by Jordan's local time (Miami / Eastern), not the server's UTC clock.
+  const hour = parseInt(
+    new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', hour: 'numeric', hour12: false }).format(new Date()),
+    10
+  ) % 24
+  const greeting =
+    hour < 5 ? 'Working late' :
+    hour < 12 ? 'Good morning' :
+    hour < 18 ? 'Good afternoon' :
+    hour < 22 ? 'Good evening' :
+    'Good night'
 
   return (
     <div className="p-6 lg:p-8">
