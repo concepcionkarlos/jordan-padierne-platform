@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { sendEmail, getEmailProvider, isEmailConfigured } from '@/lib/email'
+import { sendEmail, getEmailProvider, isEmailConfigured, emailDiagnostic } from '@/lib/email'
 
 // Sends a branded test email to the admin inbox so Jordan can confirm, at a
 // glance, that email is connected and going out from the right address.
@@ -28,5 +28,9 @@ export async function POST() {
 </table></td></tr></table></body></html>`
 
   const ok = await sendEmail(to, '✅ CRM email test — Jordan Padierne', html)
-  return NextResponse.json({ success: ok, provider: getEmailProvider(), from, to })
+  if (ok) return NextResponse.json({ success: true, provider: getEmailProvider(), from, to })
+
+  // Send failed — surface the real SMTP error to help diagnose.
+  const diag = await emailDiagnostic()
+  return NextResponse.json({ success: false, provider: getEmailProvider(), from, to, diagnostic: diag })
 }

@@ -19,6 +19,26 @@ export function getEmailProvider(): Provider {
   return getProvider()
 }
 
+// Diagnostic: verifies the SMTP connection/credentials and returns the raw error
+// if it fails (e.g. "535 Username and Password not accepted"). Admin-only use.
+export async function emailDiagnostic(): Promise<{ ok: boolean; provider: Provider; user?: string; error?: string }> {
+  const provider = getProvider()
+  if (provider !== 'smtp') return { ok: provider === 'resend', provider }
+  const user = process.env.SMTP_USER
+  try {
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST || 'smtp.gmail.com',
+      port: parseInt(process.env.SMTP_PORT || '587'),
+      secure: false,
+      auth: { user, pass: process.env.SMTP_PASSWORD },
+    })
+    await transporter.verify()
+    return { ok: true, provider, user }
+  } catch (err: any) {
+    return { ok: false, provider, user, error: err?.message || String(err) }
+  }
+}
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface LeadEmailData {
