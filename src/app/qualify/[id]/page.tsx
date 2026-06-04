@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import { safeQuery } from '@/lib/db'
 import QualificationForm from '@/components/forms/QualificationForm'
+import ExpLogo from '@/components/ui/ExpLogo'
 import { Phone, Shield, Clock } from 'lucide-react'
 
 export const metadata: Metadata = {
@@ -35,7 +36,8 @@ export default async function QualifyPage({ params }: { params: { id: string } }
         {/* Header */}
         <div className="text-center mb-6">
           <p className="font-serif text-2xl font-bold text-white">Jordan Padierne</p>
-          <p className="text-sky-400 text-xs font-medium tracking-widest uppercase mt-1">Realtor · eXp Realty</p>
+          <p className="text-sky-400 text-xs font-medium tracking-widest uppercase mt-1 mb-3">Realtor · South Florida</p>
+          <ExpLogo className="h-6" />
         </div>
 
         {/* Card */}

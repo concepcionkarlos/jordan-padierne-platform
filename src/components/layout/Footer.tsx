@@ -35,7 +35,7 @@ export default function Footer() {
             <div className="mb-4">
               <p className="font-serif text-2xl font-bold text-white">Jordan Padierne</p>
               <p className="text-sky-400 text-xs font-medium tracking-widest uppercase mt-0.5">
-                Realtor · eXp Realty
+                Realtor · South Florida
               </p>
             </div>
             <p className="text-navy-200 text-sm leading-relaxed mb-5">

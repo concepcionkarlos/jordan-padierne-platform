@@ -3,6 +3,7 @@
 import { Shield, Handshake, MapPin, Building2, Users } from 'lucide-react'
 import Reveal from '@/components/ui/Reveal'
 import AuroraBackground from '@/components/ui/AuroraBackground'
+import ExpLogo from '@/components/ui/ExpLogo'
 import { useT } from '@/components/LanguageProvider'
 
 const reasons = [
@@ -51,8 +52,11 @@ export default function WhyJordanSection() {
             </blockquote>
             <div className="mt-6 flex items-center justify-center gap-3">
               <div className="h-px w-12 bg-sky-500" />
-              <p className="text-sky-400 font-semibold text-sm">Jordan Padierne · eXp Realty</p>
+              <p className="text-sky-400 font-semibold text-sm">Jordan Padierne</p>
               <div className="h-px w-12 bg-sky-500" />
+            </div>
+            <div className="mt-5 flex justify-center">
+              <ExpLogo className="h-6" />
             </div>
           </div>
         </Reveal>

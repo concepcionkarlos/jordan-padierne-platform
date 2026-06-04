@@ -119,7 +119,8 @@ function buildClientHtml(clientName: string, formType: string, leadId?: string):
 <table width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;margin:0 auto">
   <tr><td style="background:#0A1628;padding:28px;border-radius:12px 12px 0 0;text-align:center">
     <p style="margin:0;font-size:22px;font-weight:700;color:#fff;font-family:Georgia,serif">Jordan Padierne</p>
-    <p style="margin:6px 0 0;font-size:10px;color:#7BA7C2;text-transform:uppercase;letter-spacing:1.5px">Realtor · eXp Realty · South Florida</p>
+    <p style="margin:6px 0 0;font-size:10px;color:#7BA7C2;text-transform:uppercase;letter-spacing:1.5px">Realtor · South Florida</p>
+    <div style="margin-top:10px"><img src="https://jordanpadierne.com/exp-realty-logo.jpeg" alt="eXp Realty" width="96" style="background:#ffffff;border-radius:6px;padding:6px 9px;display:inline-block" /></div>
   </td></tr>
   <tr><td style="background:#fff;padding:32px 28px;border-radius:0 0 12px 12px;text-align:center">
     <p style="font-size:32px;margin:0 0 12px">✉️</p>
@@ -303,7 +304,8 @@ export async function sendBookingConfirmation(
 <table width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;margin:0 auto">
   <tr><td style="background:#0A1628;padding:28px;border-radius:12px 12px 0 0;text-align:center">
     <p style="margin:0;font-size:22px;font-weight:700;color:#fff;font-family:Georgia,serif">Jordan Padierne</p>
-    <p style="margin:6px 0 0;font-size:10px;color:#7BA7C2;text-transform:uppercase;letter-spacing:1.5px">Realtor · eXp Realty · South Florida</p>
+    <p style="margin:6px 0 0;font-size:10px;color:#7BA7C2;text-transform:uppercase;letter-spacing:1.5px">Realtor · South Florida</p>
+    <div style="margin-top:10px"><img src="https://jordanpadierne.com/exp-realty-logo.jpeg" alt="eXp Realty" width="96" style="background:#ffffff;border-radius:6px;padding:6px 9px;display:inline-block" /></div>
   </td></tr>
   <tr><td style="background:#fff;padding:32px 28px;border-radius:0 0 12px 12px;text-align:center">
     <p style="font-size:32px;margin:0 0 10px">📅</p>
@@ -365,7 +367,8 @@ export async function sendReviewRequest(
 <table width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;margin:0 auto">
   <tr><td style="background:#0A1628;padding:28px;border-radius:12px 12px 0 0;text-align:center">
     <p style="margin:0;font-size:22px;font-weight:700;color:#fff;font-family:Georgia,serif">Jordan Padierne</p>
-    <p style="margin:6px 0 0;font-size:10px;color:#7BA7C2;text-transform:uppercase;letter-spacing:1.5px">Realtor · eXp Realty · South Florida</p>
+    <p style="margin:6px 0 0;font-size:10px;color:#7BA7C2;text-transform:uppercase;letter-spacing:1.5px">Realtor · South Florida</p>
+    <div style="margin-top:10px"><img src="https://jordanpadierne.com/exp-realty-logo.jpeg" alt="eXp Realty" width="96" style="background:#ffffff;border-radius:6px;padding:6px 9px;display:inline-block" /></div>
   </td></tr>
   <tr><td style="background:#fff;padding:34px 28px;border-radius:0 0 12px 12px;text-align:center">
     <p style="font-size:30px;margin:0 0 6px;letter-spacing:2px">${stars}</p>
@@ -393,7 +396,8 @@ export async function sendProfileReminder(clientEmail: string, clientName: strin
 <table width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;margin:0 auto">
   <tr><td style="background:#0A1628;padding:28px;border-radius:12px 12px 0 0;text-align:center">
     <p style="margin:0;font-size:22px;font-weight:700;color:#fff;font-family:Georgia,serif">Jordan Padierne</p>
-    <p style="margin:6px 0 0;font-size:10px;color:#7BA7C2;text-transform:uppercase;letter-spacing:1.5px">Realtor · eXp Realty · South Florida</p>
+    <p style="margin:6px 0 0;font-size:10px;color:#7BA7C2;text-transform:uppercase;letter-spacing:1.5px">Realtor · South Florida</p>
+    <div style="margin-top:10px"><img src="https://jordanpadierne.com/exp-realty-logo.jpeg" alt="eXp Realty" width="96" style="background:#ffffff;border-radius:6px;padding:6px 9px;display:inline-block" /></div>
   </td></tr>
   <tr><td style="background:#fff;padding:32px 28px;border-radius:0 0 12px 12px;text-align:center">
     <p style="font-size:32px;margin:0 0 12px">👋</p>

@@ -66,7 +66,7 @@ export default function Navbar() {
                 Jordan Padierne
               </span>
               <span className={cn('text-[10px] sm:text-xs font-medium tracking-widest uppercase transition-colors', logoSub)}>
-                Realtor · eXp Realty
+                Realtor · South Florida
               </span>
             </Link>
             <span className={cn('block h-8 sm:h-9 w-px transition-colors', isHome && !scrolled ? 'bg-white/25' : 'bg-navy-200')} />
