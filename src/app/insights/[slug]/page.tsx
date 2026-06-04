@@ -36,6 +36,7 @@ export default async function ArticlePage({ params }: { params: { slug: string }
   const post = await getPost(params.slug)
   if (!post) notFound()
 
+  const url = `https://jordanpadierne.com/insights/${post.slug}`
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Article',
@@ -43,15 +44,26 @@ export default async function ArticlePage({ params }: { params: { slug: string }
     description: post.excerpt_en ?? undefined,
     datePublished: post.created_at,
     dateModified: post.updated_at,
+    articleSection: post.category,
     author: { '@type': 'Person', name: post.author, jobTitle: 'Realtor', worksFor: 'eXp Realty' },
     publisher: { '@type': 'Organization', name: 'Jordan Padierne — eXp Realty' },
-    mainEntityOfPage: `https://jordanpadierne.com/insights/${post.slug}`,
+    mainEntityOfPage: url,
     image: post.cover_image ?? undefined,
+  }
+  const breadcrumb = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://jordanpadierne.com' },
+      { '@type': 'ListItem', position: 2, name: 'Insights', item: 'https://jordanpadierne.com/insights' },
+      { '@type': 'ListItem', position: 3, name: post.title_en, item: url },
+    ],
   }
 
   return (
     <PublicLayout>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
       <Article post={post} />
     </PublicLayout>
   )
