@@ -82,7 +82,7 @@ export default function ContactPage() {
               <div className="mt-6 p-5 bg-light-gray rounded-2xl">
                 <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">License</p>
                 <p className="text-navy-900 font-semibold text-sm">SL3641062</p>
-                <p className="text-gray-500 text-sm">eXp Realty · State of Florida</p>
+                <p className="text-gray-500 text-sm">eXp Realty · Florida</p>
                 <p className="text-gray-400 text-xs mt-2">English / Español</p>
               </div>
 

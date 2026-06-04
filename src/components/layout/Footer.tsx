@@ -17,8 +17,9 @@ const footerLinks = {
   ],
   Company: [
     { href: '/about', k: 'nav.about' },
+    { href: '/insights', k: 'nav.insights' },
     { href: '/contact', k: 'nav.contact' },
-    { href: '/contact#consultation', k: 'nav.schedule' },
+    { href: '/book', k: 'nav.schedule' },
   ],
 }
 

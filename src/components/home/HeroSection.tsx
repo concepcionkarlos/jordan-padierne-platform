@@ -8,6 +8,7 @@ import Reveal from '@/components/ui/Reveal'
 import AuroraBackground from '@/components/ui/AuroraBackground'
 import Particles from '@/components/ui/Particles'
 import AnimatedWave from '@/components/ui/AnimatedWave'
+import ExpLogo from '@/components/ui/ExpLogo'
 import { useT } from '@/components/LanguageProvider'
 
 export default function HeroSection() {
@@ -38,9 +39,12 @@ export default function HeroSection() {
       <div className="relative z-10 container-max section-padding pt-28 pb-20 lg:pt-36 lg:pb-28">
         <div className="max-w-2xl">
           <Reveal variant="fade">
-            <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-2 mb-8">
-              <span className="w-2 h-2 rounded-full bg-sky-400 animate-pulse" />
-              <span className="text-white/90 text-sm font-medium">{t('hero.badge')}</span>
+            <div className="flex items-center gap-3 mb-8">
+              <ExpLogo className="h-7" />
+              <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-2">
+                <span className="w-2 h-2 rounded-full bg-sky-400 animate-pulse" />
+                <span className="text-white/90 text-sm font-medium">{t('hero.badge')}</span>
+              </div>
             </div>
           </Reveal>
 

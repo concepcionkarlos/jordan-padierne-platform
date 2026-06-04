@@ -86,6 +86,9 @@ export default function Navbar() {
                   onMouseLeave={() => setServicesOpen(false)}
                 >
                   <button
+                    type="button"
+                    aria-haspopup="true"
+                    aria-expanded={servicesOpen ? 'true' : 'false'}
                     className={cn(
                       'flex items-center gap-1 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-150',
                       textColor,
@@ -149,6 +152,9 @@ export default function Navbar() {
 
           {/* Mobile Menu Toggle */}
           <button
+            type="button"
+            aria-expanded={mobileOpen ? 'true' : 'false'}
+            aria-controls="mobile-menu"
             onClick={() => setMobileOpen(!mobileOpen)}
             className={cn('lg:hidden p-2 rounded-lg transition-colors', textColor, 'hover:bg-white/10')}
             aria-label="Toggle menu"
@@ -160,7 +166,7 @@ export default function Navbar() {
 
       {/* Mobile Menu */}
       {mobileOpen && (
-        <div className="lg:hidden bg-white border-t border-gray-100 shadow-xl animate-slide-up">
+        <div id="mobile-menu" className="lg:hidden bg-white border-t border-gray-100 shadow-xl animate-slide-up">
           <div className="section-padding py-4 space-y-1">
             {navLinks.map((link) =>
               link.children ? (

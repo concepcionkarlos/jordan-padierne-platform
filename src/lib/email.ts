@@ -39,7 +39,7 @@ export interface LeadEmailData {
 // ─── HTML Templates ───────────────────────────────────────────────────────────
 
 function buildAdminHtml(data: LeadEmailData): string {
-  const adminDashUrl = `https://jordan-padierne-platform.vercel.app/admin/leads${data.lead_id ? `/${data.lead_id}` : ''}`
+  const adminDashUrl = `https://jordanpadierne.com/admin/leads${data.lead_id ? `/${data.lead_id}` : ''}`
 
   const formLabels: Record<string, string> = {
     contact: 'General Contact Form',
@@ -265,7 +265,7 @@ export async function sendQualificationAlert(data: {
   const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL || 'info@jordanpadierne.com'
   const tempColor = data.temperature === 'Hot' ? '#8B1A2F' : data.temperature === 'Warm' ? '#D97706' : '#46779A'
   const tempEmoji = data.temperature === 'Hot' ? '🔥' : data.temperature === 'Warm' ? '🌤️' : '❄️'
-  const dashUrl = `https://jordan-padierne-platform.vercel.app/admin/leads/${data.lead_id}`
+  const dashUrl = `https://jordanpadierne.com/admin/leads/${data.lead_id}`
 
   const taskList = data.tasks.map((t) => `<li style="margin:0 0 6px;font-size:14px;color:#0A1628">${t}</li>`).join('')
 
@@ -330,7 +330,7 @@ export async function sendBookingAlert(data: {
   full_name: string; email: string; phone?: string; whenLabel: string; topic: string; message?: string; lead_id?: string
 }): Promise<boolean> {
   const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL || 'info@jordanpadierne.com'
-  const dashUrl = `https://jordan-padierne-platform.vercel.app/admin/leads${data.lead_id ? `/${data.lead_id}` : ''}`
+  const dashUrl = `https://jordanpadierne.com/admin/leads${data.lead_id ? `/${data.lead_id}` : ''}`
   const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"></head>
 <body style="margin:0;padding:0;background:#F4F7FA;font-family:'Segoe UI',Arial,sans-serif">
 <table width="100%" cellpadding="0" cellspacing="0" style="padding:32px 16px"><tr><td>

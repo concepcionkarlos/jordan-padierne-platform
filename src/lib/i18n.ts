@@ -17,7 +17,7 @@ export const dict: Record<Lang, Record<string, string>> = {
     'nav.schedule': 'Schedule Consultation',
 
     // Hero
-    'hero.badge': 'eXp Realty · Miami-Dade County',
+    'hero.badge': 'Miami-Dade County · South Florida',
     'hero.title1': 'Helping Families, Investors, and International Buyers Find the Right',
     'hero.titleHighlight': 'Real Estate Opportunities',
     'hero.title2': 'in South Florida.',
@@ -245,7 +245,7 @@ export const dict: Record<Lang, Record<string, string>> = {
     'nav.schedule': 'Agenda una Consulta',
 
     // Hero
-    'hero.badge': 'eXp Realty · Condado de Miami-Dade',
+    'hero.badge': 'Condado de Miami-Dade · Sur de la Florida',
     'hero.title1': 'Ayudando a familias, inversionistas y compradores internacionales a encontrar las',
     'hero.titleHighlight': 'mejores oportunidades inmobiliarias',
     'hero.title2': 'en el Sur de la Florida.',
