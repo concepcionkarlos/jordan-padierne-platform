@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { Menu, X, Phone, ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -57,14 +58,20 @@ export default function Navbar() {
       <div className="container-max section-padding">
         <div className="flex items-center justify-between h-16 lg:h-20">
           {/* Logo */}
-          <Link href="/" className="flex flex-col leading-tight group">
-            <span className={cn('font-serif text-xl font-bold tracking-tight transition-colors', logoColor)}>
-              Jordan Padierne
-            </span>
-            <span className={cn('text-xs font-medium tracking-widest uppercase transition-colors', logoSub)}>
-              Realtor · eXp Realty
-            </span>
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link href="/" className="flex flex-col leading-tight group">
+              <span className={cn('font-serif text-xl font-bold tracking-tight transition-colors', logoColor)}>
+                Jordan Padierne
+              </span>
+              <span className={cn('text-xs font-medium tracking-widest uppercase transition-colors', logoSub)}>
+                Realtor · eXp Realty
+              </span>
+            </Link>
+            <span className={cn('hidden sm:block h-9 w-px transition-colors', isHome && !scrolled ? 'bg-white/25' : 'bg-navy-200')} />
+            <div className="hidden sm:flex items-center bg-white rounded-lg px-2.5 py-1.5 shadow-sm">
+              <Image src="/exp-realty-logo.jpeg" alt="eXp Realty" width={1157} height={601} className="h-5 w-auto" priority />
+            </div>
+          </div>
 
           {/* Desktop Nav */}
           <nav className="hidden lg:flex items-center gap-1">
