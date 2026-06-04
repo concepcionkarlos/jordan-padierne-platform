@@ -173,7 +173,7 @@ export default function QualificationForm({ leadId, firstName, known = true }: {
               </select>
             </div>
             <div className="flex gap-3">
-              <button type="button" onClick={() => setStep(1)} className="btn-secondary"><ArrowLeft size={16} /></button>
+              <button type="button" onClick={() => setStep(1)} className="btn-secondary" aria-label="Back"><ArrowLeft size={16} /></button>
               <button type="button" onClick={next} className="btn-wine flex-1 justify-center py-4">Continue <ArrowRight size={16} /></button>
             </div>
           </div>
@@ -210,7 +210,7 @@ export default function QualificationForm({ leadId, firstName, known = true }: {
               </select>
             </div>
             <div className="flex gap-3">
-              <button type="button" onClick={() => setStep(2)} className="btn-secondary"><ArrowLeft size={16} /></button>
+              <button type="button" onClick={() => setStep(2)} className="btn-secondary" aria-label="Back"><ArrowLeft size={16} /></button>
               <button type="button" onClick={next} className="btn-wine flex-1 justify-center py-4">Continue <ArrowRight size={16} /></button>
             </div>
           </div>
@@ -246,7 +246,7 @@ export default function QualificationForm({ leadId, firstName, known = true }: {
             </div>
             {error && <p className="text-wine text-sm text-center font-medium">{error}</p>}
             <div className="flex gap-3">
-              <button type="button" onClick={() => setStep(3)} className="btn-secondary"><ArrowLeft size={16} /></button>
+              <button type="button" onClick={() => setStep(3)} className="btn-secondary" aria-label="Back"><ArrowLeft size={16} /></button>
               <button type="submit" disabled={loading} className="btn-wine cta-shine flex-1 justify-center py-4 disabled:opacity-60">
                 {loading ? 'Submitting…' : <>Get My Valuation <Sparkles size={16} /></>}
               </button>
@@ -280,7 +280,7 @@ export default function QualificationForm({ leadId, firstName, known = true }: {
               </select>
             </div>
             <div className="flex gap-3">
-              <button type="button" onClick={() => setStep(1)} className="btn-secondary"><ArrowLeft size={16} /></button>
+              <button type="button" onClick={() => setStep(1)} className="btn-secondary" aria-label="Back"><ArrowLeft size={16} /></button>
               <button type="button" onClick={next} className="btn-wine flex-1 justify-center py-4">Continue <ArrowRight size={16} /></button>
             </div>
           </div>
@@ -310,7 +310,7 @@ export default function QualificationForm({ leadId, firstName, known = true }: {
               <input {...register('must_haves')} className="input-field" placeholder="e.g. waterfront, pool, parking, near schools" />
             </div>
             <div className="flex gap-3">
-              <button type="button" onClick={() => setStep(2)} className="btn-secondary"><ArrowLeft size={16} /></button>
+              <button type="button" onClick={() => setStep(2)} className="btn-secondary" aria-label="Back"><ArrowLeft size={16} /></button>
               <button type="button" onClick={next} className="btn-wine flex-1 justify-center py-4">Continue <ArrowRight size={16} /></button>
             </div>
           </div>
@@ -336,7 +336,7 @@ export default function QualificationForm({ leadId, firstName, known = true }: {
             </div>
             {error && <p className="text-wine text-sm text-center font-medium">{error}</p>}
             <div className="flex gap-3">
-              <button type="button" onClick={() => setStep(3)} className="btn-secondary"><ArrowLeft size={16} /></button>
+              <button type="button" onClick={() => setStep(3)} className="btn-secondary" aria-label="Back"><ArrowLeft size={16} /></button>
               <button type="submit" disabled={loading} className="btn-wine cta-shine flex-1 justify-center py-4 disabled:opacity-60">
                 {loading ? 'Submitting…' : <>Send to Jordan <Sparkles size={16} /></>}
               </button>
