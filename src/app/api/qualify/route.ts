@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase'
 import { evaluateLead } from '@/lib/evaluate'
 import { sendQualificationAlert } from '@/lib/email'
+import { guardPublic } from '@/lib/antispam'
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
@@ -9,6 +10,10 @@ export async function POST(req: NextRequest) {
   try {
     const supabase = createServiceClient()
     const body = await req.json()
+
+    const spam = guardPublic(req, body)
+    if (spam) return spam
+
     const { lead_id, full_name, email, phone, ...answers } = body
 
     const intentLower = String(answers.intent ?? '').toLowerCase()

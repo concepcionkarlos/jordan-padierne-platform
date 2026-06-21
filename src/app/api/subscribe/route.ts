@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase'
 import { sendPushToAll } from '@/lib/push'
+import { guardPublic } from '@/lib/antispam'
 
 // Lead capture from Insights articles:
 //  - type 'guide'      → lead magnet (name + email), warm lead + instant push
@@ -8,11 +9,11 @@ import { sendPushToAll } from '@/lib/push'
 export async function POST(req: NextRequest) {
   try {
     const supabase = createServiceClient()
-    const { type, email, full_name, source_article } = await req.json()
+    const body = await req.json()
+    const { type, email, full_name, source_article } = body
 
-    if (!email || !/^\S+@\S+\.\S+$/.test(String(email))) {
-      return NextResponse.json({ success: false, error: 'Valid email required' }, { status: 400 })
-    }
+    const spam = guardPublic(req, body, { requireEmail: true })
+    if (spam) return spam
 
     const isGuide = type === 'guide'
     const source = isGuide ? 'Guide Download' : 'Newsletter'

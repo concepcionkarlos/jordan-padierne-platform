@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase'
 import { sendAdminNotification, sendClientAutoReply } from '@/lib/email'
 import { sendPushToAll } from '@/lib/push'
+import { guardPublic, isValidEmail, isPlaceholderEmail } from '@/lib/antispam'
 import type { ClientType, LeadSource } from '@/lib/types'
 
 export async function POST(req: NextRequest) {
@@ -12,6 +13,11 @@ export async function POST(req: NextRequest) {
     if (!form_type || !formData.full_name || !formData.email) {
       return NextResponse.json({ success: false, error: 'Missing required fields' }, { status: 400 })
     }
+
+    // Anti-spam: rate limit + honeypot/time-trap (placeholder emails are allowed
+    // here because phone-only popups submit them intentionally).
+    const spam = guardPublic(req, body)
+    if (spam) return spam
 
     const supabase = createServiceClient()
 
@@ -120,10 +126,16 @@ export async function POST(req: NextRequest) {
       tag: `lead-${lead?.id ?? 'new'}`,
     }).catch(() => {})
 
-    // Fire both emails concurrently — await but don't throw on failure
+    // Only auto-reply to a real, non-disposable, non-placeholder address — this
+    // protects info@'s sending reputation from bounces on fake/garbage emails.
+    const canAutoReply = isValidEmail(formData.email) && !isPlaceholderEmail(formData.email)
+
+    // Fire emails concurrently — await but don't throw on failure
     const [adminSent, clientSent] = await Promise.allSettled([
       sendAdminNotification(emailData),
-      sendClientAutoReply(String(formData.email), String(formData.full_name), form_type, lead?.id),
+      canAutoReply
+        ? sendClientAutoReply(String(formData.email), String(formData.full_name), form_type, lead?.id)
+        : Promise.resolve(false),
     ])
 
     const emailStatus = {

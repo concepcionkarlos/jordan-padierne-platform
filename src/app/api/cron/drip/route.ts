@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase'
 import { sendEmail } from '@/lib/email'
 import { trackFor, buildDueStep, DRIP_WINDOW_DAYS } from '@/lib/drip'
+import { unsubUrl } from '@/lib/unsubscribe'
 
 // Runs daily via Vercel Cron. Sends the next due follow-up email to leads that
 // are still 'new' (Jordan hasn't engaged them yet). Stops automatically once a
@@ -49,7 +50,9 @@ export async function GET(req: NextRequest) {
       const step = buildDueStep(track, ageDays, sentDays, first, lead.id)
       if (!step) continue
 
-      const ok = await sendEmail(lead.email, step.subject, step.html)
+      // Insert a real one-click unsubscribe link for this recipient.
+      const html = step.html.replace('mailto:info@jordanpadierne.com?subject=Unsubscribe', unsubUrl(lead.email))
+      const ok = await sendEmail(lead.email, step.subject, html)
       if (ok) {
         await supabase.from('leads').update({
           metadata: {

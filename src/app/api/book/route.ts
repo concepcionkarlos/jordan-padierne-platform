@@ -3,6 +3,7 @@ import { createServiceClient } from '@/lib/supabase'
 import { sendBookingConfirmation, sendBookingAlert } from '@/lib/email'
 import { sendPushToAll } from '@/lib/push'
 import { slotToISO, isoToEtParts, formatSlotLabel, SLOT_MINUTES } from '@/lib/schedule'
+import { guardPublic } from '@/lib/antispam'
 import type { ClientType } from '@/lib/types'
 
 const TOPIC_TO_TYPE: Record<string, ClientType> = {
@@ -51,6 +52,9 @@ export async function POST(req: NextRequest) {
     if (!full_name || !email || !date || hour == null) {
       return NextResponse.json({ success: false, error: 'Missing required fields' }, { status: 400 })
     }
+
+    const spam = guardPublic(req, body, { requireEmail: true })
+    if (spam) return spam
 
     const startsAt = slotToISO(date, Number(hour))
 
