@@ -99,8 +99,8 @@ export default function RentalApplicationForm() {
         <div className="w-16 h-16 rounded-full bg-green-50 flex items-center justify-center mx-auto mb-5">
           <CheckCircle2 size={34} className="text-green-500" />
         </div>
-        <h3 className="font-serif text-2xl font-bold text-navy-900 mb-2">{t('forms.rental.successTitle')}</h3>
-        <p className="text-gray-500 max-w-md mx-auto">{t('forms.rental.successSub')}</p>
+        <h3 className="font-serif text-2xl font-bold text-navy-900 mb-2">{t('forms.verifyTitle')}</h3>
+        <p className="text-gray-500 max-w-md mx-auto">{t('forms.verifySub')}</p>
       </div>
     )
   }

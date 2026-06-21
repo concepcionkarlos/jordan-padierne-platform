@@ -45,8 +45,8 @@ export default function BuyerQualificationForm() {
     return (
       <div className="text-center py-10">
         <CheckCircle2 size={44} className="text-sky-500 mx-auto mb-4" />
-        <h3 className="font-serif text-xl font-bold text-navy-900 mb-2">{t('forms.buyer.successTitle')}</h3>
-        <p className="text-gray-500 text-sm">{t('forms.buyer.successSub')}</p>
+        <h3 className="font-serif text-xl font-bold text-navy-900 mb-2">{t('forms.verifyTitle')}</h3>
+        <p className="text-gray-500 text-sm">{t('forms.verifySub')}</p>
       </div>
     )
   }

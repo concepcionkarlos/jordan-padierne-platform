@@ -1,16 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase'
-import { sendPushToAll } from '@/lib/push'
 import { guardPublic } from '@/lib/antispam'
+import { createPending } from '@/lib/intake'
+import { sendVerificationEmail } from '@/lib/email'
 
-// Lead capture from Insights articles:
-//  - type 'guide'      → lead magnet (name + email), warm lead + instant push
-//  - type 'newsletter' → email only, cold lead tagged 'newsletter'
+// Newsletter / lead-magnet signups — double opt-in: the lead is only added to
+// the CRM after the person confirms their email.
 export async function POST(req: NextRequest) {
   try {
-    const supabase = createServiceClient()
     const body = await req.json()
-    const { type, email, full_name, source_article } = body
+    const { type, email, full_name } = body
 
     const spam = guardPublic(req, body, { requireEmail: true })
     if (spam) return spam
@@ -19,54 +18,23 @@ export async function POST(req: NextRequest) {
     const source = isGuide ? 'Guide Download' : 'Newsletter'
     const name = (full_name && String(full_name).trim()) || String(email).split('@')[0]
 
-    // Light dedupe: don't create a second identical lead for the same email+source.
+    // Already a confirmed subscriber? Don't re-send.
+    const supabase = createServiceClient()
     const { data: existing } = await supabase
-      .from('leads').select('id').eq('email', email).eq('source', source).limit(1)
+      .from('leads').select('id').eq('email', String(email).toLowerCase()).eq('source', source).limit(1)
     if (existing && existing.length) {
       return NextResponse.json({ success: true, deduped: true })
     }
 
-    const { data: lead } = await supabase
-      .from('leads')
-      .insert({
-        full_name: name,
-        email,
-        phone: '',
-        client_type: 'Buyer',
-        source,
-        status: 'new',
-        pipeline_stage: 'NEW',
-        hot_score: isGuide ? 2 : 1,
-        tags: isGuide ? ['hot', 'newsletter'] : ['newsletter'],
-        metadata: { type: source, source_article: source_article ?? null },
-      })
-      .select('id')
-      .single()
-
-    // Log a CRM message so it surfaces in the inbox
-    await supabase.from('messages').insert({
-      type: 'contact',
-      full_name: name,
-      email,
-      subject: isGuide ? `📘 Guide download — ${name}` : `📩 Newsletter signup — ${email}`,
-      body: isGuide
-        ? `Requested the buyer/seller guide${source_article ? ` from article: ${source_article}` : ''}.`
-        : `Subscribed to the newsletter${source_article ? ` from article: ${source_article}` : ''}.`,
-      status: 'unread',
-      lead_id: lead?.id ?? null,
-    })
-
-    // Instant push only for the warmer lead-magnet capture
-    if (isGuide) {
-      sendPushToAll({
-        title: `📘 Guide download: ${name}`,
-        body: `${email} — wants the guide. Tap to follow up.`,
-        url: lead?.id ? `/admin/leads/${lead.id}` : '/admin/leads',
-        tag: `guide-${lead?.id ?? 'new'}`,
-      }).catch(() => {})
+    const token = await createPending('subscribe', String(email).toLowerCase(), body)
+    if (!token) {
+      return NextResponse.json({ success: false, error: 'Could not process. Please try again.' }, { status: 500 })
     }
 
-    return NextResponse.json({ success: true, lead_id: lead?.id })
+    const url = `https://jordanpadierne.com/verify?token=${encodeURIComponent(token)}`
+    await sendVerificationEmail(String(email), name, url)
+
+    return NextResponse.json({ success: true, pending: true })
   } catch (err) {
     console.error('[subscribe] error', err)
     return NextResponse.json({ success: false, error: 'Internal error' }, { status: 500 })

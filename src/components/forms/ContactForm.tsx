@@ -38,8 +38,8 @@ export default function ContactForm() {
     return (
       <div className="text-center py-12">
         <CheckCircle2 size={48} className="text-sky-500 mx-auto mb-4" />
-        <h3 className="font-serif text-2xl font-bold text-navy-900 mb-2">{t('forms.contact.successTitle')}</h3>
-        <p className="text-gray-500">{t('forms.contact.successSub')}</p>
+        <h3 className="font-serif text-2xl font-bold text-navy-900 mb-2">{t('forms.verifyTitle')}</h3>
+        <p className="text-gray-500">{t('forms.verifySub')}</p>
       </div>
     )
   }

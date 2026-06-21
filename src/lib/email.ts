@@ -245,6 +245,29 @@ export async function sendEmail(
   return send(to, subject, html, replyTo)
 }
 
+// Double opt-in: confirm the email before the person becomes a CRM lead.
+export async function sendVerificationEmail(to: string, name: string, url: string): Promise<boolean> {
+  const first = esc((name || '').trim().split(' ')[0] || 'there')
+  const html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#F4F7FA;font-family:'Segoe UI',Arial,sans-serif">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#F4F7FA;padding:32px 16px"><tr><td>
+<table width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;margin:0 auto">
+  <tr><td style="background:#0A1628;padding:28px;border-radius:12px 12px 0 0;text-align:center">
+    <p style="margin:0;font-size:22px;font-weight:700;color:#fff;font-family:Georgia,serif">Jordan Padierne</p>
+    <p style="margin:6px 0 0;font-size:10px;color:#7BA7C2;text-transform:uppercase;letter-spacing:1.5px">Realtor · South Florida</p>
+  </td></tr>
+  <tr><td style="background:#fff;padding:34px 28px;border-radius:0 0 12px 12px;text-align:center">
+    <p style="font-size:30px;margin:0 0 8px">✅</p>
+    <h2 style="margin:0 0 10px;font-size:21px;color:#0A1628;font-family:Georgia,serif">One quick step, ${first}</h2>
+    <p style="margin:0 0 24px;font-size:15px;color:#475569;line-height:1.7">Please confirm your email so Jordan can reach you. Just click below — it takes a second.</p>
+    <a href="${url}" style="display:inline-block;background:#8B1A2F;color:#fff;padding:14px 34px;border-radius:8px;font-size:15px;font-weight:700;text-decoration:none">Confirm my email →</a>
+    <p style="margin:24px 0 0;font-size:12px;color:#94A3B8;line-height:1.7">If you didn't request this, you can ignore this email — nothing will happen.</p>
+    <p style="margin:16px 0 0;padding-top:14px;border-top:1px solid #E2E8F0;font-size:11px;color:#CBD5E1">eXp Realty · License SL3641062 · 305-799-6973</p>
+  </td></tr>
+</table></td></tr></table></body></html>`
+  return send(to, 'Please confirm your email — Jordan Padierne', html, 'info@jordanpadierne.com')
+}
+
 export async function sendAdminNotification(data: LeadEmailData): Promise<boolean> {
   const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL || 'info@jordanpadierne.com'
   const supportEmail = process.env.SUPPORT_NOTIFICATION_EMAIL

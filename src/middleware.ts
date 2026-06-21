@@ -3,7 +3,7 @@ import { createServerClient } from '@supabase/ssr'
 
 // Public API endpoints the marketing site legitimately calls without login.
 // Everything else under /api/* requires an authenticated admin session.
-const PUBLIC_API = ['/api/forms', '/api/subscribe', '/api/book', '/api/qualify', '/api/unsubscribe', '/api/cron']
+const PUBLIC_API = ['/api/forms', '/api/subscribe', '/api/book', '/api/qualify', '/api/unsubscribe', '/api/verify', '/api/cron']
 
 function isPublicApi(pathname: string): boolean {
   return PUBLIC_API.some((p) => pathname === p || pathname.startsWith(p + '/'))
