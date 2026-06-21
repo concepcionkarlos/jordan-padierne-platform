@@ -37,7 +37,8 @@ export function formatRelativeTime(date: string | Date): string {
   return formatDate(target)
 }
 
-export function formatPhone(phone: string): string {
+export function formatPhone(phone: string | null | undefined): string {
+  if (!phone) return ''
   const cleaned = phone.replace(/\D/g, '')
   if (cleaned.length === 10) {
     return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`

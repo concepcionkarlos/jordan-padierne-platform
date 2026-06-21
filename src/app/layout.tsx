@@ -44,13 +44,13 @@ export const metadata: Metadata = {
     title: 'Jordan Padierne | Miami Realtor — Homes, Condos & Pre-Construction',
     description:
       'Top Miami Realtor with eXp Realty. Buy, sell & invest in Brickell, Doral, Coral Gables & more. Pre-construction & luxury specialist. Bilingual. 305-799-6973.',
-    images: [{ url: '/images/jordan-hero.png', width: 1200, height: 630, alt: 'Jordan Padierne — Miami Realtor' }],
+    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'Jordan Padierne — Miami Realtor' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Jordan Padierne | Miami Realtor — eXp Realty',
     description: 'Buy, sell & invest in South Florida real estate. Pre-construction & luxury specialist. Bilingual. 305-799-6973.',
-    images: ['/images/jordan-hero.png'],
+    images: ['/og-image.jpg'],
   },
   robots: {
     index: true,

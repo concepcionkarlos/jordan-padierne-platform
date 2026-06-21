@@ -19,7 +19,7 @@ export default function HeroSection() {
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute inset-0 animate-ken-burns">
           <Image
-            src="/images/jordan-hero.png"
+            src="/images/jordan-hero.jpg"
             alt="Jordan Padierne — South Florida Realtor"
             fill
             priority

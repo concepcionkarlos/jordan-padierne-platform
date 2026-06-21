@@ -9,14 +9,15 @@ export default function QuickLeadForm() {
   const [form, setForm] = useState({ full_name: '', phone: '', intent: 'Buy' })
   const [loading, setLoading] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+  const [error, setError] = useState('')
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
     if (!form.full_name.trim() || !form.phone.trim()) return
-    setLoading(true)
+    setLoading(true); setError('')
     try {
       const clientType = form.intent === 'Sell' ? 'Seller' : form.intent === 'Invest' ? 'Investor' : 'Buyer'
-      await fetch('/api/forms', {
+      const res = await fetch('/api/forms', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -29,7 +30,11 @@ export default function QuickLeadForm() {
           source: 'Website Popup',
         }),
       })
+      const d = await res.json().catch(() => ({ success: false }))
+      if (!res.ok || !d.success) { setError(t('forms.error')); return }
       setSubmitted(true)
+    } catch {
+      setError(t('forms.error'))
     } finally {
       setLoading(false)
     }
@@ -84,7 +89,8 @@ export default function QuickLeadForm() {
                 </button>
               </form>
 
-              <p className="text-center sm:text-left text-gray-400 text-xs mt-4">{t('quick.trust')}</p>
+              {error && <p className="text-wine text-sm mt-3">{error}</p>}
+              <p className="text-center sm:text-left text-gray-500 text-xs mt-4">{t('quick.trust')}</p>
             </>
           )}
         </div>

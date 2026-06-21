@@ -8,11 +8,11 @@ import AuroraBackground from '@/components/ui/AuroraBackground'
 import { useT } from '@/components/LanguageProvider'
 
 const services = [
-  { icon: Home, k: 'buyers', href: '/buy', image: '/images/jordan-house.png', color: 'from-sky-500/20 to-sky-500/5' },
-  { icon: TrendingUp, k: 'investors', href: '/investors', image: '/images/jordan-terrace.png', color: 'from-navy-500/20 to-navy-500/5' },
-  { icon: Globe, k: 'intl', href: '/contact', image: '/images/jordan-phone.png', color: 'from-wine/20 to-wine/5' },
-  { icon: Building2, k: 'precon', href: '/pre-construction', image: '/images/jordan-modern.png', color: 'from-sky-400/20 to-sky-400/5' },
-  { icon: Star, k: 'luxury', href: '/properties', image: '/images/jordan-luxury.png', color: 'from-navy-600/20 to-navy-600/5' },
+  { icon: Home, k: 'buyers', href: '/buy', image: '/images/jordan-house.jpg', color: 'from-sky-500/20 to-sky-500/5' },
+  { icon: TrendingUp, k: 'investors', href: '/investors', image: '/images/jordan-terrace.jpg', color: 'from-navy-500/20 to-navy-500/5' },
+  { icon: Globe, k: 'intl', href: '/contact', image: '/images/jordan-phone.jpg', color: 'from-wine/20 to-wine/5' },
+  { icon: Building2, k: 'precon', href: '/pre-construction', image: '/images/jordan-modern.jpg', color: 'from-sky-400/20 to-sky-400/5' },
+  { icon: Star, k: 'luxury', href: '/properties', image: '/images/jordan-luxury.jpg', color: 'from-navy-600/20 to-navy-600/5' },
 ]
 
 export default function ServicesSection() {
@@ -38,7 +38,7 @@ export default function ServicesSection() {
               <Reveal key={service.k} variant="up" delay={i * 120}>
                 <Link href={service.href} className="group card relative overflow-hidden hover-lift block">
                   <div className="relative h-52 overflow-hidden">
-                    <Image src={service.image} alt={t(`services.${service.k}`)} fill className="object-cover object-top group-hover:scale-105 transition-transform duration-500" />
+                    <Image src={service.image} alt={t(`services.${service.k}`)} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover object-top group-hover:scale-105 transition-transform duration-500" />
                     <div className={`absolute inset-0 bg-gradient-to-b ${service.color}`} />
                     <div className="absolute top-4 left-4 w-10 h-10 rounded-xl bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-sm">
                       <Icon size={18} className="text-navy-700" />
@@ -66,7 +66,7 @@ export default function ServicesSection() {
               <Reveal key={service.k} variant="up" delay={i * 120}>
                 <Link href={service.href} className="group card relative overflow-hidden flex flex-col sm:flex-row hover-lift">
                   <div className="relative h-48 sm:h-auto sm:w-48 shrink-0 overflow-hidden">
-                    <Image src={service.image} alt={t(`services.${service.k}`)} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+                    <Image src={service.image} alt={t(`services.${service.k}`)} fill sizes="(max-width: 640px) 100vw, 192px" className="object-cover group-hover:scale-105 transition-transform duration-500" />
                   </div>
                   <div className="p-6 flex flex-col justify-center">
                     <div className="w-9 h-9 rounded-xl bg-navy-50 flex items-center justify-center mb-3">

@@ -8,6 +8,8 @@ import { safeQuery } from '@/lib/db'
 import PropertiesGrid from '@/components/PropertiesGrid'
 
 export const metadata: Metadata = {
+  alternates: { canonical: 'https://jordanpadierne.com/properties' },
+  openGraph: { url: 'https://jordanpadierne.com/properties', images: ['/og-image.jpg'] },
   title: 'Homes & Condos for Sale in Miami',
   description:
     'Browse homes, condos & properties for sale and rent in Miami with Realtor Jordan Padierne. Brickell, Doral, Coral Gables, Downtown & more — for sale, rentals & investment listings. Bilingual service. Call 305-799-6973.',
@@ -66,7 +68,7 @@ export default async function PropertiesPage() {
                 looking for and he&apos;ll send you a personalized list of matches.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href="/contact" className="btn-wine cta-shine"><Search size={16} /> Start Your Search</Link>
+                <Link href="/book" className="btn-wine cta-shine"><Search size={16} /> Start Your Search</Link>
                 <a href="tel:+13057996973" className="btn-secondary"><Phone size={16} /> Call Jordan</a>
               </div>
             </div>
@@ -86,7 +88,7 @@ export default async function PropertiesPage() {
                 Contact him for a personalized search based on your specific criteria.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
-                <Link href="/contact" className="btn-primary"><Search size={16} /> Start Your Search</Link>
+                <Link href="/book" className="btn-primary"><Search size={16} /> Start Your Search</Link>
                 <a href="tel:+13057996973" className="btn-secondary"><Phone size={16} /> Call Jordan</a>
               </div>
             </div>

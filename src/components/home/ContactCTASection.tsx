@@ -63,7 +63,7 @@ export default function ContactCTASection() {
           {/* Image */}
           <div className="relative">
             <div className="relative rounded-3xl overflow-hidden shadow-premium aspect-[4/5] max-w-sm mx-auto lg:max-w-none">
-              <Image src="/images/jordan-phone.png" alt="Jordan Padierne — Contact" fill className="object-cover object-center" />
+              <Image src="/images/jordan-phone.jpg" alt="Jordan Padierne — Contact" fill className="object-cover object-center" />
               <div className="absolute inset-0 bg-gradient-to-t from-navy-900/40 to-transparent" />
             </div>
             <div className="absolute top-6 -left-4 lg:-left-8 bg-white rounded-2xl p-4 shadow-premium border border-gray-100">

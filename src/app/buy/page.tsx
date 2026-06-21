@@ -6,6 +6,8 @@ import AuroraBackground from '@/components/ui/AuroraBackground'
 import { CheckCircle2, ArrowRight, Home, Search, FileText, Key } from 'lucide-react'
 
 export const metadata: Metadata = {
+  alternates: { canonical: 'https://jordanpadierne.com/buy' },
+  openGraph: { url: 'https://jordanpadierne.com/buy', images: ['/og-image.jpg'] },
   title: 'Buy a Home in Miami',
   description:
     'Buy a home or condo in Miami with Realtor Jordan Padierne. Expert buyer guidance in Brickell, Doral, Coral Gables, Downtown Miami & Hialeah. First-time buyers, luxury & international clients welcome. Bilingual. Call 305-799-6973.',
@@ -49,7 +51,7 @@ export default function BuyPage() {
       <section className="relative min-h-[60vh] flex items-center bg-navy-900 pt-20 overflow-hidden">
         <div className="absolute inset-0">
           <Image
-            src="/images/jordan-house.png"
+            src="/images/jordan-house.jpg"
             alt="Buy a Home in South Florida"
             fill
             className="object-cover object-center"
@@ -70,7 +72,7 @@ export default function BuyPage() {
             buying process simple, informed, and stress-free.
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
-            <Link href="/contact" className="btn-wine cta-shine">
+            <Link href="/book" className="btn-wine cta-shine">
               Start Your Search <ArrowRight size={16} />
             </Link>
             <Link href="/properties" className="btn-outline-white">
@@ -119,7 +121,7 @@ export default function BuyPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <div className="relative rounded-3xl overflow-hidden aspect-[4/3] shadow-premium">
               <Image
-                src="/images/jordan-luxury.png"
+                src="/images/jordan-luxury.jpg"
                 alt="Jordan Padierne Buyer Agent"
                 fill
                 className="object-cover object-center"
@@ -145,7 +147,7 @@ export default function BuyPage() {
                   </div>
                 ))}
               </div>
-              <Link href="/contact" className="btn-primary">
+              <Link href="/book" className="btn-primary">
                 Start Your Home Search <ArrowRight size={16} />
               </Link>
             </div>

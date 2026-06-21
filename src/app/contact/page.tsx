@@ -12,6 +12,8 @@ import { Phone, Mail, Clock, MapPin } from 'lucide-react'
 import { CONTACT_INFO } from '@/lib/social'
 
 export const metadata: Metadata = {
+  alternates: { canonical: 'https://jordanpadierne.com/contact' },
+  openGraph: { url: 'https://jordanpadierne.com/contact', images: ['/og-image.jpg'] },
   title: 'Contact Jordan Padierne — Miami Realtor',
   description:
     'Contact Miami Realtor Jordan Padierne. Schedule a free consultation, request a showing, or get expert real estate guidance in Brickell, Doral, Coral Gables & Miami-Dade. Call or text 305-799-6973. Hablamos Español.',
@@ -51,7 +53,7 @@ export default function ContactPage() {
             <div className="lg:col-span-1">
               <div className="relative rounded-3xl overflow-hidden aspect-square mb-8">
                 <Image
-                  src="/images/jordan-phone.png"
+                  src="/images/jordan-phone.jpg"
                   alt="Contact Jordan Padierne"
                   fill
                   className="object-cover object-center"

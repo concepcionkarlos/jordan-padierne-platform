@@ -13,36 +13,32 @@ export default function LeadCaptureModal() {
   const [show, setShow] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
   const [form, setForm] = useState({ full_name: '', phone: '', email: '' })
 
   useEffect(() => {
     if (typeof window === 'undefined') return
-    if (sessionStorage.getItem('jp-lead-modal-seen')) return
+    // Remembered across visits (not just the session) so it never re-nags.
+    try { if (localStorage.getItem('jp-lead-modal-seen')) return } catch {}
 
     let fired = false
     const trigger = () => {
       if (fired) return
       fired = true
-      sessionStorage.setItem('jp-lead-modal-seen', '1')
+      try { localStorage.setItem('jp-lead-modal-seen', '1') } catch {}
       setShow(true)
       cleanup()
     }
 
-    // Pro timing: let the visitor engage first. The popup appears when they've
-    // shown real interest — deep scroll, exit intent, or after a relaxed delay.
-
-    // 1) Scroll depth (~60%) — they're genuinely reading
+    // Pro timing: only after real engagement — deep scroll, exit intent, or a
+    // relaxed delay, so it never feels pushy on a luxury brand.
     const onScroll = () => {
       const scrolled = window.scrollY + window.innerHeight
       const pct = scrolled / document.documentElement.scrollHeight
-      if (pct > 0.6) trigger()
+      if (pct > 0.7) trigger()
     }
-    // 2) Exit intent (desktop — mouse leaves toward the top, about to leave)
-    const onMouseOut = (e: MouseEvent) => {
-      if (e.clientY <= 0) trigger()
-    }
-    // 3) Relaxed fallback after 25 seconds on the page
-    const timer = window.setTimeout(trigger, 25000)
+    const onMouseOut = (e: MouseEvent) => { if (e.clientY <= 0) trigger() }
+    const timer = window.setTimeout(trigger, 35000)
 
     window.addEventListener('scroll', onScroll, { passive: true })
     document.addEventListener('mouseout', onMouseOut)
@@ -55,12 +51,22 @@ export default function LeadCaptureModal() {
     return cleanup
   }, [])
 
+  // Escape-to-close + lock background scroll while open (a11y).
+  useEffect(() => {
+    if (!show) return
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setShow(false) }
+    window.addEventListener('keydown', onKey)
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { window.removeEventListener('keydown', onKey); document.body.style.overflow = prev }
+  }, [show])
+
   async function submit(e: React.FormEvent) {
     e.preventDefault()
     if (!form.full_name.trim() || !form.phone.trim()) return
-    setLoading(true)
+    setLoading(true); setError('')
     try {
-      await fetch('/api/forms', {
+      const res = await fetch('/api/forms', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -73,7 +79,11 @@ export default function LeadCaptureModal() {
           source: 'Website Popup',
         }),
       })
+      const d = await res.json().catch(() => ({ success: false }))
+      if (!res.ok || !d.success) { setError(t('forms.error')); return }
       setSubmitted(true)
+    } catch {
+      setError(t('forms.error'))
     } finally {
       setLoading(false)
     }
@@ -85,7 +95,7 @@ export default function LeadCaptureModal() {
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-navy-900/60 backdrop-blur-sm" onClick={() => setShow(false)} />
 
-      <div className="relative w-full max-w-md bg-white rounded-3xl shadow-premium overflow-hidden animate-modal-pop">
+      <div role="dialog" aria-modal="true" className="relative w-full max-w-md bg-white rounded-3xl shadow-premium overflow-hidden animate-modal-pop">
         <button type="button" onClick={() => setShow(false)} className="absolute top-4 right-4 z-10 w-8 h-8 rounded-full bg-white/80 flex items-center justify-center text-gray-400 hover:text-navy-900 transition-colors" aria-label="Close">
           <X size={18} />
         </button>
@@ -123,7 +133,8 @@ export default function LeadCaptureModal() {
               <button type="submit" disabled={loading} className="btn-wine cta-shine w-full justify-center py-3.5 text-base disabled:opacity-60">
                 {loading ? t('common.sending') : <>{t('modal.submit')} <ArrowRight size={16} /></>}
               </button>
-              <p className="text-center text-gray-400 text-xs">{t('modal.fineprint')}</p>
+              {error && <p className="text-wine text-sm text-center">{error}</p>}
+              <p className="text-center text-gray-500 text-xs">{t('modal.fineprint')}</p>
             </form>
           )}
         </div>

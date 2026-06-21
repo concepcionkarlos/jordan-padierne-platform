@@ -28,7 +28,7 @@ export default async function QualifyPage({ params }: { params: { id: string } }
   return (
     <div className="min-h-screen bg-navy-900 flex items-center justify-center p-4 py-10">
       <div className="absolute inset-0 overflow-hidden">
-        <Image src="/images/jordan-luxury.png" alt="" fill className="object-cover opacity-10" />
+        <Image src="/images/jordan-luxury.jpg" alt="" fill className="object-cover opacity-10" />
         <div className="absolute inset-0 bg-navy-900/80" />
       </div>
 

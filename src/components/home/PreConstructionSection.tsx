@@ -17,7 +17,7 @@ export default function PreConstructionSection() {
           {/* Image */}
           <div className="relative order-2 lg:order-1">
             <div className="relative rounded-3xl overflow-hidden shadow-premium aspect-[4/5] max-w-md mx-auto lg:max-w-none">
-              <Image src="/images/jordan-modern.png" alt="Pre-Construction Specialist Jordan Padierne" fill className="object-cover object-center" />
+              <Image src="/images/jordan-modern.jpg" alt="Pre-Construction Specialist Jordan Padierne" fill className="object-cover object-center" />
               <div className="absolute inset-0 bg-gradient-to-t from-navy-900/50 to-transparent" />
             </div>
             <div className="absolute -bottom-4 -right-4 lg:-right-8 bg-wine text-white rounded-2xl p-5 shadow-premium max-w-xs">

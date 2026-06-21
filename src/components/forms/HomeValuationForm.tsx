@@ -26,6 +26,7 @@ export default function HomeValuationForm() {
   const [step, setStep] = useState(1)
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
   const { register, handleSubmit, trigger, formState: { errors } } = useForm<FormData>()
 
   const next = async () => {
@@ -37,14 +38,18 @@ export default function HomeValuationForm() {
   }
 
   const onSubmit = async (data: FormData) => {
-    setLoading(true)
+    setLoading(true); setError('')
     try {
-      await fetch('/api/forms', {
+      const res = await fetch('/api/forms', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ form_type: 'home_valuation', source: 'Website', ...data }),
       })
+      const d = await res.json().catch(() => ({ success: false }))
+      if (!res.ok || !d.success) { setError(t('forms.error')); return }
       setSubmitted(true)
+    } catch {
+      setError(t('forms.error'))
     } finally {
       setLoading(false)
     }
@@ -188,7 +193,8 @@ export default function HomeValuationForm() {
                 {loading ? t('forms.sending') : <>{t('forms.homevalue.submit')} <ArrowRight size={16} /></>}
               </button>
             </div>
-            <p className="text-center text-gray-400 text-xs">{t('forms.homevalue.disclaimer')}</p>
+            {error && <p className="text-wine text-sm text-center">{error}</p>}
+            <p className="text-center text-gray-500 text-xs">{t('forms.homevalue.disclaimer')}</p>
           </div>
         )}
       </form>

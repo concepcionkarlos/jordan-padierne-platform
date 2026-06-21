@@ -24,18 +24,23 @@ export default function BuyerQualificationForm() {
   const { t } = useT()
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
   const { register, handleSubmit } = useForm<FormData>()
 
   const onSubmit = async (data: FormData) => {
-    setLoading(true)
+    setLoading(true); setError('')
     try {
-      await fetch('/api/forms', {
+      const res = await fetch('/api/forms', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ form_type: 'buyer_qualification', ...data }),
       })
+      const d = await res.json().catch(() => ({ success: false }))
+      if (!res.ok || !d.success) { setError(t('forms.error')); return }
       setSubmitted(true)
+    } catch {
+      setError(t('forms.error'))
     } finally {
       setLoading(false)
     }
@@ -113,6 +118,7 @@ export default function BuyerQualificationForm() {
         <label className="label">{t('forms.buyer.elseLabel')}</label>
         <textarea {...register('message')} rows={3} className="input-field resize-none" placeholder={t('forms.buyer.elsePlaceholder')} />
       </div>
+      {error && <p className="text-wine text-sm text-center">{error}</p>}
       <button type="submit" disabled={loading} className="btn-wine w-full justify-center py-4 text-base disabled:opacity-60">
         {loading ? t('forms.submitting') : <><Send size={16} /> {t('forms.buyer.submit')}</>}
       </button>

@@ -6,6 +6,8 @@ import HomeValuationForm from '@/components/forms/HomeValuationForm'
 import { TrendingUp, DollarSign, Clock, CheckCircle2 } from 'lucide-react'
 
 export const metadata: Metadata = {
+  alternates: { canonical: 'https://jordanpadierne.com/home-value' },
+  openGraph: { url: 'https://jordanpadierne.com/home-value', images: ['/og-image.jpg'] },
   title: 'What\'s My Miami Home Worth? Free Valuation',
   description:
     'Sell your Miami home with confidence. Get a FREE, no-obligation home valuation from Realtor Jordan Padierne. Find out what your property in Brickell, Doral, Coral Gables, Hialeah or Miami-Dade is worth today. Call 305-799-6973.',
@@ -23,7 +25,7 @@ export default function HomeValuePage() {
       {/* Hero + form */}
       <section className="relative bg-navy-900 pt-28 pb-16 overflow-hidden">
         <div className="absolute inset-0">
-          <Image src="/images/jordan-luxury.png" alt="" fill className="object-cover opacity-20" />
+          <Image src="/images/jordan-luxury.jpg" alt="" fill className="object-cover opacity-20" />
           <div className="absolute inset-0 bg-gradient-to-b from-navy-900/80 to-navy-900" />
         </div>
         <AuroraBackground variant="dark" className="mix-blend-screen" />

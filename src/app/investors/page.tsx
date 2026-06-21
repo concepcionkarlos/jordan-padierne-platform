@@ -6,6 +6,8 @@ import AuroraBackground from '@/components/ui/AuroraBackground'
 import { TrendingUp, DollarSign, BarChart2, CheckCircle2, ArrowRight } from 'lucide-react'
 
 export const metadata: Metadata = {
+  alternates: { canonical: 'https://jordanpadierne.com/investors' },
+  openGraph: { url: 'https://jordanpadierne.com/investors', images: ['/og-image.jpg'] },
   title: 'Miami Investment Properties',
   description:
     'Invest in Miami real estate with Jordan Padierne. High-ROI investment properties, pre-construction, Airbnb short-term & long-term rentals across Miami-Dade. Strategy for first-time & seasoned investors. Bilingual. Call 305-799-6973.',
@@ -45,7 +47,7 @@ export default function InvestorsPage() {
       <section className="relative min-h-[65vh] flex items-center bg-navy-900 pt-20 overflow-hidden">
         <div className="absolute inset-0">
           <Image
-            src="/images/jordan-terrace.png"
+            src="/images/jordan-terrace.jpg"
             alt="Investment Properties Miami"
             fill
             className="object-cover object-center"
@@ -139,7 +141,7 @@ export default function InvestorsPage() {
             </div>
             <div className="relative rounded-3xl overflow-hidden aspect-[4/3] shadow-premium">
               <Image
-                src="/images/jordan-luxury.png"
+                src="/images/jordan-luxury.jpg"
                 alt="Miami Investment Properties"
                 fill
                 className="object-cover object-center"

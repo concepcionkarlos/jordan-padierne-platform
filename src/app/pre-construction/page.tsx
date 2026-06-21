@@ -6,6 +6,8 @@ import AuroraBackground from '@/components/ui/AuroraBackground'
 import { CheckCircle2, ArrowRight, Zap, TrendingUp, Building2 } from 'lucide-react'
 
 export const metadata: Metadata = {
+  alternates: { canonical: 'https://jordanpadierne.com/pre-construction' },
+  openGraph: { url: 'https://jordanpadierne.com/pre-construction', images: ['/og-image.jpg'] },
   title: 'Pre-Construction Condos in Miami',
   description:
     'Miami pre-construction condos & new developments with Jordan Padierne. Get early access to exclusive pre-launch projects in Brickell, Downtown Miami, Doral & Edgewater at the best pricing. Pre-construction specialist. Call 305-799-6973.',
@@ -27,7 +29,7 @@ export default function PreConstructionPage() {
       <section className="relative min-h-[70vh] flex items-center bg-navy-900 pt-20 overflow-hidden">
         <div className="absolute inset-0">
           <Image
-            src="/images/jordan-modern.png"
+            src="/images/jordan-modern.jpg"
             alt="Pre-Construction Miami"
             fill
             className="object-cover object-center"
@@ -125,7 +127,7 @@ export default function PreConstructionPage() {
             </div>
             <div className="relative rounded-3xl overflow-hidden aspect-[4/5] shadow-premium">
               <Image
-                src="/images/jordan-about.png"
+                src="/images/jordan-about.jpg"
                 alt="Jordan Padierne Pre-Construction Expert"
                 fill
                 className="object-cover object-top"

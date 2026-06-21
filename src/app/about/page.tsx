@@ -6,6 +6,8 @@ import AuroraBackground from '@/components/ui/AuroraBackground'
 import { CheckCircle2, ArrowRight, Award, Globe, Heart } from 'lucide-react'
 
 export const metadata: Metadata = {
+  alternates: { canonical: 'https://jordanpadierne.com/about' },
+  openGraph: { url: 'https://jordanpadierne.com/about', images: ['/og-image.jpg'] },
   title: 'About Jordan Padierne — Miami Realtor',
   description:
     'Meet Jordan Padierne, a trusted Miami Realtor with eXp Realty. Born in Cuba, based in Miami, bilingual (English/Español). Family-oriented real estate expert helping buyers, investors & international clients across Miami-Dade.',
@@ -68,7 +70,7 @@ export default function AboutPage() {
             <div className="relative self-end">
               <div className="relative h-[420px] lg:h-[520px] rounded-t-3xl overflow-hidden">
                 <Image
-                  src="/images/jordan-about.png"
+                  src="/images/jordan-about.jpg"
                   alt="Jordan Padierne"
                   fill
                   className="object-cover object-top"
@@ -115,7 +117,7 @@ export default function AboutPage() {
               </div>
 
               <div className="mt-10 flex flex-col sm:flex-row gap-4">
-                <Link href="/contact" className="btn-wine cta-shine">
+                <Link href="/book" className="btn-wine cta-shine">
                   Work With Jordan
                   <ArrowRight size={16} />
                 </Link>
@@ -175,7 +177,7 @@ export default function AboutPage() {
             opportunity in South Florida.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/contact" className="btn-wine">
+            <Link href="/book" className="btn-wine">
               Schedule Consultation
               <ArrowRight size={16} />
             </Link>

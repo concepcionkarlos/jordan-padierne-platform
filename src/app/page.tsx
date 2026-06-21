@@ -10,6 +10,11 @@ import HomeInsightsSection from '@/components/home/HomeInsightsSection'
 import TestimonialsSection from '@/components/home/TestimonialsSection'
 import ContactCTASection from '@/components/home/ContactCTASection'
 import StructuredData from '@/components/StructuredData'
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  alternates: { canonical: 'https://jordanpadierne.com' },
+}
 
 // Refresh periodically so new testimonials appear without a redeploy.
 export const revalidate = 120

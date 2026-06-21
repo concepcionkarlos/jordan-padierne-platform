@@ -23,18 +23,23 @@ export default function PreConstructionForm() {
   const { t } = useT()
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
   const { register, handleSubmit } = useForm<FormData>()
 
   const onSubmit = async (data: FormData) => {
-    setLoading(true)
+    setLoading(true); setError('')
     try {
-      await fetch('/api/forms', {
+      const res = await fetch('/api/forms', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ form_type: 'pre_construction_interest', ...data }),
       })
+      const d = await res.json().catch(() => ({ success: false }))
+      if (!res.ok || !d.success) { setError(t('forms.error')); return }
       setSubmitted(true)
+    } catch {
+      setError(t('forms.error'))
     } finally {
       setLoading(false)
     }
@@ -111,6 +116,7 @@ export default function PreConstructionForm() {
         <label className="label">{t('forms.precon.commentsLabel')}</label>
         <textarea {...register('message')} rows={3} className="input-field resize-none" placeholder={t('forms.precon.commentsPlaceholder')} />
       </div>
+      {error && <p className="text-wine text-sm text-center">{error}</p>}
       <button type="submit" disabled={loading} className="btn-wine w-full justify-center py-4 text-base disabled:opacity-60">
         {loading ? t('forms.submitting') : <><Send size={16} /> {t('forms.precon.submit')}</>}
       </button>
