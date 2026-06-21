@@ -38,6 +38,18 @@ export interface LeadEmailData {
 
 // ─── HTML Templates ───────────────────────────────────────────────────────────
 
+// Escape user-supplied values before interpolating into email HTML (prevents
+// markup/script injection into the emails Jordan reads).
+function esc(s: unknown): string {
+  return String(s ?? '')
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;')
+}
+// For mailto:/tel: hrefs — drop characters that could break out of the attribute.
+function escUrl(s: unknown): string {
+  return String(s ?? '').replace(/["'<>\s]/g, '')
+}
+
 function buildAdminHtml(data: LeadEmailData): string {
   const adminDashUrl = `https://jordanpadierne.com/admin/leads${data.lead_id ? `/${data.lead_id}` : ''}`
 
@@ -51,14 +63,14 @@ function buildAdminHtml(data: LeadEmailData): string {
   }
 
   const rows = [
-    { label: 'Email', value: `<a href="mailto:${data.email}" style="color:#1A3A6B">${data.email}</a>` },
-    { label: 'Phone', value: data.phone ? `<a href="tel:${data.phone}" style="color:#1A3A6B">${data.phone}</a>` : null },
-    { label: 'Client Type', value: data.client_type },
-    { label: 'Area', value: data.preferred_area },
-    { label: 'Budget', value: data.budget },
-    { label: 'Timeline', value: data.timeline },
-    { label: 'Financing', value: data.financing_status },
-    { label: 'Source', value: data.source },
+    { label: 'Email', value: data.email ? `<a href="mailto:${escUrl(data.email)}" style="color:#1A3A6B">${esc(data.email)}</a>` : null },
+    { label: 'Phone', value: data.phone ? `<a href="tel:${escUrl(data.phone)}" style="color:#1A3A6B">${esc(data.phone)}</a>` : null },
+    { label: 'Client Type', value: esc(data.client_type) || null },
+    { label: 'Area', value: esc(data.preferred_area) || null },
+    { label: 'Budget', value: esc(data.budget) || null },
+    { label: 'Timeline', value: esc(data.timeline) || null },
+    { label: 'Financing', value: esc(data.financing_status) || null },
+    { label: 'Source', value: esc(data.source) || null },
   ].filter((r) => r.value)
 
   const tableRows = rows.map((r) => `
@@ -70,7 +82,7 @@ function buildAdminHtml(data: LeadEmailData): string {
   const msgSection = data.message
     ? `<div style="margin:20px 0;padding:16px 20px;background:#F4F7FA;border-left:4px solid #7BA7C2;border-radius:0 8px 8px 0">
         <p style="margin:0 0 6px;font-size:11px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.5px">Message</p>
-        <p style="margin:0;font-size:14px;color:#0A1628;line-height:1.7;white-space:pre-wrap">${data.message}</p>
+        <p style="margin:0;font-size:14px;color:#0A1628;line-height:1.7;white-space:pre-wrap">${esc(data.message)}</p>
        </div>`
     : ''
 
@@ -89,7 +101,7 @@ function buildAdminHtml(data: LeadEmailData): string {
     <p style="margin:0;font-size:12px;color:#B8D4E8">📋 <strong style="color:#fff">${formLabels[data.form_type] ?? data.form_type}</strong></p>
   </td></tr>
   <tr><td style="background:#fff;padding:24px 28px;border-radius:0 0 12px 12px">
-    <h2 style="margin:0 0 16px;font-size:20px;color:#0A1628;font-family:Georgia,serif">${data.full_name}</h2>
+    <h2 style="margin:0 0 16px;font-size:20px;color:#0A1628;font-family:Georgia,serif">${esc(data.full_name)}</h2>
     <table width="100%" cellpadding="0" cellspacing="0" style="border-radius:8px;overflow:hidden;border:1px solid #E2E8F0">${tableRows}</table>
     ${msgSection}
     <div style="margin-top:24px;text-align:center">
@@ -211,10 +223,12 @@ async function send(
 ): Promise<boolean> {
   const provider = getProvider()
   if (provider === 'none') return false
+  // Strip CR/LF from reply-to (it can carry user input) to block header injection.
+  const safeReplyTo = replyTo ? replyTo.replace(/[\r\n]+/g, ' ').trim() : replyTo
   try {
     return provider === 'resend'
-      ? await sendViaResend(to, subject, html, replyTo)
-      : await sendViaSMTP(to, subject, html, replyTo)
+      ? await sendViaResend(to, subject, html, safeReplyTo)
+      : await sendViaSMTP(to, subject, html, safeReplyTo)
   } catch (err) {
     console.error(`[email/${provider}]`, err)
     return false

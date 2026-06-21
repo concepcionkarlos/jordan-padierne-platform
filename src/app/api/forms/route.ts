@@ -20,6 +20,11 @@ export async function POST(req: NextRequest) {
     const spam = guardPublic(req, body, { requireEmail: true })
     if (spam) return spam
 
+    // Privacy: never persist SSN. The real credit/background check is run by a
+    // dedicated screening service, not stored in the CRM.
+    delete (body as Record<string, unknown>).ssn_last4
+    delete (formData as Record<string, unknown>).ssn_last4
+
     const supabase = createServiceClient()
 
     // 1. Save raw form submission
@@ -232,7 +237,6 @@ function buildMessageBody(formType: string, data: Record<string, unknown>): stri
     lines.push('')
     lines.push('── APPLICANT ──')
     addLine('Date of Birth', data.date_of_birth)
-    addLine('SSN (last 4)', data.ssn_last4)
     addLine('Applying for', data.property_address)
     addLine('Desired Move-in', data.desired_move_in)
     addLine('Occupants', data.occupants)

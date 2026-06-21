@@ -154,16 +154,9 @@ export default function RentalApplicationForm() {
                 <input {...register('date_of_birth')} type="date" className="input-field" />
               </div>
             </div>
-            <div className="grid sm:grid-cols-2 gap-4">
-              <div>
-                <label className="label">{t('forms.rental.ssn')}</label>
-                <input {...register('ssn_last4', { pattern: { value: /^\d{0,4}$/, message: '4 digits' }, maxLength: 4 })} inputMode="numeric" maxLength={4} className="input-field" placeholder="••••" />
-                <p className="text-gray-400 text-[11px] mt-1">{t('forms.rental.ssnNote')}</p>
-              </div>
-              <div>
-                <label className="label">{t('forms.rental.desiredProperty')}</label>
-                <input {...register('property_address')} className="input-field" placeholder={t('forms.rental.desiredPropertyPh')} />
-              </div>
+            <div>
+              <label className="label">{t('forms.rental.desiredProperty')}</label>
+              <input {...register('property_address')} className="input-field" placeholder={t('forms.rental.desiredPropertyPh')} />
             </div>
 
             <div className="pt-2 border-t border-gray-100">
