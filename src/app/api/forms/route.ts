@@ -14,9 +14,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: 'Missing required fields' }, { status: 400 })
     }
 
-    // Anti-spam: rate limit + honeypot/time-trap (placeholder emails are allowed
-    // here because phone-only popups submit them intentionally).
-    const spam = guardPublic(req, body)
+    // Anti-spam: rate limit + honeypot/time-trap + reject malformed/disposable
+    // emails. The phone-only popups send a well-formed placeholder, which passes
+    // format validation here but is excluded from the auto-reply below.
+    const spam = guardPublic(req, body, { requireEmail: true })
     if (spam) return spam
 
     const supabase = createServiceClient()
