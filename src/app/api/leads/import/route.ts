@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase'
+import { requireUser } from '@/lib/auth'
 
 // Bulk import leads from a parsed CSV (array of row objects already mapped client-side).
 export async function POST(req: NextRequest) {
+  const denied = await requireUser(); if (denied) return denied
   try {
     const supabase = createServiceClient()
     const { rows } = await req.json()

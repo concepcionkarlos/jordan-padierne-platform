@@ -1,40 +1,71 @@
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
+import { NextResponse, type NextRequest } from 'next/server'
+import { createServerClient } from '@supabase/ssr'
 
-// Reversible "kill switch" controlled by the SITE_LOCK_MODE env var (set in Vercel):
-//   unset / 'off'  → site works normally
-//   'admin'        → public site + lead capture keep working; the CRM (/admin) is locked
-//   'all'          → the whole site shows the maintenance screen
-// Flip it from Vercel env vars — no code changes, instant on/off.
-export function middleware(req: NextRequest) {
-  const mode = (process.env.SITE_LOCK_MODE || 'off').toLowerCase()
-  if (mode !== 'admin' && mode !== 'all') return NextResponse.next()
+// Public API endpoints the marketing site legitimately calls without login.
+// Everything else under /api/* requires an authenticated admin session.
+const PUBLIC_API = ['/api/forms', '/api/subscribe', '/api/book', '/api/qualify', '/api/unsubscribe', '/api/cron']
 
+function isPublicApi(pathname: string): boolean {
+  return PUBLIC_API.some((p) => pathname === p || pathname.startsWith(p + '/'))
+}
+
+export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
 
-  // Never block the lock screen itself, framework internals, or static assets.
-  if (
-    pathname === '/locked' ||
-    pathname.startsWith('/_next') ||
-    pathname === '/favicon.ico' ||
-    pathname === '/robots.txt'
-  ) {
-    return NextResponse.next()
+  // ── 1) Reversible site lock (kill switch) ──────────────────────────────
+  const mode = (process.env.SITE_LOCK_MODE || 'off').toLowerCase()
+  if (mode === 'admin' || mode === 'all') {
+    const allowThrough =
+      pathname === '/locked' || pathname.startsWith('/_next') || pathname === '/favicon.ico' || pathname === '/robots.txt'
+    if (!allowThrough) {
+      const lockAll = mode === 'all'
+      const lockAdmin = mode === 'admin' && pathname.startsWith('/admin')
+      if (lockAll || lockAdmin) {
+        const url = req.nextUrl.clone()
+        url.pathname = '/locked'
+        return NextResponse.rewrite(url, { headers: { 'Retry-After': '86400' } })
+      }
+    }
   }
 
-  const isAdminArea = pathname.startsWith('/admin')
-  const shouldLock = mode === 'all' || (mode === 'admin' && isAdminArea)
+  // ── 2) Auth gate ───────────────────────────────────────────────────────
+  const isAdminPage = pathname.startsWith('/admin') && pathname !== '/admin/login'
+  const isProtectedApi = pathname.startsWith('/api/') && !isPublicApi(pathname)
+  if (!isAdminPage && !isProtectedApi) return NextResponse.next()
 
-  if (shouldLock) {
+  const res = NextResponse.next({ request: { headers: req.headers } })
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL ?? '',
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
+    {
+      cookies: {
+        get: (name: string) => req.cookies.get(name)?.value,
+        set: (name: string, value: string, options: Record<string, unknown>) => {
+          res.cookies.set({ name, value, ...options })
+        },
+        remove: (name: string, options: Record<string, unknown>) => {
+          res.cookies.set({ name, value: '', ...options })
+        },
+      },
+    }
+  )
+
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    if (isProtectedApi) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    }
     const url = req.nextUrl.clone()
-    url.pathname = '/locked'
-    return NextResponse.rewrite(url, { headers: { 'Retry-After': '86400' } })
+    url.pathname = '/admin/login'
+    url.searchParams.set('next', pathname)
+    return NextResponse.redirect(url)
   }
 
-  return NextResponse.next()
+  return res
 }
 
 export const config = {
-  // Run on everything except static files (assets stay reachable for the lock screen).
+  // Run on everything except static files.
   matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
 }

@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase'
 import { requestReviewForLead } from '@/lib/reviews'
+import { requireUser } from '@/lib/auth'
 
 export async function GET(req: NextRequest) {
+  const denied = await requireUser(); if (denied) return denied
   try {
     const supabase = createServiceClient()
     const { searchParams } = new URL(req.url)
@@ -26,11 +28,13 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ success: true, data, count })
   } catch (err) {
-    return NextResponse.json({ success: false, error: String(err) }, { status: 500 })
+    console.error('[leads] GET', err)
+    return NextResponse.json({ success: false, error: 'Internal error' }, { status: 500 })
   }
 }
 
 export async function POST(req: NextRequest) {
+  const denied = await requireUser(); if (denied) return denied
   try {
     const supabase = createServiceClient()
     const body = await req.json()
@@ -40,11 +44,13 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true, data })
   } catch (err) {
-    return NextResponse.json({ success: false, error: String(err) }, { status: 500 })
+    console.error('[leads] POST', err)
+    return NextResponse.json({ success: false, error: 'Internal error' }, { status: 500 })
   }
 }
 
 export async function PATCH(req: NextRequest) {
+  const denied = await requireUser(); if (denied) return denied
   try {
     const supabase = createServiceClient()
     const body = await req.json()
@@ -62,11 +68,13 @@ export async function PATCH(req: NextRequest) {
 
     return NextResponse.json({ success: true, data })
   } catch (err) {
-    return NextResponse.json({ success: false, error: String(err) }, { status: 500 })
+    console.error('[leads] PATCH', err)
+    return NextResponse.json({ success: false, error: 'Internal error' }, { status: 500 })
   }
 }
 
 export async function DELETE(req: NextRequest) {
+  const denied = await requireUser(); if (denied) return denied
   try {
     const supabase = createServiceClient()
     const { searchParams } = new URL(req.url)
@@ -78,6 +86,7 @@ export async function DELETE(req: NextRequest) {
 
     return NextResponse.json({ success: true })
   } catch (err) {
-    return NextResponse.json({ success: false, error: String(err) }, { status: 500 })
+    console.error('[leads] DELETE', err)
+    return NextResponse.json({ success: false, error: 'Internal error' }, { status: 500 })
   }
 }

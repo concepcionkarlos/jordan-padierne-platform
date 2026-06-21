@@ -8,12 +8,11 @@ import { trackFor, buildDueStep, DRIP_WINDOW_DAYS } from '@/lib/drip'
 // lead is moved out of 'new', once the sequence finishes, or after the window.
 export async function GET(req: NextRequest) {
   // Protect: only Vercel Cron (or someone with the secret) may trigger this.
+  // Fail CLOSED — if CRON_SECRET is missing, deny rather than run for everyone.
   const secret = process.env.CRON_SECRET
-  if (secret) {
-    const auth = req.headers.get('authorization')
-    if (auth !== `Bearer ${secret}`) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
-    }
+  const auth = req.headers.get('authorization')
+  if (!secret || auth !== `Bearer ${secret}`) {
+    return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
   }
 
   try {
