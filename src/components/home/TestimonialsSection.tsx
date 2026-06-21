@@ -1,6 +1,7 @@
 import { Star, Quote } from 'lucide-react'
 import { safeQuery } from '@/lib/db'
 import Reveal from '@/components/ui/Reveal'
+import SectionHeader from '@/components/home/SectionHeader'
 
 async function getTestimonials(): Promise<any[]> {
   return safeQuery((db) => db.from('testimonials').select('*').eq('featured', true).order('sort_order', { ascending: true }).limit(9), [])
@@ -15,14 +16,7 @@ export default async function TestimonialsSection() {
   return (
     <section className="py-20 lg:py-28 bg-white">
       <div className="container-max section-padding">
-        <Reveal className="text-center max-w-2xl mx-auto mb-16">
-          <p className="text-wine font-semibold text-sm uppercase tracking-widest mb-3">Client Stories</p>
-          <h2 className="section-title mb-4">
-            What Clients Say About{' '}
-            <span className="text-sky-500">Working With Jordan</span>
-          </h2>
-          <p className="section-subtitle">Real experiences from buyers, investors, and families across South Florida.</p>
-        </Reveal>
+        <SectionHeader eyebrowKey="testimonials.eyebrow" titleKey="testimonials.title" highlightKey="testimonials.highlight" subtitleKey="testimonials.subtitle" />
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {testimonials.map((t, i) => (

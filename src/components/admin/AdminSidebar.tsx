@@ -1,8 +1,10 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
+  Menu, X,
   LayoutDashboard,
   Users,
   UserCircle,
@@ -48,6 +50,10 @@ const navItems = [
 
 export default function AdminSidebar() {
   const pathname = usePathname()
+  const [open, setOpen] = useState(false)
+
+  // Close the drawer after navigating (mobile).
+  useEffect(() => { setOpen(false) }, [pathname])
 
   const isActive = (item: { href: string; exact?: boolean }) => {
     if (item.exact) return pathname === item.href
@@ -55,7 +61,19 @@ export default function AdminSidebar() {
   }
 
   return (
-    <aside className="w-64 shrink-0 bg-navy-900 flex flex-col h-screen sticky top-0">
+    <>
+      {/* Mobile top bar */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between bg-navy-900 px-4 h-14">
+        <p className="font-serif text-white font-bold">Jordan Padierne</p>
+        <button type="button" onClick={() => setOpen(true)} className="p-2 text-white" aria-label="Open menu">
+          <Menu size={22} />
+        </button>
+      </div>
+      {/* Overlay */}
+      {open && <div className="lg:hidden fixed inset-0 z-40 bg-navy-900/50 backdrop-blur-sm" onClick={() => setOpen(false)} />}
+
+    <aside className={`${open ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 fixed lg:sticky inset-y-0 left-0 top-0 z-50 w-64 shrink-0 bg-navy-900 flex flex-col h-screen transition-transform duration-200`}>
+      <button type="button" onClick={() => setOpen(false)} className="lg:hidden absolute top-4 right-4 text-navy-400 hover:text-white" aria-label="Close menu"><X size={20} /></button>
       {/* Logo */}
       <div className="px-6 py-6 border-b border-navy-800">
         <p className="font-serif text-white font-bold text-lg leading-tight">Jordan Padierne</p>
@@ -114,5 +132,6 @@ export default function AdminSidebar() {
         </Link>
       </div>
     </aside>
+    </>
   )
 }

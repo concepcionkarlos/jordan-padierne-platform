@@ -15,7 +15,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
       <AdminSidebar />
-      <main className="flex-1 overflow-y-auto scrollbar-thin">
+      <main className="flex-1 overflow-y-auto scrollbar-thin pt-14 lg:pt-0">
         {children}
       </main>
       <Toaster />
