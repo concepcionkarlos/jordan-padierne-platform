@@ -1,4 +1,5 @@
 export const dynamic = 'force-dynamic'
+import Link from 'next/link'
 import { safeQuery } from '@/lib/db'
 import { formatRelativeTime, formatPhone } from '@/lib/utils'
 import { UserCircle, Phone, Mail, Plus } from 'lucide-react'
@@ -20,9 +21,9 @@ export default async function ContactsPage() {
           <h1 className="font-serif text-2xl font-bold text-navy-900">Contacts</h1>
           <p className="text-gray-500 text-sm mt-0.5">{contacts.length} contacts</p>
         </div>
-        <button type="button" className="btn-primary text-sm px-4 py-2.5">
+        <Link href="/admin/leads" className="btn-primary text-sm px-4 py-2.5">
           <Plus size={15} /> Add Contact
-        </button>
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

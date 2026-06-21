@@ -146,6 +146,11 @@ export default function LeadsTable({ leads }: Props) {
                           </div>
                         </div>
                       </Link>
+                      {lead.phone && (
+                        <a href={`tel:${lead.phone}`} className="md:hidden inline-flex items-center gap-1 text-sky-600 text-xs mt-1.5 ml-12 font-medium">
+                          <Phone size={11} /> {formatPhone(lead.phone)}
+                        </a>
+                      )}
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-2">

@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { isValidName, isValidPhone } from '@/lib/validate'
+
+export { isValidName, isValidPhone } from '@/lib/validate'
 
 // ─── Per-IP + global rate limiting (in-memory, best-effort) ──────────────────
 // Serverless instances don't share memory, so this is a cheap first line that
@@ -95,6 +98,17 @@ export function guardPublic(
     if (!isValidEmail(email)) {
       return NextResponse.json({ success: false, error: 'Please enter a valid email address.' }, { status: 400 })
     }
+  }
+
+  // Reject mismatched field data (e.g. digits in a name, letters in a phone) on
+  // EVERY public route — validate whenever the field is present and non-empty.
+  const name = body?.full_name
+  if (name != null && String(name).trim() !== '' && !isValidName(name)) {
+    return NextResponse.json({ success: false, error: 'Please enter a valid name (letters only, no numbers).' }, { status: 400 })
+  }
+  const phone = body?.phone
+  if (phone != null && String(phone).trim() !== '' && !isValidPhone(phone)) {
+    return NextResponse.json({ success: false, error: 'Please enter a valid phone number (digits only).' }, { status: 400 })
   }
 
   return null

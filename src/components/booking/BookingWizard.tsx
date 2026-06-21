@@ -3,12 +3,15 @@
 import { useEffect, useState } from 'react'
 import { Calendar, Clock, Check, Phone } from 'lucide-react'
 import { useT } from '@/components/LanguageProvider'
+import { useProfile } from '@/components/ProfileProvider'
 import { bookableDates, availableHours, hourLabel, SLOT_HOURS } from '@/lib/schedule'
+import { isValidName, isValidPhone, isValidEmailFormat, stripDigits, stripNonPhone } from '@/lib/validate'
 
 type Topic = 'buy' | 'sell' | 'invest' | 'other'
 
 export default function BookingWizard() {
   const { t } = useT()
+  const profile = useProfile()
   const [dates, setDates] = useState<ReturnType<typeof bookableDates>>([])
   const [selectedDate, setSelectedDate] = useState('')
   const [taken, setTaken] = useState<number[]>([])
@@ -51,6 +54,9 @@ export default function BookingWizard() {
       setError(t('book.selectFirst'))
       return
     }
+    if (!isValidName(fullName)) { setError(t('forms.invalidName')); return }
+    if (!isValidEmailFormat(email)) { setError(t('forms.invalidEmail')); return }
+    if (phone.trim() && !isValidPhone(phone)) { setError(t('forms.invalidPhone')); return }
     setSubmitting(true)
     setError('')
     try {
@@ -177,7 +183,7 @@ export default function BookingWizard() {
         <div className="space-y-3">
           <div>
             <label htmlFor="b-name" className="label">{t('book.name')}</label>
-            <input id="b-name" className="input-field" value={fullName} onChange={(e) => setFullName(e.target.value)} autoComplete="name" />
+            <input id="b-name" className="input-field" value={fullName} onChange={(e) => setFullName(stripDigits(e.target.value))} autoComplete="name" inputMode="text" />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
@@ -186,7 +192,7 @@ export default function BookingWizard() {
             </div>
             <div>
               <label htmlFor="b-phone" className="label">{t('book.phone')}</label>
-              <input id="b-phone" type="tel" className="input-field" value={phone} onChange={(e) => setPhone(e.target.value)} autoComplete="tel" />
+              <input id="b-phone" type="tel" inputMode="tel" className="input-field" value={phone} onChange={(e) => setPhone(stripNonPhone(e.target.value))} autoComplete="tel" />
             </div>
           </div>
           <div>
@@ -230,8 +236,8 @@ export default function BookingWizard() {
         >
           {submitting ? t('book.confirming') : t('book.confirm')}
         </button>
-        <a href="tel:+13057996973" className="flex items-center justify-center gap-1.5 mt-3 text-sm text-gray-500 hover:text-navy-900">
-          <Phone size={13} /> 305-799-6973
+        <a href={profile.phoneHref} className="flex items-center justify-center gap-1.5 mt-3 text-sm text-gray-500 hover:text-navy-900">
+          <Phone size={13} /> {profile.phone}
         </a>
       </div>
     </div>

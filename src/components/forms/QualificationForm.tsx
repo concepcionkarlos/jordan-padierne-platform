@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form'
 import { ArrowRight, ArrowLeft, CheckCircle2, Sparkles } from 'lucide-react'
 import { AREAS, TIMELINES, FINANCING_OPTIONS } from '@/lib/utils'
 import { useT } from '@/components/LanguageProvider'
+import { isValidName, isValidPhone, isValidEmailFormat, stripDigits, stripNonPhone } from '@/lib/validate'
 
 interface FormData {
   intent: string
@@ -103,18 +104,19 @@ export default function QualificationForm({ leadId, firstName, known = true }: {
       <p className="text-sm text-gray-600 font-medium">{t('forms.qualify.contactIntro')}</p>
       <div>
         <label className="label">{t('forms.fullName')} *</label>
-        <input {...register('full_name', { required: 'Required' })} className="input-field" placeholder={t('forms.namePlaceholder')} />
-        {errors.full_name && <p className="text-wine text-xs mt-1">{t('forms.fullName')}</p>}
+        <input {...register('full_name', { required: 'Required', validate: (v: string) => isValidName(v) || t('forms.invalidName'), onChange: (e) => { e.target.value = stripDigits(e.target.value) } })} className="input-field" placeholder={t('forms.namePlaceholder')} />
+        {errors.full_name && <p className="text-wine text-xs mt-1">{String(errors.full_name.message || t('forms.invalidName'))}</p>}
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="label">{t('forms.email')} *</label>
-          <input {...register('email', { required: 'Required' })} type="email" className="input-field" placeholder="you@email.com" />
-          {errors.email && <p className="text-wine text-xs mt-1">{t('forms.email')}</p>}
+          <input {...register('email', { required: 'Required', validate: (v: string) => isValidEmailFormat(v) || t('forms.invalidEmail') })} type="email" className="input-field" placeholder="you@email.com" />
+          {errors.email && <p className="text-wine text-xs mt-1">{String(errors.email.message || t('forms.invalidEmail'))}</p>}
         </div>
         <div>
           <label className="label">{t('forms.phone')}</label>
-          <input {...register('phone')} type="tel" className="input-field" placeholder="305-555-0123" />
+          <input {...register('phone', { validate: (v: string) => !v || isValidPhone(v) || t('forms.invalidPhone'), onChange: (e) => { e.target.value = stripNonPhone(e.target.value) } })} type="tel" inputMode="tel" className="input-field" placeholder="305-555-0123" />
+          {errors.phone && <p className="text-wine text-xs mt-1">{String(errors.phone.message || t('forms.invalidPhone'))}</p>}
         </div>
       </div>
     </div>

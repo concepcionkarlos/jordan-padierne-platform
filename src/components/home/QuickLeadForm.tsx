@@ -3,9 +3,12 @@
 import { useState } from 'react'
 import { ArrowRight, CheckCircle2, Phone, Sparkles } from 'lucide-react'
 import { useT } from '@/components/LanguageProvider'
+import { useProfile } from '@/components/ProfileProvider'
+import { isValidName, isValidPhone, stripDigits, stripNonPhone } from '@/lib/validate'
 
 export default function QuickLeadForm() {
   const { t } = useT()
+  const profile = useProfile()
   const [form, setForm] = useState({ full_name: '', phone: '', intent: 'Buy' })
   const [loading, setLoading] = useState(false)
   const [submitted, setSubmitted] = useState(false)
@@ -14,6 +17,8 @@ export default function QuickLeadForm() {
   async function submit(e: React.FormEvent) {
     e.preventDefault()
     if (!form.full_name.trim() || !form.phone.trim()) return
+    if (!isValidName(form.full_name)) { setError(t('forms.invalidName')); return }
+    if (!isValidPhone(form.phone)) { setError(t('forms.invalidPhone')); return }
     setLoading(true); setError('')
     try {
       const clientType = form.intent === 'Sell' ? 'Seller' : form.intent === 'Invest' ? 'Investor' : 'Buyer'
@@ -49,7 +54,7 @@ export default function QuickLeadForm() {
               <CheckCircle2 size={40} className="text-green-500 mx-auto mb-3" />
               <h3 className="font-serif text-2xl font-bold text-navy-900 mb-1">{t('quick.thanksTitle')}</h3>
               <p className="text-gray-500">{t('quick.thanksSub')}</p>
-              <a href="tel:+13057996973" className="btn-wine mt-5 inline-flex"><Phone size={16} /> 305-799-6973</a>
+              <a href={profile.phoneHref} className="btn-wine mt-5 inline-flex"><Phone size={16} /> {profile.phone}</a>
             </div>
           ) : (
             <>
@@ -65,15 +70,16 @@ export default function QuickLeadForm() {
               <form onSubmit={submit} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 <input
                   value={form.full_name}
-                  onChange={(e) => setForm({ ...form, full_name: e.target.value })}
+                  onChange={(e) => setForm({ ...form, full_name: stripDigits(e.target.value) })}
                   placeholder={t('quick.name')}
                   className="input-field"
                   required
                 />
                 <input
                   value={form.phone}
-                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                  onChange={(e) => setForm({ ...form, phone: stripNonPhone(e.target.value) })}
                   type="tel"
+                  inputMode="tel"
                   placeholder={t('quick.phone')}
                   className="input-field"
                   required

@@ -10,9 +10,11 @@ import Particles from '@/components/ui/Particles'
 import AnimatedWave from '@/components/ui/AnimatedWave'
 import ExpLogo from '@/components/ui/ExpLogo'
 import { useT } from '@/components/LanguageProvider'
+import { useProfile } from '@/components/ProfileProvider'
 
 export default function HeroSection() {
   const { t } = useT()
+  const profile = useProfile()
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden bg-navy-900">
       {/* Background Image with slow Ken Burns zoom */}
@@ -89,9 +91,9 @@ export default function HeroSection() {
                 <p className="text-white/60 text-xs">{t('hero.trust.areasSub')}</p>
               </div>
               <div className="w-px h-10 bg-white/20" />
-              <a href="tel:+13057996973" className="flex items-center gap-2 text-white hover:text-sky-300 transition-colors">
+              <a href={profile.phoneHref} className="flex items-center gap-2 text-white hover:text-sky-300 transition-colors">
                 <Phone size={16} className="text-sky-400" />
-                <span className="font-semibold text-sm">305-799-6973</span>
+                <span className="font-semibold text-sm">{profile.phone}</span>
               </a>
               <div className="w-px h-10 bg-white/20" />
               <SocialIcons variant="light" />

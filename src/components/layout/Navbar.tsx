@@ -7,6 +7,7 @@ import { usePathname } from 'next/navigation'
 import { Menu, X, Phone, ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useT } from '@/components/LanguageProvider'
+import { useProfile } from '@/components/ProfileProvider'
 import LanguageToggle from '@/components/LanguageToggle'
 
 const navLinks = [
@@ -29,6 +30,7 @@ const navLinks = [
 
 export default function Navbar() {
   const { t } = useT()
+  const profile = useProfile()
   const [scrolled, setScrolled] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [servicesOpen, setServicesOpen] = useState(false)
@@ -136,14 +138,14 @@ export default function Navbar() {
           <div className="hidden lg:flex items-center gap-3">
             <LanguageToggle light={isHome && !scrolled} />
             <a
-              href="tel:+13057996973"
+              href={profile.phoneHref}
               className={cn(
                 'flex items-center gap-1.5 text-sm font-medium transition-colors',
                 isHome && !scrolled ? 'text-white/80 hover:text-white' : 'text-navy-600 hover:text-navy-900'
               )}
             >
               <Phone size={14} />
-              305-799-6973
+              {profile.phone}
             </a>
             <Link href="/book" className="btn-wine text-xs px-5 py-2.5">
               {t('nav.schedule')}
@@ -202,11 +204,11 @@ export default function Navbar() {
             <div className="pt-4 border-t border-gray-100 space-y-2">
               <div className="px-4 pb-1"><LanguageToggle /></div>
               <a
-                href="tel:+13057996973"
+                href={profile.phoneHref}
                 className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-navy-700"
               >
                 <Phone size={14} />
-                305-799-6973
+                {profile.phone}
               </a>
               <Link
                 href="/book"

@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { ArrowRight, ArrowLeft, CheckCircle2, Home, Briefcase, Users, ShieldCheck } from 'lucide-react'
 import { useT } from '@/components/LanguageProvider'
+import { isValidName, isValidPhone, isValidEmailFormat, stripDigits, stripNonPhone } from '@/lib/validate'
 
 interface RentalData {
   full_name: string
@@ -136,18 +137,18 @@ export default function RentalApplicationForm() {
             <div className="grid sm:grid-cols-2 gap-4">
               <div>
                 <label className="label">{t('forms.fullName')} *</label>
-                <input {...register('full_name', { required: 'Required' })} className="input-field" placeholder={t('forms.namePlaceholder')} />
-                {errors.full_name && <p className="text-wine text-xs mt-1">{t('forms.fullName')}</p>}
+                <input {...register('full_name', { required: 'Required', validate: (v: string) => isValidName(v) || t('forms.invalidName'), onChange: (e) => { e.target.value = stripDigits(e.target.value) } })} className="input-field" placeholder={t('forms.namePlaceholder')} />
+                {errors.full_name && <p className="text-wine text-xs mt-1">{String(errors.full_name.message || t('forms.invalidName'))}</p>}
               </div>
               <div>
                 <label className="label">{t('forms.phone')} *</label>
-                <input {...register('phone', { required: 'Required' })} type="tel" className="input-field" placeholder="(305) 000-0000" />
-                {errors.phone && <p className="text-wine text-xs mt-1">{t('forms.phone')}</p>}
+                <input {...register('phone', { required: 'Required', validate: (v: string) => !v || isValidPhone(v) || t('forms.invalidPhone'), onChange: (e) => { e.target.value = stripNonPhone(e.target.value) } })} type="tel" inputMode="tel" className="input-field" placeholder="(305) 000-0000" />
+                {errors.phone && <p className="text-wine text-xs mt-1">{String(errors.phone.message || t('forms.invalidPhone'))}</p>}
               </div>
               <div>
                 <label className="label">{t('forms.email')} *</label>
-                <input {...register('email', { required: 'Required', pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: 'Invalid email' } })} type="email" className="input-field" placeholder="you@email.com" />
-                {errors.email && <p className="text-wine text-xs mt-1">{t('forms.email')}</p>}
+                <input {...register('email', { required: 'Required', validate: (v: string) => isValidEmailFormat(v) || t('forms.invalidEmail') })} type="email" className="input-field" placeholder="you@email.com" />
+                {errors.email && <p className="text-wine text-xs mt-1">{String(errors.email.message || t('forms.invalidEmail'))}</p>}
               </div>
               <div>
                 <label className="label">{t('forms.dob')}</label>
@@ -213,7 +214,7 @@ export default function RentalApplicationForm() {
               </div>
               <div>
                 <label className="label">{t('forms.rental.employerPhone')}</label>
-                <input {...register('employer_phone')} type="tel" className="input-field" />
+                <input {...register('employer_phone', { onChange: (e) => { e.target.value = stripNonPhone(e.target.value) } })} type="tel" inputMode="tel" className="input-field" />
               </div>
               <div>
                 <label className="label">{t('forms.rental.timeEmployed')}</label>
@@ -243,9 +244,9 @@ export default function RentalApplicationForm() {
             {hasCo && (
               <div className="space-y-4 animate-fade-in">
                 <div className="grid sm:grid-cols-2 gap-4">
-                  <div><label className="label">{t('forms.rental.coName')}</label><input {...register('co_full_name')} className="input-field" /></div>
+                  <div><label className="label">{t('forms.rental.coName')}</label><input {...register('co_full_name', { onChange: (e) => { e.target.value = stripDigits(e.target.value) } })} className="input-field" /></div>
                   <div><label className="label">{t('forms.dob')}</label><input {...register('co_dob')} type="date" className="input-field" /></div>
-                  <div><label className="label">{t('forms.phone')}</label><input {...register('co_phone')} type="tel" className="input-field" /></div>
+                  <div><label className="label">{t('forms.phone')}</label><input {...register('co_phone', { onChange: (e) => { e.target.value = stripNonPhone(e.target.value) } })} type="tel" inputMode="tel" className="input-field" /></div>
                   <div><label className="label">{t('forms.email')}</label><input {...register('co_email')} type="email" className="input-field" /></div>
                   <div><label className="label">{t('forms.employer')}</label><input {...register('co_employer')} className="input-field" /></div>
                   <div><label className="label">{t('forms.annualIncome')}</label><input {...register('co_income')} type="number" className="input-field" /></div>
@@ -273,8 +274,8 @@ export default function RentalApplicationForm() {
             <div className="pt-2 border-t border-gray-100">
               <p className="text-sm font-semibold text-navy-800 mb-3">{t('forms.rental.hEmergency')}</p>
               <div className="grid sm:grid-cols-3 gap-3">
-                <div><label className="label">{t('forms.name')}</label><input {...register('emergency_name')} className="input-field" /></div>
-                <div><label className="label">{t('forms.phone')}</label><input {...register('emergency_phone')} type="tel" className="input-field" /></div>
+                <div><label className="label">{t('forms.name')}</label><input {...register('emergency_name', { onChange: (e) => { e.target.value = stripDigits(e.target.value) } })} className="input-field" /></div>
+                <div><label className="label">{t('forms.phone')}</label><input {...register('emergency_phone', { onChange: (e) => { e.target.value = stripNonPhone(e.target.value) } })} type="tel" inputMode="tel" className="input-field" /></div>
                 <div><label className="label">{t('forms.relationship')}</label><input {...register('emergency_relationship')} className="input-field" /></div>
               </div>
             </div>
@@ -282,8 +283,8 @@ export default function RentalApplicationForm() {
             <div className="pt-2 border-t border-gray-100">
               <p className="text-sm font-semibold text-navy-800 mb-3">{t('forms.rental.hReference')}</p>
               <div className="grid sm:grid-cols-2 gap-3">
-                <div><label className="label">{t('forms.name')}</label><input {...register('reference_name')} className="input-field" /></div>
-                <div><label className="label">{t('forms.phone')}</label><input {...register('reference_phone')} type="tel" className="input-field" /></div>
+                <div><label className="label">{t('forms.name')}</label><input {...register('reference_name', { onChange: (e) => { e.target.value = stripDigits(e.target.value) } })} className="input-field" /></div>
+                <div><label className="label">{t('forms.phone')}</label><input {...register('reference_phone', { onChange: (e) => { e.target.value = stripNonPhone(e.target.value) } })} type="tel" inputMode="tel" className="input-field" /></div>
               </div>
             </div>
 

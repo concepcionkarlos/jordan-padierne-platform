@@ -1,10 +1,12 @@
 import { NextResponse } from 'next/server'
 import { sendEmail, getEmailProvider, isEmailConfigured } from '@/lib/email'
+import { requireUser } from '@/lib/auth'
 
 // Sends a branded test email to the admin inbox so Jordan can confirm, at a
 // glance, that email is connected and going out from the right address.
 // Fixed recipient (admin inbox) — no arbitrary "to", so it can't be abused to spam.
 export async function POST() {
+  const denied = await requireUser(); if (denied) return denied
   if (!isEmailConfigured()) {
     return NextResponse.json({ success: false, error: 'Email not configured' }, { status: 400 })
   }

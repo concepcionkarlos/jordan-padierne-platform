@@ -6,6 +6,7 @@ import { Send, CheckCircle2 } from 'lucide-react'
 import type { ContactFormData } from '@/lib/types'
 import { AREAS, CLIENT_TYPES, TIMELINES, BUDGET_RANGES } from '@/lib/utils'
 import { useT } from '@/components/LanguageProvider'
+import { isValidName, isValidPhone, isValidEmailFormat, stripDigits, stripNonPhone } from '@/lib/validate'
 
 export default function ContactForm() {
   const { t } = useT()
@@ -50,20 +51,24 @@ export default function ContactForm() {
         <div>
           <label className="label">{t('forms.fullName')} *</label>
           <input
-            {...register('full_name', { required: true })}
+            {...register('full_name', { required: true, validate: (v: string) => isValidName(v) || t('forms.invalidName'),
+              onChange: (e) => { e.target.value = stripDigits(e.target.value) } })}
             className="input-field"
             placeholder={t('forms.namePlaceholder')}
           />
-          {errors.full_name && <p className="text-wine text-xs mt-1">{t('forms.error')}</p>}
+          {errors.full_name && <p className="text-wine text-xs mt-1">{String(errors.full_name.message || t('forms.invalidName'))}</p>}
         </div>
         <div>
           <label className="label">{t('forms.phone')} *</label>
           <input
-            {...register('phone', { required: true })}
+            {...register('phone', { required: true, validate: (v: string) => !v || isValidPhone(v) || t('forms.invalidPhone'),
+              onChange: (e) => { e.target.value = stripNonPhone(e.target.value) } })}
             type="tel"
+            inputMode="tel"
             className="input-field"
             placeholder="(305) 000-0000"
           />
+          {errors.phone && <p className="text-wine text-xs mt-1">{String(errors.phone.message || t('forms.invalidPhone'))}</p>}
         </div>
       </div>
 
@@ -72,12 +77,13 @@ export default function ContactForm() {
         <input
           {...register('email', {
             required: true,
-            pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: 'Invalid email' },
+            validate: (v: string) => isValidEmailFormat(v) || t('forms.invalidEmail'),
           })}
           type="email"
           className="input-field"
           placeholder="your@email.com"
         />
+        {errors.email && <p className="text-wine text-xs mt-1">{String(errors.email.message || t('forms.invalidEmail'))}</p>}
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">

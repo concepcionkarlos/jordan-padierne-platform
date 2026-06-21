@@ -1,22 +1,25 @@
 // JSON-LD structured data — tells Google exactly who Jordan is, where he works,
 // and what he does. This powers rich results and the local "map pack" ranking.
 
+import { getProfile } from '@/lib/profile'
+
 const BASE = 'https://jordanpadierne.com'
 
-export default function StructuredData() {
+export default async function StructuredData() {
+  const profile = await getProfile()
   const realEstateAgent = {
     '@context': 'https://schema.org',
     '@type': 'RealEstateAgent',
     '@id': `${BASE}/#agent`,
-    name: 'Jordan Padierne',
+    name: profile.name,
     alternateName: 'Jordan Padierne Realtor',
     description:
       'South Florida Realtor with eXp Realty specializing in pre-construction, investment, and luxury real estate for buyers, investors, and international clients across Miami-Dade.',
     url: BASE,
     image: `${BASE}/icon-512.png`,
     logo: `${BASE}/icon-512.png`,
-    telephone: '+1-305-799-6973',
-    email: 'info@jordanpadierne.com',
+    telephone: profile.telephoneIntl,
+    email: profile.email,
     priceRange: '$$$',
     knowsLanguage: ['English', 'Spanish'],
     address: {

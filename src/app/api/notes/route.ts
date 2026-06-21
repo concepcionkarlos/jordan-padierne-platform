@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase'
+import { requireUser } from '@/lib/auth'
 
 export async function POST(req: NextRequest) {
+  const denied = await requireUser(); if (denied) return denied
   try {
     const supabase = createServiceClient()
     const { content, lead_id, contact_id, author } = await req.json()
@@ -30,6 +32,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+  const denied = await requireUser(); if (denied) return denied
   try {
     const supabase = createServiceClient()
     const { searchParams } = new URL(req.url)

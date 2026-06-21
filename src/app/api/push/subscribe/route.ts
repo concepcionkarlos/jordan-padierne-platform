@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase'
+import { requireUser } from '@/lib/auth'
 
 export async function POST(req: NextRequest) {
+  const denied = await requireUser(); if (denied) return denied
   try {
     const supabase = createServiceClient()
     const { subscription, label } = await req.json()

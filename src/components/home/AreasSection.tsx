@@ -4,6 +4,7 @@ import { MapPin } from 'lucide-react'
 import Reveal from '@/components/ui/Reveal'
 import AuroraBackground from '@/components/ui/AuroraBackground'
 import { useT } from '@/components/LanguageProvider'
+import { useProfile } from '@/components/ProfileProvider'
 
 const areas = [
   { name: 'Brickell', k: 'brickell', gradient: 'from-navy-900 to-navy-700' },
@@ -18,6 +19,7 @@ const pattern = `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='
 
 export default function AreasSection() {
   const { t } = useT()
+  const profile = useProfile()
   return (
     <section className="py-20 lg:py-28 bg-light-gray relative overflow-hidden">
       <AuroraBackground variant="light" />
@@ -52,7 +54,7 @@ export default function AreasSection() {
 
         <div className="text-center mt-12">
           <p className="text-gray-500 text-sm mb-4">{t('areas.bottomText')}</p>
-          <a href="tel:+13057996973" className="btn-primary inline-flex"><MapPin size={16} />{t('areas.bottomCta')}</a>
+          <a href={profile.phoneHref} className="btn-primary inline-flex"><MapPin size={16} />{t('areas.bottomCta')} · {profile.phone}</a>
         </div>
       </div>
     </section>

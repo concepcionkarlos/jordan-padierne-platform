@@ -1,12 +1,33 @@
-import { Settings, Phone, Mail, Shield, Globe, MessageSquare, Bell, CheckCircle2, XCircle } from 'lucide-react'
+export const dynamic = 'force-dynamic'
+import { Settings, Mail, Shield, Globe, MessageSquare, Phone, Bell, CheckCircle2, XCircle } from 'lucide-react'
 import { isEmailConfigured } from '@/lib/email'
 import { isSupabaseConfigured } from '@/lib/supabase'
+import { getSetting } from '@/lib/settings'
 import ReviewLinkSetting from '@/components/admin/ReviewLinkSetting'
 import EmailTestButton from '@/components/admin/EmailTestButton'
+import AgentProfileForm from '@/components/admin/AgentProfileForm'
 
-export default function SettingsPage() {
+export default async function SettingsPage() {
   const emailConnected = isEmailConfigured()
   const supabaseConnected = isSupabaseConfigured()
+
+  // Load the saved agent profile (falls back to the brand defaults).
+  const [name, license, phone, email, broker, languages] = await Promise.all([
+    getSetting('profile_name'),
+    getSetting('profile_license'),
+    getSetting('profile_phone'),
+    getSetting('profile_email'),
+    getSetting('profile_broker'),
+    getSetting('profile_languages'),
+  ])
+  const profile = {
+    name: name ?? 'Jordan Padierne',
+    license: license ?? 'SL3641062',
+    phone: phone ?? '305-799-6973',
+    email: email ?? 'info@jordanpadierne.com',
+    broker: broker ?? 'eXp Realty',
+    languages: languages ?? 'English, Spanish',
+  }
 
   return (
     <div className="p-6 lg:p-8 max-w-3xl">
@@ -24,34 +45,7 @@ export default function SettingsPage() {
             </div>
             <h2 className="font-semibold text-navy-900">Agent Profile</h2>
           </div>
-          <div className="p-6 space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="s-name" className="label">Full Name</label>
-                <input id="s-name" className="input-field" defaultValue="Jordan Padierne" readOnly title="Full Name" />
-              </div>
-              <div>
-                <label htmlFor="s-license" className="label">License Number</label>
-                <input id="s-license" className="input-field" defaultValue="SL3641062" readOnly title="License Number" />
-              </div>
-              <div>
-                <label htmlFor="s-phone" className="label">Phone</label>
-                <input id="s-phone" className="input-field" defaultValue="305-799-6973" readOnly title="Phone" />
-              </div>
-              <div>
-                <label htmlFor="s-email" className="label">Email</label>
-                <input id="s-email" className="input-field" defaultValue="info@jordanpadierne.com" readOnly title="Email" />
-              </div>
-              <div>
-                <label htmlFor="s-broker" className="label">Broker</label>
-                <input id="s-broker" className="input-field" defaultValue="eXp Realty" readOnly title="Broker" />
-              </div>
-              <div>
-                <label htmlFor="s-langs" className="label">Languages</label>
-                <input id="s-langs" className="input-field" defaultValue="English, Spanish" readOnly title="Languages" />
-              </div>
-            </div>
-          </div>
+          <AgentProfileForm initial={profile} />
         </div>
 
         {/* Notifications */}

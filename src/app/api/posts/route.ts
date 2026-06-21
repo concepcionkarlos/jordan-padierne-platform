@@ -2,8 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { createServiceClient } from '@/lib/supabase'
 import { slugify } from '@/lib/posts'
+import { requireUser } from '@/lib/auth'
 
 export async function GET(req: NextRequest) {
+  const denied = await requireUser(); if (denied) return denied
   try {
     const supabase = createServiceClient()
     const all = new URL(req.url).searchParams.get('all') === '1' // admin: include unpublished
@@ -18,6 +20,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const denied = await requireUser(); if (denied) return denied
   try {
     const supabase = createServiceClient()
     const body = await req.json()
@@ -52,6 +55,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PATCH(req: NextRequest) {
+  const denied = await requireUser(); if (denied) return denied
   try {
     const supabase = createServiceClient()
     const { id, ...updates } = await req.json()
@@ -71,6 +75,7 @@ export async function PATCH(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+  const denied = await requireUser(); if (denied) return denied
   try {
     const supabase = createServiceClient()
     const id = new URL(req.url).searchParams.get('id')

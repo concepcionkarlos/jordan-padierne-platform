@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase'
 import { requestReviewForLead } from '@/lib/reviews'
+import { requireUser } from '@/lib/auth'
 
 export async function GET() {
+  const denied = await requireUser(); if (denied) return denied
   try {
     const supabase = createServiceClient()
 
@@ -27,6 +29,7 @@ export async function GET() {
 }
 
 export async function PATCH(req: NextRequest) {
+  const denied = await requireUser(); if (denied) return denied
   try {
     const supabase = createServiceClient()
     const { lead_id, stage } = await req.json()

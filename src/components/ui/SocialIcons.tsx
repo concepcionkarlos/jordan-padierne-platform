@@ -1,5 +1,8 @@
-import { SOCIAL_LINKS, CONTACT_INFO } from '@/lib/social'
+'use client'
+
+import { SOCIAL_LINKS } from '@/lib/social'
 import { cn } from '@/lib/utils'
+import { useProfile } from '@/components/ProfileProvider'
 
 interface SocialIconsProps {
   variant?: 'footer' | 'minimal' | 'contact' | 'light'
@@ -22,7 +25,7 @@ const links = [
   },
   {
     key: 'whatsapp',
-    href: CONTACT_INFO.whatsapp,
+    href: SOCIAL_LINKS.whatsapp.url, // overridden with the live profile WhatsApp at render
     label: 'WhatsApp',
     active: SOCIAL_LINKS.whatsapp.active,
     icon: (
@@ -87,9 +90,13 @@ const links = [
   },
 ]
 
-const activeLinks = links.filter((l) => l.active)
+const baseActiveLinks = links.filter((l) => l.active)
 
 export default function SocialIcons({ variant = 'footer', className }: SocialIconsProps) {
+  const profile = useProfile()
+  // Resolve the WhatsApp link from the live profile so it follows the agent phone.
+  const activeLinks = baseActiveLinks.map((l) => (l.key === 'whatsapp' ? { ...l, href: profile.whatsapp } : l))
+
   if (variant === 'minimal') {
     return (
       <div className={cn('flex items-center gap-2', className)}>

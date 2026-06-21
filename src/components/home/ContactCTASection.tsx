@@ -5,11 +5,12 @@ import Link from 'next/link'
 import { Phone, Mail, ArrowRight, Calendar } from 'lucide-react'
 import SocialIcons from '@/components/ui/SocialIcons'
 import AuroraBackground from '@/components/ui/AuroraBackground'
-import { CONTACT_INFO } from '@/lib/social'
 import { useT } from '@/components/LanguageProvider'
+import { useProfile } from '@/components/ProfileProvider'
 
 export default function ContactCTASection() {
   const { t } = useT()
+  const profile = useProfile()
   return (
     <section className="py-20 lg:py-28 bg-white relative overflow-hidden">
       <AuroraBackground variant="light" />
@@ -26,24 +27,24 @@ export default function ContactCTASection() {
             <p className="text-gray-500 text-lg leading-relaxed mb-8">{t('contactCta.subtitle')}</p>
 
             <div className="space-y-4 mb-8">
-              <a href="tel:+13057996973" className="flex items-center gap-4 p-4 rounded-xl border border-gray-100 hover:border-sky-200 hover:bg-sky-50 transition-all group">
+              <a href={profile.phoneHref} className="flex items-center gap-4 p-4 rounded-xl border border-gray-100 hover:border-sky-200 hover:bg-sky-50 transition-all group">
                 <div className="w-11 h-11 rounded-xl bg-navy-50 flex items-center justify-center group-hover:bg-sky-100 transition-colors">
                   <Phone size={18} className="text-navy-700" />
                 </div>
                 <div>
                   <p className="font-semibold text-navy-900 text-sm">{t('contactCta.call')}</p>
-                  <p className="text-gray-500 text-sm">305-799-6973</p>
+                  <p className="text-gray-500 text-sm">{profile.phone}</p>
                 </div>
                 <ArrowRight size={16} className="text-gray-300 group-hover:text-sky-500 ml-auto transition-colors" />
               </a>
 
-              <a href={CONTACT_INFO.emailHref} className="flex items-center gap-4 p-4 rounded-xl border border-gray-100 hover:border-sky-200 hover:bg-sky-50 transition-all group">
+              <a href={profile.emailHref} className="flex items-center gap-4 p-4 rounded-xl border border-gray-100 hover:border-sky-200 hover:bg-sky-50 transition-all group">
                 <div className="w-11 h-11 rounded-xl bg-navy-50 flex items-center justify-center group-hover:bg-sky-100 transition-colors">
                   <Mail size={18} className="text-navy-700" />
                 </div>
                 <div>
                   <p className="font-semibold text-navy-900 text-sm">{t('contactCta.email')}</p>
-                  <p className="text-gray-500 text-sm">{CONTACT_INFO.email}</p>
+                  <p className="text-gray-500 text-sm">{profile.email}</p>
                 </div>
                 <ArrowRight size={16} className="text-gray-300 group-hover:text-sky-500 ml-auto transition-colors" />
               </a>

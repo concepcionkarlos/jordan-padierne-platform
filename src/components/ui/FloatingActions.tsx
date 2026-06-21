@@ -1,8 +1,10 @@
 'use client'
 
-import { CONTACT_INFO, SOCIAL_LINKS } from '@/lib/social'
+import { SOCIAL_LINKS } from '@/lib/social'
+import { useProfile } from '@/components/ProfileProvider'
 
 export default function FloatingActions() {
+  const profile = useProfile()
   return (
     <div className="fixed bottom-24 lg:bottom-6 right-4 lg:right-6 z-50 flex flex-col gap-3">
       {/* Instagram */}
@@ -27,7 +29,7 @@ export default function FloatingActions() {
 
       {/* WhatsApp */}
       <a
-        href={CONTACT_INFO.whatsapp}
+        href={profile.whatsapp}
         target="_blank"
         rel="noopener noreferrer"
         aria-label="Chat on WhatsApp"
@@ -38,7 +40,7 @@ export default function FloatingActions() {
         </svg>
         {/* Tooltip */}
         <span className="absolute right-14 bg-green-600 text-white text-xs font-medium px-2.5 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-          WhatsApp · 305-799-6973
+          WhatsApp · {profile.phone}
         </span>
       </a>
     </div>

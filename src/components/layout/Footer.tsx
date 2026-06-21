@@ -3,9 +3,10 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { Phone, Mail, MapPin, Shield } from 'lucide-react'
-import { SOCIAL_LINKS, CONTACT_INFO } from '@/lib/social'
+import { SOCIAL_LINKS } from '@/lib/social'
 import SocialIcons from '@/components/ui/SocialIcons'
 import { useT } from '@/components/LanguageProvider'
+import { useProfile } from '@/components/ProfileProvider'
 
 const footerLinks = {
   Services: [
@@ -27,6 +28,7 @@ const areas = ['Miami-Dade', 'Brickell', 'Downtown', 'Doral', 'Coral Gables', 'H
 
 export default function Footer() {
   const { t } = useT()
+  const profile = useProfile()
   return (
     <footer className="bg-navy-900 text-white">
       <div className="container-max section-padding pt-16 pb-8">
@@ -57,18 +59,18 @@ export default function Footer() {
             </div>
             <div className="space-y-3 mb-6">
               <a
-                href={CONTACT_INFO.phoneHref}
+                href={profile.phoneHref}
                 className="flex items-center gap-2.5 text-sm text-navy-200 hover:text-white transition-colors group"
               >
                 <Phone size={14} className="text-sky-400 group-hover:text-sky-300" />
-                {CONTACT_INFO.phone}
+                {profile.phone}
               </a>
               <a
-                href={CONTACT_INFO.emailHref}
+                href={profile.emailHref}
                 className="flex items-center gap-2.5 text-sm text-navy-200 hover:text-white transition-colors group"
               >
                 <Mail size={14} className="text-sky-400 group-hover:text-sky-300" />
-                {CONTACT_INFO.email}
+                {profile.email}
               </a>
               <div className="flex items-start gap-2.5 text-sm text-navy-200">
                 <MapPin size={14} className="text-sky-400 mt-0.5 shrink-0" />
@@ -149,7 +151,7 @@ export default function Footer() {
             {/* WhatsApp CTA */}
             <div className="mt-8">
               <a
-                href={CONTACT_INFO.whatsapp}
+                href={profile.whatsapp}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition-colors"
@@ -167,7 +169,7 @@ export default function Footer() {
             <p>© {new Date().getFullYear()} Jordan Padierne. {t('footer.rights')}</p>
             <div className="flex items-center gap-1.5 mt-1">
               <Shield size={11} className="text-sky-500" />
-              <span>License: SL3641062 · eXp Realty · English / Español</span>
+              <span>License: {profile.license} · {profile.broker} · {profile.languages}</span>
             </div>
           </div>
           <div className="flex items-center gap-4">

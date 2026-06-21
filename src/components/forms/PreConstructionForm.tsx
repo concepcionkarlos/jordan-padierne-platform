@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form'
 import { Send, CheckCircle2 } from 'lucide-react'
 import { AREAS, TIMELINES, BUDGET_RANGES } from '@/lib/utils'
 import { useT } from '@/components/LanguageProvider'
+import { isValidName, isValidPhone, isValidEmailFormat, stripDigits, stripNonPhone } from '@/lib/validate'
 
 interface FormData {
   full_name: string
@@ -25,7 +26,7 @@ export default function PreConstructionForm() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const { register, handleSubmit } = useForm<FormData>()
+  const { register, handleSubmit, formState: { errors } } = useForm<FormData>()
 
   const onSubmit = async (data: FormData) => {
     setLoading(true); setError('')
@@ -60,16 +61,19 @@ export default function PreConstructionForm() {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <div>
           <label className="label">{t('forms.fullName')} *</label>
-          <input {...register('full_name', { required: true })} className="input-field" placeholder={t('forms.namePlaceholder')} />
+          <input {...register('full_name', { required: true, validate: (v: string) => isValidName(v) || t('forms.invalidName'), onChange: (e) => { e.target.value = stripDigits(e.target.value) } })} className="input-field" placeholder={t('forms.namePlaceholder')} />
+          {errors.full_name && <p className="text-wine text-xs mt-1">{String(errors.full_name.message || t('forms.invalidName'))}</p>}
         </div>
         <div>
           <label className="label">{t('forms.phone')} *</label>
-          <input {...register('phone', { required: true })} type="tel" className="input-field" placeholder="(305) 000-0000" />
+          <input {...register('phone', { required: true, validate: (v: string) => !v || isValidPhone(v) || t('forms.invalidPhone'), onChange: (e) => { e.target.value = stripNonPhone(e.target.value) } })} type="tel" inputMode="tel" className="input-field" placeholder="(305) 000-0000" />
+          {errors.phone && <p className="text-wine text-xs mt-1">{String(errors.phone.message || t('forms.invalidPhone'))}</p>}
         </div>
       </div>
       <div>
         <label className="label">{t('forms.email')} *</label>
-        <input {...register('email', { required: true })} type="email" className="input-field" placeholder="your@email.com" />
+        <input {...register('email', { required: true, validate: (v: string) => isValidEmailFormat(v) || t('forms.invalidEmail') })} type="email" className="input-field" placeholder="your@email.com" />
+        {errors.email && <p className="text-wine text-xs mt-1">{String(errors.email.message || t('forms.invalidEmail'))}</p>}
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <div>

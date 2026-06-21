@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react'
 import { X, Gift, ArrowRight, CheckCircle2, Phone } from 'lucide-react'
 import { useT } from '@/components/LanguageProvider'
+import { useProfile } from '@/components/ProfileProvider'
+import { isValidName, isValidPhone, isValidEmailFormat, stripDigits, stripNonPhone } from '@/lib/validate'
 
 // Smart conversion modal: appears once when the visitor scrolls deep OR shows
 // exit-intent on desktop. Offers a free home valuation / consultation.
@@ -10,6 +12,7 @@ import { useT } from '@/components/LanguageProvider'
 
 export default function LeadCaptureModal() {
   const { t } = useT()
+  const profile = useProfile()
   const [show, setShow] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -64,6 +67,9 @@ export default function LeadCaptureModal() {
   async function submit(e: React.FormEvent) {
     e.preventDefault()
     if (!form.full_name.trim() || !form.phone.trim()) return
+    if (!isValidName(form.full_name)) { setError(t('forms.invalidName')); return }
+    if (!isValidPhone(form.phone)) { setError(t('forms.invalidPhone')); return }
+    if (form.email.trim() && !isValidEmailFormat(form.email)) { setError(t('forms.invalidEmail')); return }
     setLoading(true); setError('')
     try {
       const res = await fetch('/api/forms', {
@@ -121,14 +127,14 @@ export default function LeadCaptureModal() {
           {submitted ? (
             <div className="text-center">
               <CheckCircle2 size={40} className="text-green-500 mx-auto mb-3" />
-              <a href="tel:+13057996973" className="btn-wine w-full justify-center">
-                <Phone size={16} /> {t('modal.callNow')}
+              <a href={profile.phoneHref} className="btn-wine w-full justify-center">
+                <Phone size={16} /> {t('modal.callNow')} · {profile.phone}
               </a>
             </div>
           ) : (
             <form onSubmit={submit} className="space-y-3">
-              <input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} placeholder={t('modal.name')} className="input-field" required />
-              <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} type="tel" placeholder={t('modal.phone')} className="input-field" required />
+              <input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: stripDigits(e.target.value) })} placeholder={t('modal.name')} className="input-field" required />
+              <input value={form.phone} onChange={(e) => setForm({ ...form, phone: stripNonPhone(e.target.value) })} type="tel" inputMode="tel" placeholder={t('modal.phone')} className="input-field" required />
               <input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} type="email" placeholder={t('modal.email')} className="input-field" />
               <button type="submit" disabled={loading} className="btn-wine cta-shine w-full justify-center py-3.5 text-base disabled:opacity-60">
                 {loading ? t('common.sending') : <>{t('modal.submit')} <ArrowRight size={16} /></>}

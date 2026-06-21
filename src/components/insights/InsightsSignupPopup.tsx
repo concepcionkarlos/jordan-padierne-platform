@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { X, HeartHandshake, Check } from 'lucide-react'
 import { useT } from '@/components/LanguageProvider'
+import { isValidName, isValidPhone, isValidEmailFormat, stripDigits, stripNonPhone } from '@/lib/validate'
 
 const SEEN_KEY = 'jp-insights-signup'
 
@@ -49,8 +50,9 @@ export default function InsightsSignupPopup() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
-    if (!name.trim()) { setError(t('insights.error')); return }
-    if (!/^\S+@\S+\.\S+$/.test(email)) { setError(t('insights.error')); return }
+    if (!isValidName(name)) { setError(t('forms.invalidName')); return }
+    if (!isValidEmailFormat(email)) { setError(t('forms.invalidEmail')); return }
+    if (phone.trim() && !isValidPhone(phone)) { setError(t('forms.invalidPhone')); return }
     setSending(true); setError('')
     try {
       const res = await fetch('/api/forms', {
@@ -98,9 +100,9 @@ export default function InsightsSignupPopup() {
             <>
               <p className="text-gray-500 text-sm text-center mb-5">{t('insights.popup.body')}</p>
               <form onSubmit={submit} className="space-y-3">
-                <input className="input-field" placeholder={t('insights.popup.name')} value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" required />
+                <input className="input-field" placeholder={t('insights.popup.name')} value={name} onChange={(e) => setName(stripDigits(e.target.value))} autoComplete="name" required />
                 <input className="input-field" type="email" required placeholder={t('insights.popup.email')} value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" />
-                <input className="input-field" type="tel" placeholder={t('insights.popup.phone')} value={phone} onChange={(e) => setPhone(e.target.value)} autoComplete="tel" />
+                <input className="input-field" type="tel" inputMode="tel" placeholder={t('insights.popup.phone')} value={phone} onChange={(e) => setPhone(stripNonPhone(e.target.value))} autoComplete="tel" />
                 {error && <p className="text-wine text-sm">{error}</p>}
                 <button type="submit" disabled={sending} className="btn-wine w-full justify-center disabled:opacity-60">
                   {sending ? t('insights.popup.sending') : t('insights.popup.cta')}

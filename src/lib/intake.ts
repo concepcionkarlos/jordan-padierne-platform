@@ -13,6 +13,13 @@ export async function createPending(kind: 'form' | 'subscribe', email: string, p
     const supabase = createServiceClient()
     const token = crypto.randomBytes(24).toString('base64url')
     const expires = new Date(Date.now() + EXPIRES_DAYS * 86400000).toISOString()
+
+    // Self-cleaning: purge any unverified records that have already expired, plus
+    // any earlier pending attempt by this same email — an unconfirmed email never
+    // lingers in the database.
+    await supabase.from('pending_leads').delete().lt('expires_at', new Date().toISOString())
+    await supabase.from('pending_leads').delete().eq('email', email)
+
     const { error } = await supabase.from('pending_leads').insert({ token, kind, email, payload, expires_at: expires })
     if (error) { console.error('[intake] createPending', error); return null }
     return token
