@@ -23,18 +23,22 @@ function rateLimited(req: NextRequest): boolean {
   const t = Date.now()
   while (globalHits.length && globalHits[0] < t - GLOBAL_WINDOW_MS) globalHits.shift()
   if (globalHits.length >= GLOBAL_MAX) return true
-  globalHits.push(t)
 
   const ip = clientIp(req)
   const arr = (HITS.get(ip) || []).filter((ts) => ts > t - WINDOW_MS)
+  // Over the limit → reject WITHOUT recording the hit, so a retrying user doesn't
+  // keep extending their own lockout.
+  if (arr.length >= MAX_PER_WINDOW) { HITS.set(ip, arr); return true }
+
   arr.push(t)
   HITS.set(ip, arr)
+  globalHits.push(t)
   if (HITS.size > 5000) {
     const dead: string[] = []
     HITS.forEach((v, k) => { if (!v.some((ts) => ts > t - WINDOW_MS)) dead.push(k) })
     dead.forEach((k) => HITS.delete(k))
   }
-  return arr.length > MAX_PER_WINDOW
+  return false
 }
 
 // ─── Email validation + disposable blocklist ─────────────────────────────────

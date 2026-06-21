@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase'
 import { guardPublic } from '@/lib/antispam'
-import { createPending } from '@/lib/intake'
+import { createPending, finalizeSubscribe } from '@/lib/intake'
 import { sendVerificationEmail } from '@/lib/email'
 
 // Newsletter / lead-magnet signups — double opt-in: the lead is only added to
@@ -28,7 +28,10 @@ export async function POST(req: NextRequest) {
 
     const token = await createPending('subscribe', String(email).toLowerCase(), body)
     if (!token) {
-      return NextResponse.json({ success: false, error: 'Could not process. Please try again.' }, { status: 500 })
+      // Pending store unavailable (e.g. migration not applied) → don't break the
+      // signup; create the lead directly like the forms route does.
+      await finalizeSubscribe(body)
+      return NextResponse.json({ success: true, verified: true })
     }
 
     const url = `https://jordanpadierne.com/verify?token=${encodeURIComponent(token)}`

@@ -17,8 +17,10 @@ export async function POST(req: NextRequest) {
     const { lead_id, full_name, email, phone, ...answers } = body
 
     const intentLower = String(answers.intent ?? '').toLowerCase()
-    const clientType = answers.client_type
+    const rawClientType = answers.client_type
       || (intentLower.includes('invest') ? 'Investor' : intentLower.includes('sell') ? 'Seller' : 'Buyer')
+    const VALID_TYPES = ['Buyer', 'Investor', 'International Buyer', 'Luxury Buyer', 'Pre-Construction Buyer', 'Seller']
+    const clientType = VALID_TYPES.includes(rawClientType) ? rawClientType : 'Buyer'
 
     // Try to load the lead the link points to.
     let lead: any = null
@@ -54,6 +56,7 @@ export async function POST(req: NextRequest) {
         .select('id, full_name, tags, email, phone')
         .single()
       if (createErr || !created) {
+        console.error('[qualify] create lead error', createErr)
         return NextResponse.json({ success: false, error: 'Could not create lead' }, { status: 500 })
       }
       lead = created
