@@ -2,7 +2,6 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import PublicLayout from '@/components/layout/PublicLayout'
 import AuroraBackground from '@/components/ui/AuroraBackground'
 import { CheckCircle2, ArrowRight, Home, Search, FileText, Key } from 'lucide-react'
 import { useT } from '@/components/LanguageProvider'
@@ -23,7 +22,7 @@ export default function BuyContent() {
   ]
 
   return (
-    <PublicLayout>
+    <>
       {/* Hero */}
       <section className="relative min-h-[60vh] flex items-center bg-navy-900 pt-20 overflow-hidden">
         <div className="absolute inset-0">
@@ -138,6 +137,6 @@ export default function BuyContent() {
           </Link>
         </div>
       </section>
-    </PublicLayout>
+    </>
   )
 }

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import PublicLayout from '@/components/layout/PublicLayout'
 import AboutContent from '@/components/about/AboutContent'
 
 export const metadata: Metadata = {
@@ -10,5 +11,9 @@ export const metadata: Metadata = {
 }
 
 export default function AboutPage() {
-  return <AboutContent />
+  return (
+    <PublicLayout>
+      <AboutContent />
+    </PublicLayout>
+  )
 }

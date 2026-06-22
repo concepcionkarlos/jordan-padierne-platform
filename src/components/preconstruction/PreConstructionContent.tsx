@@ -2,7 +2,6 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import PublicLayout from '@/components/layout/PublicLayout'
 import AuroraBackground from '@/components/ui/AuroraBackground'
 import { CheckCircle2, ArrowRight, Zap, TrendingUp, Building2 } from 'lucide-react'
 import { useT } from '@/components/LanguageProvider'
@@ -22,7 +21,7 @@ export default function PreConstructionContent() {
   const areas = ['Brickell', 'Downtown Miami', 'Doral', 'Edgewater', 'Wynwood', 'Coral Gables']
 
   return (
-    <PublicLayout>
+    <>
       {/* Hero */}
       <section className="relative min-h-[70vh] flex items-center bg-navy-900 pt-20 overflow-hidden">
         <div className="absolute inset-0">
@@ -152,6 +151,6 @@ export default function PreConstructionContent() {
           </Link>
         </div>
       </section>
-    </PublicLayout>
+    </>
   )
 }

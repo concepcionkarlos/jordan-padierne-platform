@@ -1,7 +1,6 @@
 'use client'
 
 import Image from 'next/image'
-import PublicLayout from '@/components/layout/PublicLayout'
 import ContactForm from '@/components/forms/ContactForm'
 import BuyerQualificationForm from '@/components/forms/BuyerQualificationForm'
 import InvestorForm from '@/components/forms/InvestorForm'
@@ -24,7 +23,7 @@ export default function ContactContent() {
   ]
 
   return (
-    <PublicLayout>
+    <>
       {/* Hero */}
       <section className="bg-navy-900 pt-28 pb-16 relative overflow-hidden">
         <AuroraBackground variant="dark" className="mix-blend-screen" />
@@ -147,6 +146,6 @@ export default function ContactContent() {
           </div>
         </div>
       </section>
-    </PublicLayout>
+    </>
   )
 }

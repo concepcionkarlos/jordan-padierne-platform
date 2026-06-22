@@ -2,7 +2,6 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import PublicLayout from '@/components/layout/PublicLayout'
 import AuroraBackground from '@/components/ui/AuroraBackground'
 import { TrendingUp, DollarSign, BarChart2, CheckCircle2, ArrowRight } from 'lucide-react'
 import { useT } from '@/components/LanguageProvider'
@@ -47,7 +46,7 @@ export default function InvestorsContent() {
   ]
 
   return (
-    <PublicLayout>
+    <>
       {/* Hero */}
       <section className="relative min-h-[65vh] flex items-center bg-navy-900 pt-20 overflow-hidden">
         <div className="absolute inset-0">
@@ -163,6 +162,6 @@ export default function InvestorsContent() {
           </Link>
         </div>
       </section>
-    </PublicLayout>
+    </>
   )
 }

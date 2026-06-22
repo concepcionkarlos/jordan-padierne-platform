@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import PublicLayout from '@/components/layout/PublicLayout'
 import BuyContent from '@/components/buy/BuyContent'
 
 export const metadata: Metadata = {
@@ -10,5 +11,9 @@ export const metadata: Metadata = {
 }
 
 export default function BuyPage() {
-  return <BuyContent />
+  return (
+    <PublicLayout>
+      <BuyContent />
+    </PublicLayout>
+  )
 }

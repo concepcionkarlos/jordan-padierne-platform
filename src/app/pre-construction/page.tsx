@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import PublicLayout from '@/components/layout/PublicLayout'
 import PreConstructionContent from '@/components/preconstruction/PreConstructionContent'
 
 export const metadata: Metadata = {
@@ -10,5 +11,9 @@ export const metadata: Metadata = {
 }
 
 export default function PreConstructionPage() {
-  return <PreConstructionContent />
+  return (
+    <PublicLayout>
+      <PreConstructionContent />
+    </PublicLayout>
+  )
 }

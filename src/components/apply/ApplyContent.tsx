@@ -1,6 +1,5 @@
 'use client'
 
-import PublicLayout from '@/components/layout/PublicLayout'
 import AuroraBackground from '@/components/ui/AuroraBackground'
 import RentalApplicationForm from '@/components/forms/RentalApplicationForm'
 import { ShieldCheck, Clock, Lock } from 'lucide-react'
@@ -10,7 +9,7 @@ export default function ApplyContent() {
   const { t } = useT()
 
   return (
-    <PublicLayout>
+    <>
       <section className="relative pt-28 pb-20 lg:pt-36 lg:pb-28 overflow-hidden">
         <AuroraBackground />
         <div className="container-max section-padding relative z-10">
@@ -30,6 +29,6 @@ export default function ApplyContent() {
           </div>
         </div>
       </section>
-    </PublicLayout>
+    </>
   )
 }

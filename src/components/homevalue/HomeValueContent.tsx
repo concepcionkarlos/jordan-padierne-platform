@@ -1,7 +1,6 @@
 'use client'
 
 import Image from 'next/image'
-import PublicLayout from '@/components/layout/PublicLayout'
 import AuroraBackground from '@/components/ui/AuroraBackground'
 import HomeValuationForm from '@/components/forms/HomeValuationForm'
 import { TrendingUp, DollarSign, Clock, CheckCircle2 } from 'lucide-react'
@@ -23,7 +22,7 @@ export default function HomeValueContent() {
   ]
 
   return (
-    <PublicLayout>
+    <>
       {/* Hero + form */}
       <section className="relative bg-navy-900 pt-28 pb-16 overflow-hidden">
         <div className="absolute inset-0">
@@ -82,6 +81,6 @@ export default function HomeValueContent() {
           </div>
         </div>
       </section>
-    </PublicLayout>
+    </>
   )
 }

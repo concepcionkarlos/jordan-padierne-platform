@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import PublicLayout from '@/components/layout/PublicLayout'
 import ApplyContent from '@/components/apply/ApplyContent'
 
 export const metadata: Metadata = {
@@ -9,5 +10,9 @@ export const metadata: Metadata = {
 }
 
 export default function ApplyPage() {
-  return <ApplyContent />
+  return (
+    <PublicLayout>
+      <ApplyContent />
+    </PublicLayout>
+  )
 }

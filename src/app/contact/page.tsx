@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import PublicLayout from '@/components/layout/PublicLayout'
 import ContactContent from '@/components/contact/ContactContent'
 
 export const metadata: Metadata = {
@@ -10,5 +11,9 @@ export const metadata: Metadata = {
 }
 
 export default function ContactPage() {
-  return <ContactContent />
+  return (
+    <PublicLayout>
+      <ContactContent />
+    </PublicLayout>
+  )
 }

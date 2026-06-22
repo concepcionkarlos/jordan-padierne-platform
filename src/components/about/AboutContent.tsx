@@ -2,7 +2,6 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import PublicLayout from '@/components/layout/PublicLayout'
 import AuroraBackground from '@/components/ui/AuroraBackground'
 import { CheckCircle2, ArrowRight, Award, Globe, Heart } from 'lucide-react'
 import { useT } from '@/components/LanguageProvider'
@@ -40,7 +39,7 @@ export default function AboutContent() {
   ]
 
   return (
-    <PublicLayout>
+    <>
       {/* Hero */}
       <section className="relative pt-28 pb-0 bg-navy-900 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-navy-900 via-navy-800 to-navy-900" />
@@ -171,6 +170,6 @@ export default function AboutContent() {
           </div>
         </div>
       </section>
-    </PublicLayout>
+    </>
   )
 }
