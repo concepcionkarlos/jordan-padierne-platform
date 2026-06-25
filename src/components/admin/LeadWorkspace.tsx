@@ -494,6 +494,9 @@ export default function LeadWorkspace({ lead: initialLead, initialNotes, initial
                 Sent {formatRelativeTime(formSentAt)} · they fill it in → this profile updates automatically
               </p>
             )}
+            <a href={`/portal/${lead.id}`} target="_blank" rel="noopener noreferrer" className="mt-3 flex items-center justify-center gap-1.5 w-full text-xs text-sky-600 hover:text-sky-700 font-semibold">
+              ↗ Open client portal
+            </a>
           </div>
         </div>
 

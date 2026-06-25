@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: 'lead_id and property_ids required' }, { status: 400 })
     }
 
-    const { data: lead } = await supabase.from('leads').select('id, full_name, email').eq('id', lead_id).single()
+    const { data: lead } = await supabase.from('leads').select('id, full_name, email, metadata').eq('id', lead_id).single()
     if (!lead) return NextResponse.json({ success: false, error: 'Lead not found' }, { status: 404 })
     if (!lead.email || /placeholder|no-email/i.test(lead.email)) {
       return NextResponse.json({ success: false, error: 'This lead has no real email on file.' }, { status: 400 })
@@ -59,6 +59,7 @@ export async function POST(req: NextRequest) {
 
     const firstName = (lead.full_name || '').trim().split(' ')[0] || 'there'
     const note = String(message || '').trim()
+    const portalUrl = `https://jordanpadierne.com/portal/${lead.id}`
     const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"></head>
 <body style="margin:0;padding:0;background:#F4F7FA;font-family:'Segoe UI',Arial,sans-serif">
 <table width="100%" cellpadding="0" cellspacing="0" style="padding:28px 16px"><tr><td>
@@ -72,6 +73,7 @@ export async function POST(req: NextRequest) {
     <p style="margin:0 0 18px;font-size:14px;color:#64748B;text-align:center;line-height:1.6;padding:0 18px">${note ? esc(note) : 'Jordan found a few homes that match what you’re looking for. Take a look and tell him which ones catch your eye.'}</p>
     ${props.map(propertyCard).join('')}
     <div style="text-align:center;margin:8px 0 4px">
+      <a href="${portalUrl}" style="display:inline-block;background:#1A3A6B;color:#fff;padding:13px 30px;border-radius:8px;font-size:15px;font-weight:700;text-decoration:none;margin-bottom:10px">View your home portal →</a><br/>
       <a href="tel:+13057996973" style="display:inline-block;background:#8B1A2F;color:#fff;padding:13px 30px;border-radius:8px;font-size:15px;font-weight:700;text-decoration:none">Talk to Jordan →</a>
       <p style="margin:14px 0 0;font-size:13px;color:#94A3B8">Reply to this email or call/text <a href="tel:+13057996973" style="color:#1A3A6B;font-weight:600">305-799-6973</a></p>
     </div>
@@ -86,7 +88,15 @@ export async function POST(req: NextRequest) {
       author: 'CRM',
     })
 
-    return NextResponse.json({ success: true, sent, count: props.length })
+    // Remember which homes were sent — they appear on the client's private portal.
+    const prevIds: string[] = Array.isArray((lead.metadata as any)?.sent_property_ids) ? (lead.metadata as any).sent_property_ids : []
+    const mergedIds = Array.from(new Set([...prevIds, ...props.map((p) => p.id)]))
+    await supabase
+      .from('leads')
+      .update({ metadata: { ...((lead.metadata as Record<string, unknown>) ?? {}), sent_property_ids: mergedIds } })
+      .eq('id', lead.id)
+
+    return NextResponse.json({ success: true, sent, count: props.length, portal: portalUrl })
   } catch (err) {
     console.error('[leads/send-properties] error', err)
     return NextResponse.json({ success: false, error: 'Internal error' }, { status: 500 })
