@@ -38,6 +38,11 @@ export async function POST(req: NextRequest) {
     if (isNaN(start.getTime())) {
       return NextResponse.json({ success: false, error: 'Invalid date/time' }, { status: 400 })
     }
+    // Never schedule (or email an invite) for a time in the past. 60s of slack
+    // absorbs clock skew between the browser and the server.
+    if (start.getTime() < Date.now() - 60_000) {
+      return NextResponse.json({ success: false, error: 'Appointment time is in the past.' }, { status: 400 })
+    }
 
     const { data: lead } = await supabase.from('leads').select('id, full_name, email').eq('id', lead_id).single()
     if (!lead) return NextResponse.json({ success: false, error: 'Lead not found' }, { status: 404 })

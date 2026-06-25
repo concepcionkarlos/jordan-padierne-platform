@@ -6,12 +6,14 @@ import { useT } from '@/components/LanguageProvider'
 import { useProfile } from '@/components/ProfileProvider'
 import { bookableDates, availableHours, hourLabel, SLOT_HOURS } from '@/lib/schedule'
 import { isValidName, isValidPhone, isValidEmailFormat, stripDigits, stripNonPhone } from '@/lib/validate'
+import { useAntiSpam } from '@/components/forms/useAntiSpam'
 
 type Topic = 'buy' | 'sell' | 'invest' | 'other'
 
 export default function BookingWizard() {
   const { t } = useT()
   const profile = useProfile()
+  const { honeypot, stamp } = useAntiSpam()
   const [dates, setDates] = useState<ReturnType<typeof bookableDates>>([])
   const [selectedDate, setSelectedDate] = useState('')
   const [taken, setTaken] = useState<number[]>([])
@@ -62,7 +64,7 @@ export default function BookingWizard() {
     try {
       const res = await fetch('/api/book', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ full_name: fullName.trim(), email: email.trim(), phone: phone.trim(), date: selectedDate, hour, topic, message: message.trim() }),
+        body: JSON.stringify(stamp({ full_name: fullName.trim(), email: email.trim(), phone: phone.trim(), date: selectedDate, hour, topic, message: message.trim() })),
       })
       const d = await res.json()
       if (res.status === 409) {
@@ -115,6 +117,7 @@ export default function BookingWizard() {
 
   return (
     <>
+    {honeypot}
     {header}
     <div className="grid lg:grid-cols-2 gap-6 max-w-4xl mx-auto">
       {/* Left: date + time */}

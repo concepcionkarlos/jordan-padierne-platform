@@ -6,6 +6,7 @@ import { Home, ArrowRight, ArrowLeft, CheckCircle2, TrendingUp } from 'lucide-re
 import { AREAS, TIMELINES } from '@/lib/utils'
 import { useT } from '@/components/LanguageProvider'
 import { isValidName, isValidPhone, isValidEmailFormat, stripDigits, stripNonPhone } from '@/lib/validate'
+import { useAntiSpam } from '@/components/forms/useAntiSpam'
 
 interface FormData {
   property_address: string
@@ -24,11 +25,12 @@ interface FormData {
 
 export default function HomeValuationForm() {
   const { t } = useT()
+  const { honeypot, stamp } = useAntiSpam()
   const [step, setStep] = useState(1)
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const { register, handleSubmit, trigger, formState: { errors } } = useForm<FormData>()
+  const { register, handleSubmit, trigger, formState: { errors } } = useForm<FormData>({ mode: 'onBlur' })
 
   const next = async () => {
     const fields: (keyof FormData)[] = step === 1
@@ -44,7 +46,7 @@ export default function HomeValuationForm() {
       const res = await fetch('/api/forms', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ form_type: 'home_valuation', source: 'Website', ...data }),
+        body: JSON.stringify(stamp({ form_type: 'home_valuation', source: 'Website', ...data })),
       })
       const d = await res.json().catch(() => ({ success: false }))
       if (!res.ok || !d.success) { setError(t('forms.error')); return }
@@ -78,6 +80,7 @@ export default function HomeValuationForm() {
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)}>
+        {honeypot}
         {/* Step 1: Property */}
         {step === 1 && (
           <div className="space-y-5 animate-fade-in">

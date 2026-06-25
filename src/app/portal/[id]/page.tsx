@@ -69,17 +69,15 @@ export default async function PortalPage({ params }: { params: { id: string } })
         .in('id', sentIds).limit(24), [])
     : []
 
-  const budgetTxt = lead.budget_max
-    ? `${lead.budget_min ? formatCurrency(lead.budget_min) + ' – ' : 'Up to '}${formatCurrency(lead.budget_max)}`
-    : lead.budget_min ? `${formatCurrency(lead.budget_min)}+` : null
+  // NOTE: this page is public (anyone with the per-lead URL can open it), so it
+  // intentionally does NOT show financial PII — budget and financing status stay
+  // private to the CRM. Only non-sensitive search preferences are shown here.
   const wants = [
     { label: 'Looking to', value: meta.intent ?? lead.client_type },
-    { label: 'Budget', value: budgetTxt },
     { label: 'Area', value: lead.preferred_area ?? meta.preferred_area },
     { label: 'Property type', value: meta.property_type },
     { label: 'Bedrooms', value: meta.bedrooms },
     { label: 'Timeline', value: lead.timeline ?? meta.timeline },
-    { label: 'Financing', value: lead.financing_status ?? meta.financing_status },
   ].filter((w) => w.value !== null && w.value !== undefined && w.value !== '')
 
   return (

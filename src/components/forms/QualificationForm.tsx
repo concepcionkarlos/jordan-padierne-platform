@@ -6,6 +6,7 @@ import { ArrowRight, ArrowLeft, CheckCircle2, Sparkles } from 'lucide-react'
 import { AREAS, TIMELINES, FINANCING_OPTIONS } from '@/lib/utils'
 import { useT } from '@/components/LanguageProvider'
 import { isValidName, isValidPhone, isValidEmailFormat, stripDigits, stripNonPhone } from '@/lib/validate'
+import { useAntiSpam } from '@/components/forms/useAntiSpam'
 
 interface FormData {
   intent: string
@@ -37,11 +38,12 @@ interface FormData {
 
 export default function QualificationForm({ leadId, firstName, known = true }: { leadId: string; firstName: string; known?: boolean }) {
   const { t } = useT()
+  const { honeypot, stamp } = useAntiSpam()
   const [step, setStep] = useState(1)
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const { register, handleSubmit, trigger, watch, formState: { errors } } = useForm<FormData>({ defaultValues: { intent: 'Buy' } })
+  const { register, handleSubmit, trigger, watch, formState: { errors } } = useForm<FormData>({ mode: 'onBlur', defaultValues: { intent: 'Buy' } })
 
   const intent = watch('intent')
   const isSeller = intent === 'Sell'
@@ -63,13 +65,13 @@ export default function QualificationForm({ leadId, firstName, known = true }: {
       const res = await fetch('/api/qualify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+        body: JSON.stringify(stamp({
           lead_id: leadId,
           ...data,
           budget_min: data.budget_min ? Number(data.budget_min) : null,
           budget_max: data.budget_max ? Number(data.budget_max) : null,
           expected_price: data.expected_price ? Number(data.expected_price) : null,
-        }),
+        })),
       })
       const d = await res.json().catch(() => ({ success: false }))
       if (!res.ok || !d.success) {
@@ -131,6 +133,7 @@ export default function QualificationForm({ leadId, firstName, known = true }: {
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)}>
+        {honeypot}
         {/* Step 1 — Intent (shared) */}
         {step === 1 && (
           <div className="space-y-5 animate-fade-in">

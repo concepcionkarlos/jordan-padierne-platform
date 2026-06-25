@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import {
-  Menu, X,
+  Menu, X, Search,
   LayoutDashboard,
   Users,
   UserCircle,
@@ -23,8 +23,10 @@ import {
   Youtube,
   Rocket,
   Newspaper,
+  ExternalLink,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { getSupabaseClient } from '@/lib/supabase'
 import InstallPrompt from './InstallPrompt'
 import CommandPalette from './CommandPalette'
 import TrainingButton from './TrainingButton'
@@ -50,10 +52,21 @@ const navItems = [
 
 export default function AdminSidebar() {
   const pathname = usePathname()
+  const router = useRouter()
   const [open, setOpen] = useState(false)
+  const [signingOut, setSigningOut] = useState(false)
 
   // Close the drawer after navigating (mobile).
   useEffect(() => { setOpen(false) }, [pathname])
+
+  // End the session for real — clears the Supabase auth cookie so the server
+  // guards (middleware + route guards) treat the user as logged out.
+  async function handleSignOut() {
+    setSigningOut(true)
+    try { await getSupabaseClient().auth.signOut() } catch { /* ignore */ }
+    router.replace('/admin/login')
+    router.refresh()
+  }
 
   const isActive = (item: { href: string; exact?: boolean }) => {
     if (item.exact) return pathname === item.href
@@ -65,9 +78,14 @@ export default function AdminSidebar() {
       {/* Mobile top bar */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between bg-navy-900 px-4 h-14">
         <p className="font-serif text-white font-bold">Jordan Padierne</p>
-        <button type="button" onClick={() => setOpen(true)} className="p-2 text-white" aria-label="Open menu">
-          <Menu size={22} />
-        </button>
+        <div className="flex items-center gap-1">
+          <button type="button" onClick={() => window.dispatchEvent(new Event('open-command-palette'))} className="p-2 text-white" aria-label="Search">
+            <Search size={20} />
+          </button>
+          <button type="button" onClick={() => setOpen(true)} className="p-2 text-white" aria-label="Open menu">
+            <Menu size={22} />
+          </button>
+        </div>
       </div>
       {/* Overlay */}
       {open && <div className="lg:hidden fixed inset-0 z-40 bg-navy-900/50 backdrop-blur-sm" onClick={() => setOpen(false)} />}
@@ -123,11 +141,20 @@ export default function AdminSidebar() {
             305-799-6973
           </a>
         </div>
+        <button
+          type="button"
+          onClick={handleSignOut}
+          disabled={signingOut}
+          className="sidebar-link w-full text-left text-navy-300 hover:text-white disabled:opacity-60"
+        >
+          <LogOut size={15} />
+          {signingOut ? 'Signing out…' : 'Sign out'}
+        </button>
         <Link
           href="/"
           className="sidebar-link text-navy-400 text-xs"
         >
-          <LogOut size={15} />
+          <ExternalLink size={13} />
           Back to Website
         </Link>
       </div>

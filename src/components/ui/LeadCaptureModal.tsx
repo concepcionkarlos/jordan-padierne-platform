@@ -5,6 +5,7 @@ import { X, Gift, ArrowRight, CheckCircle2, Phone } from 'lucide-react'
 import { useT } from '@/components/LanguageProvider'
 import { useProfile } from '@/components/ProfileProvider'
 import { isValidName, isValidPhone, isValidEmailFormat, stripDigits, stripNonPhone } from '@/lib/validate'
+import { useAntiSpam } from '@/components/forms/useAntiSpam'
 
 // Smart conversion modal: appears once when the visitor scrolls deep OR shows
 // exit-intent on desktop. Offers a free home valuation / consultation.
@@ -13,6 +14,7 @@ import { isValidName, isValidPhone, isValidEmailFormat, stripDigits, stripNonPho
 export default function LeadCaptureModal() {
   const { t } = useT()
   const profile = useProfile()
+  const { honeypot, stamp } = useAntiSpam()
   const [show, setShow] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -75,7 +77,7 @@ export default function LeadCaptureModal() {
       const res = await fetch('/api/forms', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+        body: JSON.stringify(stamp({
           form_type: 'contact',
           full_name: form.full_name,
           phone: form.phone,
@@ -83,7 +85,7 @@ export default function LeadCaptureModal() {
           client_type: 'Buyer',
           message: '🎯 Requested FREE consultation via website popup — warm lead, reach out fast!',
           source: 'Website Popup',
-        }),
+        })),
       })
       const d = await res.json().catch(() => ({ success: false }))
       if (!res.ok || !d.success) { setError(t('forms.error')); return }
@@ -133,6 +135,7 @@ export default function LeadCaptureModal() {
             </div>
           ) : (
             <form onSubmit={submit} className="space-y-3">
+              {honeypot}
               <input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: stripDigits(e.target.value) })} placeholder={t('modal.name')} className="input-field" required />
               <input value={form.phone} onChange={(e) => setForm({ ...form, phone: stripNonPhone(e.target.value) })} type="tel" inputMode="tel" placeholder={t('modal.phone')} className="input-field" required />
               <input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} type="email" placeholder={t('modal.email')} className="input-field" />

@@ -1,10 +1,12 @@
 'use client'
 
 import { useEffect, useState, useRef, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import { useRouter } from 'next/navigation'
 import {
   Search, LayoutDashboard, Users, GitBranch, CalendarDays, CheckSquare,
   BarChart3, MessageSquare, Building2, Settings, UserCircle, Phone, Command,
+  FileText, MessageSquareQuote, Youtube, Newspaper, Rocket, GraduationCap,
 } from 'lucide-react'
 
 const PAGES = [
@@ -16,7 +18,13 @@ const PAGES = [
   { label: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
   { label: 'Messages', href: '/admin/messages', icon: MessageSquare },
   { label: 'Contacts', href: '/admin/contacts', icon: UserCircle },
+  { label: 'Forms', href: '/admin/forms', icon: FileText },
   { label: 'Properties', href: '/admin/properties', icon: Building2 },
+  { label: 'Testimonials', href: '/admin/testimonials', icon: MessageSquareQuote },
+  { label: 'Videos', href: '/admin/videos', icon: Youtube },
+  { label: 'Insights', href: '/admin/insights', icon: Newspaper },
+  { label: 'Growth Engine', href: '/admin/automations', icon: Rocket },
+  { label: 'Training', href: '/admin/training', icon: GraduationCap },
   { label: 'Settings', href: '/admin/settings', icon: Settings },
 ]
 
@@ -30,7 +38,7 @@ export default function CommandPalette() {
   const [active, setActive] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  // Toggle on Cmd/Ctrl+K
+  // Toggle on Cmd/Ctrl+K, or when the mobile top-bar search button fires the event.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
@@ -39,8 +47,13 @@ export default function CommandPalette() {
       }
       if (e.key === 'Escape') setOpen(false)
     }
+    const onOpen = () => setOpen(true)
     window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
+    window.addEventListener('open-command-palette', onOpen)
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      window.removeEventListener('open-command-palette', onOpen)
+    }
   }, [])
 
   // Load leads once when opened
@@ -93,7 +106,7 @@ export default function CommandPalette() {
         </kbd>
       </button>
 
-      {open && (
+      {open && typeof document !== 'undefined' && createPortal(
         <div className="fixed inset-0 z-[70] flex items-start justify-center pt-[12vh] px-4">
           <div className="absolute inset-0 bg-navy-900/50 backdrop-blur-sm" onClick={() => setOpen(false)} />
           <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-premium overflow-hidden animate-modal-pop">
@@ -150,7 +163,8 @@ export default function CommandPalette() {
               )}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   )

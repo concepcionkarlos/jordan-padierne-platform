@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form'
 import { ArrowRight, ArrowLeft, CheckCircle2, Home, Briefcase, Users, ShieldCheck } from 'lucide-react'
 import { useT } from '@/components/LanguageProvider'
 import { isValidName, isValidPhone, isValidEmailFormat, stripDigits, stripNonPhone } from '@/lib/validate'
+import { useAntiSpam } from '@/components/forms/useAntiSpam'
 
 interface RentalData {
   full_name: string
@@ -58,11 +59,13 @@ const STEPS = [
 
 export default function RentalApplicationForm() {
   const { t } = useT()
+  const { honeypot, stamp } = useAntiSpam()
   const [step, setStep] = useState(1)
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const { register, handleSubmit, trigger, watch, formState: { errors } } = useForm<RentalData>({
+    mode: 'onBlur',
     defaultValues: { housing_status: 'Rent', employment_type: 'Salary', has_coapplicant: false, authorize: false },
   })
 
@@ -82,7 +85,7 @@ export default function RentalApplicationForm() {
     try {
       const res = await fetch('/api/forms', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ form_type: 'rental_application', source: 'Website', ...data }),
+        body: JSON.stringify(stamp({ form_type: 'rental_application', source: 'Website', ...data })),
       })
       const d = await res.json().catch(() => ({ success: false }))
       if (!res.ok || !d.success) { setError(t('forms.error')); return }
@@ -130,6 +133,7 @@ export default function RentalApplicationForm() {
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)}>
+        {honeypot}
         {/* Step 1 — Applicant */}
         {step === 1 && (
           <div className="space-y-5 animate-fade-in">

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { X, HeartHandshake, Check } from 'lucide-react'
 import { useT } from '@/components/LanguageProvider'
 import { isValidName, isValidPhone, isValidEmailFormat, stripDigits, stripNonPhone } from '@/lib/validate'
+import { useAntiSpam } from '@/components/forms/useAntiSpam'
 
 const SEEN_KEY = 'jp-insights-signup'
 
@@ -12,6 +13,7 @@ const SEEN_KEY = 'jp-insights-signup'
 // Submits to /api/forms → a real warm lead in the CRM (push + auto-reply).
 export default function InsightsSignupPopup() {
   const { t } = useT()
+  const { honeypot, stamp } = useAntiSpam()
   const [open, setOpen] = useState(false)
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -57,14 +59,14 @@ export default function InsightsSignupPopup() {
     try {
       const res = await fetch('/api/forms', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+        body: JSON.stringify(stamp({
           form_type: 'contact',
           full_name: name.trim(),
           email: email.trim(),
           phone: phone.trim(),
           source: 'Website Popup',
           message: 'Registered from the Insights popup — wants help buying/selling/investing.',
-        }),
+        })),
       })
       const d = await res.json()
       if (!res.ok || !d.success) { setError(t('insights.error')); return }
@@ -100,6 +102,7 @@ export default function InsightsSignupPopup() {
             <>
               <p className="text-gray-500 text-sm text-center mb-5">{t('insights.popup.body')}</p>
               <form onSubmit={submit} className="space-y-3">
+                {honeypot}
                 <input className="input-field" placeholder={t('insights.popup.name')} value={name} onChange={(e) => setName(stripDigits(e.target.value))} autoComplete="name" required />
                 <input className="input-field" type="email" required placeholder={t('insights.popup.email')} value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" />
                 <input className="input-field" type="tel" inputMode="tel" placeholder={t('insights.popup.phone')} value={phone} onChange={(e) => setPhone(stripNonPhone(e.target.value))} autoComplete="tel" />

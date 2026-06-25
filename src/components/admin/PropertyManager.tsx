@@ -46,6 +46,8 @@ const statusColors: Record<string, string> = {
   'off-market': 'bg-navy-50 text-navy-500',
 }
 
+const MAX_UPLOAD_MB = 8 // matches the server cap in /api/upload
+
 export default function PropertyManager({ initial }: { initial: any[] }) {
   const router = useRouter()
   const [properties, setProperties] = useState<any[]>(initial)
@@ -54,6 +56,7 @@ export default function PropertyManager({ initial }: { initial: any[] }) {
   const [editId, setEditId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const [uploadError, setUploadError] = useState('')
   // AI Quick-Add: paste any listing text → Gemini/Claude fills the form.
   const [aiOpen, setAiOpen] = useState(false)
   const [aiText, setAiText] = useState('')
@@ -96,15 +99,24 @@ export default function PropertyManager({ initial }: { initial: any[] }) {
 
   async function uploadFiles(files: FileList) {
     setUploading(true)
+    setUploadError('')
     const urls: string[] = []
+    const failed: string[] = []
     for (const file of Array.from(files)) {
-      const fd = new FormData()
-      fd.append('file', file)
-      const res = await fetch('/api/upload', { method: 'POST', body: fd })
-      const json = await res.json()
-      if (json.success) urls.push(json.url)
+      if (file.size > MAX_UPLOAD_MB * 1024 * 1024) { failed.push(`${file.name} (over ${MAX_UPLOAD_MB}MB)`); continue }
+      try {
+        const fd = new FormData()
+        fd.append('file', file)
+        const res = await fetch('/api/upload', { method: 'POST', body: fd })
+        const json = await res.json().catch(() => ({ success: false }))
+        if (res.ok && json.success && json.url) urls.push(json.url)
+        else failed.push(file.name)
+      } catch {
+        failed.push(file.name)
+      }
     }
-    setForm((f) => ({ ...f, images: [...f.images, ...urls] }))
+    if (urls.length) setForm((f) => ({ ...f, images: [...f.images, ...urls] }))
+    if (failed.length) setUploadError(`Couldn't upload ${failed.length} photo${failed.length > 1 ? 's' : ''}: ${failed.join(', ')}. Use a JPG/PNG under ${MAX_UPLOAD_MB}MB.`)
     setUploading(false)
   }
 
@@ -226,6 +238,8 @@ export default function PropertyManager({ initial }: { initial: any[] }) {
                     <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => e.target.files && uploadFiles(e.target.files)} />
                   </label>
                 </div>
+                {uploadError && <p className="text-wine text-xs mb-1">{uploadError}</p>}
+                <p className="text-gray-400 text-[11px]">JPG or PNG, up to {MAX_UPLOAD_MB}MB each.</p>
               </div>
 
               {/* Listing purpose */}
@@ -254,19 +268,19 @@ export default function PropertyManager({ initial }: { initial: any[] }) {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="label">{form.listing_type === 'rent' ? 'Monthly Rent ($) *' : 'Price ($) *'}</label>
-                  <input type="number" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} className="input-field" placeholder={form.listing_type === 'rent' ? '3500' : '850000'} />
+                  <input type="number" min="0" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} className="input-field" placeholder={form.listing_type === 'rent' ? '3500' : '850000'} title="Price" />
                 </div>
                 <div>
                   <label className="label">Type</label>
-                  <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })} className="input-field">
+                  <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })} className="input-field" title="Property type">
                     {['condo', 'house', 'townhouse', 'pre-construction', 'land'].map((t) => <option key={t}>{t}</option>)}
                   </select>
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-3">
-                <div><label className="label">Beds</label><input type="number" value={form.bedrooms} onChange={(e) => setForm({ ...form, bedrooms: e.target.value })} className="input-field" /></div>
-                <div><label className="label">Baths</label><input type="number" step="0.5" value={form.bathrooms} onChange={(e) => setForm({ ...form, bathrooms: e.target.value })} className="input-field" /></div>
-                <div><label className="label">Sq Ft</label><input type="number" value={form.sqft} onChange={(e) => setForm({ ...form, sqft: e.target.value })} className="input-field" /></div>
+                <div><label className="label">Beds</label><input type="number" min="0" value={form.bedrooms} onChange={(e) => setForm({ ...form, bedrooms: e.target.value })} className="input-field" title="Bedrooms" placeholder="3" /></div>
+                <div><label className="label">Baths</label><input type="number" min="0" step="0.5" value={form.bathrooms} onChange={(e) => setForm({ ...form, bathrooms: e.target.value })} className="input-field" title="Bathrooms" placeholder="2" /></div>
+                <div><label className="label">Sq Ft</label><input type="number" min="0" value={form.sqft} onChange={(e) => setForm({ ...form, sqft: e.target.value })} className="input-field" title="Square feet" placeholder="1200" /></div>
               </div>
               <div>
                 <label className="label">Address</label>
@@ -275,13 +289,13 @@ export default function PropertyManager({ initial }: { initial: any[] }) {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="label">City / Area</label>
-                  <select value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} className="input-field">
+                  <select value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} className="input-field" title="City / Area">
                     {AREAS.map((a) => <option key={a}>{a}</option>)}
                   </select>
                 </div>
                 <div>
                   <label className="label">Status</label>
-                  <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} className="input-field">
+                  <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} className="input-field" title="Status">
                     {['available', 'pending', 'sold', 'off-market'].map((s) => <option key={s}>{s}</option>)}
                   </select>
                 </div>

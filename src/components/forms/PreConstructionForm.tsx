@@ -6,6 +6,7 @@ import { Send, CheckCircle2 } from 'lucide-react'
 import { AREAS, TIMELINES, BUDGET_RANGES } from '@/lib/utils'
 import { useT } from '@/components/LanguageProvider'
 import { isValidName, isValidPhone, isValidEmailFormat, stripDigits, stripNonPhone } from '@/lib/validate'
+import { useAntiSpam } from '@/components/forms/useAntiSpam'
 
 interface FormData {
   full_name: string
@@ -22,11 +23,12 @@ interface FormData {
 
 export default function PreConstructionForm() {
   const { t } = useT()
+  const { honeypot, stamp } = useAntiSpam()
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const { register, handleSubmit, formState: { errors } } = useForm<FormData>()
+  const { register, handleSubmit, formState: { errors } } = useForm<FormData>({ mode: 'onBlur' })
 
   const onSubmit = async (data: FormData) => {
     setLoading(true); setError('')
@@ -34,7 +36,7 @@ export default function PreConstructionForm() {
       const res = await fetch('/api/forms', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ form_type: 'pre_construction_interest', ...data }),
+        body: JSON.stringify(stamp({ form_type: 'pre_construction_interest', ...data })),
       })
       const d = await res.json().catch(() => ({ success: false }))
       if (!res.ok || !d.success) { setError(t('forms.error')); return }
@@ -58,6 +60,7 @@ export default function PreConstructionForm() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+      {honeypot}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <div>
           <label className="label">{t('forms.fullName')} *</label>

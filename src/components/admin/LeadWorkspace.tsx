@@ -101,7 +101,15 @@ export default function LeadWorkspace({ lead: initialLead, initialNotes, initial
   const journeyIdx = JOURNEY.indexOf(lead.pipeline_stage)
   const isLost = lead.pipeline_stage === 'LOST'
   const nextStage = journeyIdx >= 0 && journeyIdx < JOURNEY.length - 1 ? JOURNEY[journeyIdx + 1] : null
-  const whatsappDigits = (lead.phone ?? '').replace(/\D/g, '')
+  // Normalize the phone once so every tel:/WhatsApp link is well-formed.
+  // US 10-digit numbers get a +1 country code so wa.me always resolves.
+  const phoneDigits = (lead.phone ?? '').replace(/\D/g, '')
+  const phoneE164 = phoneDigits ? (phoneDigits.length === 10 ? `1${phoneDigits}` : phoneDigits) : ''
+  const telHref = phoneE164 ? `tel:+${phoneE164}` : undefined
+  const waBase = phoneE164 ? `https://wa.me/${phoneE164}` : ''
+  const whatsappDigits = phoneE164
+  // Local "now" for the appointment picker's min (prevents past-dated showings).
+  const minDateTime = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16)
 
   // ─── Coach: next best action ───
   const now = new Date()
@@ -120,7 +128,7 @@ export default function LeadWorkspace({ lead: initialLead, initialNotes, initial
   // Resolve the coach button into a concrete one-click action
   function runCoachAction() {
     const a = nextAction
-    if (a.actionType === 'call') { window.location.href = `tel:${lead.phone}`; return }
+    if (a.actionType === 'call') { if (telHref) window.location.href = telHref; return }
     if (a.actionType === 'schedule') { setShowApptForm(true); document.getElementById('appt-anchor')?.scrollIntoView({ behavior: 'smooth' }); return }
     if (a.actionType === 'advance' && a.stage) {
       setStage(a.stage)
@@ -128,24 +136,40 @@ export default function LeadWorkspace({ lead: initialLead, initialNotes, initial
     }
     if ((a.actionType === 'template' || a.actionType === 'whatsapp') && a.templateId) {
       const tpl = TEMPLATES.find((t) => t.id === a.templateId)
-      if (tpl) {
+      if (tpl && waBase) {
         const text = fillTemplate(tpl.en, lead.full_name)
-        const phone = (lead.phone ?? '').replace(/\D/g, '')
-        window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, '_blank')
+        window.open(`${waBase}?text=${encodeURIComponent(text)}`, '_blank')
       }
       return
     }
   }
 
   // ─── Lead patch helper ───
-  async function patchLead(updates: Record<string, unknown>) {
+  // Optimistic, but verifies the write: on any failure it reverts the UI and
+  // tells Jordan, so a dropped save can never silently look successful.
+  // Returns true only when the change actually persisted.
+  async function patchLead(updates: Record<string, unknown>): Promise<boolean> {
+    const prevLead = lead
     setLead((prev: any) => ({ ...prev, ...updates }))
-    await fetch('/api/leads', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: lead.id, ...updates }),
-    })
-    router.refresh()
+    try {
+      const res = await fetch('/api/leads', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: lead.id, ...updates }),
+      })
+      const json = await res.json().catch(() => ({ success: false }))
+      if (!res.ok || !json.success) {
+        setLead(prevLead)
+        toast(json.error || 'Could not save — please try again.', { type: 'warn' })
+        return false
+      }
+      router.refresh()
+      return true
+    } catch {
+      setLead(prevLead)
+      toast('Could not save — check your connection.', { type: 'warn' })
+      return false
+    }
   }
 
   // ─── Stage change with celebration ───
@@ -153,7 +177,9 @@ export default function LeadWorkspace({ lead: initialLead, initialNotes, initial
     const status = stage === 'QUALIFIED' ? 'qualified' : stage === 'CLOSED' ? 'closed' : stage === 'LOST' ? 'lost' : 'active'
     const extra: Record<string, unknown> = { pipeline_stage: stage, status }
     if (stage === 'CLOSED') extra.closed_at = new Date().toISOString()
-    await patchLead(extra)
+    // Only celebrate once the write is confirmed — never on a failed/false close.
+    const ok = await patchLead(extra)
+    if (!ok) return
     if (stage === 'CLOSED') {
       fireConfetti()
       const comm = commission ? ` · ${formatCurrency(commission)} commission 💰` : ''
@@ -169,24 +195,38 @@ export default function LeadWorkspace({ lead: initialLead, initialNotes, initial
   async function addNote() {
     if (!noteText.trim()) return
     setSavingNote(true)
-    const res = await fetch('/api/notes', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ content: noteText.trim(), lead_id: lead.id }),
-    })
-    const json = await res.json()
-    if (json.success) {
-      setNotes((prev) => [json.data, ...prev])
-      setNoteText('')
-      setLead((prev: any) => ({ ...prev, last_contact: new Date().toISOString() }))
-      toast('Activity logged — streak kept alive! 🔥', { type: 'success' })
+    try {
+      const res = await fetch('/api/notes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: noteText.trim(), lead_id: lead.id }),
+      })
+      const json = await res.json().catch(() => ({ success: false }))
+      if (res.ok && json.success) {
+        setNotes((prev) => [json.data, ...prev])
+        setNoteText('')
+        setLead((prev: any) => ({ ...prev, last_contact: new Date().toISOString() }))
+        toast('Activity logged — streak kept alive! 🔥', { type: 'success' })
+      } else {
+        toast(json.error || 'Could not save the note — please try again.', { type: 'warn' })
+      }
+    } catch {
+      toast('Could not save the note — check your connection.', { type: 'warn' })
+    } finally {
+      setSavingNote(false)
     }
-    setSavingNote(false)
   }
 
   async function deleteNote(id: string) {
-    setNotes((prev) => prev.filter((n) => n.id !== id))
-    await fetch(`/api/notes?id=${id}`, { method: 'DELETE' })
+    const prev = notes
+    setNotes((p) => p.filter((n) => n.id !== id))
+    try {
+      const res = await fetch(`/api/notes?id=${id}`, { method: 'DELETE' })
+      const json = await res.json().catch(() => ({ success: false }))
+      if (!res.ok || !json.success) { setNotes(prev); toast('Could not delete the note.', { type: 'warn' }) }
+    } catch {
+      setNotes(prev); toast('Could not delete the note.', { type: 'warn' })
+    }
   }
 
   // ─── Send the buyer qualification form to this lead ───
@@ -222,48 +262,65 @@ export default function LeadWorkspace({ lead: initialLead, initialNotes, initial
     const adding = !tags.includes(tagId)
     const next = adding ? [...tags, tagId] : tags.filter((t) => t !== tagId)
     const def = getTagDef(tagId)
-    await patchLead({ tags: next })
-    toast(adding ? `Tagged ${def.emoji} ${def.label}` : `Removed ${def.label}`, { type: 'success', emoji: adding ? def.emoji : '➖' })
+    const ok = await patchLead({ tags: next })
+    if (ok) toast(adding ? `Tagged ${def.emoji} ${def.label}` : `Removed ${def.label}`, { type: 'success', emoji: adding ? def.emoji : '➖' })
   }
 
   // ─── Tasks ───
   async function addTask() {
     if (!taskTitle.trim()) return
-    const res = await fetch('/api/tasks', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        title: taskTitle.trim(),
-        lead_id: lead.id,
-        status: 'todo',
-        priority: 'medium',
-        due_date: taskDue || null,
-      }),
-    })
-    const json = await res.json()
-    if (json.success) {
-      setTasks((prev) => [...prev, json.data])
-      setTaskTitle('')
-      setTaskDue('')
-      setShowTaskForm(false)
-      toast('Task added', { type: 'success', emoji: '📋' })
+    try {
+      const res = await fetch('/api/tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: taskTitle.trim(),
+          lead_id: lead.id,
+          status: 'todo',
+          priority: 'medium',
+          due_date: taskDue || null,
+        }),
+      })
+      const json = await res.json().catch(() => ({ success: false }))
+      if (res.ok && json.success) {
+        setTasks((prev) => [...prev, json.data])
+        setTaskTitle('')
+        setTaskDue('')
+        setShowTaskForm(false)
+        toast('Task added', { type: 'success', emoji: '📋' })
+      } else {
+        toast(json.error || 'Could not add the task — please try again.', { type: 'warn' })
+      }
+    } catch {
+      toast('Could not add the task — check your connection.', { type: 'warn' })
     }
   }
 
   async function toggleTask(task: Task) {
     const newStatus = task.status === 'done' ? 'todo' : 'done'
-    setTasks((prev) => prev.map((t) => (t.id === task.id ? { ...t, status: newStatus } : t)))
+    const prev = tasks
+    setTasks((p) => p.map((t) => (t.id === task.id ? { ...t, status: newStatus } : t)))
     if (newStatus === 'done') toast('Task complete! ✓', { type: 'success' })
-    await fetch('/api/tasks', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: task.id, status: newStatus, completed_at: newStatus === 'done' ? new Date().toISOString() : null }),
-    })
+    try {
+      const res = await fetch('/api/tasks', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: task.id, status: newStatus, completed_at: newStatus === 'done' ? new Date().toISOString() : null }),
+      })
+      const json = await res.json().catch(() => ({ success: false }))
+      if (!res.ok || !json.success) { setTasks(prev); toast('Could not update the task.', { type: 'warn' }) }
+    } catch {
+      setTasks(prev); toast('Could not update the task.', { type: 'warn' })
+    }
   }
 
   // ─── Appointments — schedule + email the client a calendar invite ───
   async function scheduleAndInvite() {
     if (!apptTitle.trim() || !apptWhen) return
+    if (new Date(apptWhen).getTime() < Date.now()) {
+      toast('Pick a future date and time for the appointment.', { type: 'warn' })
+      return
+    }
     setScheduling(true)
     try {
       const res = await fetch('/api/leads/schedule', {
@@ -433,7 +490,7 @@ export default function LeadWorkspace({ lead: initialLead, initialNotes, initial
               <button
                 key={s.value}
                 type="button"
-                onClick={() => { patchLead({ hot_score: s.value }); toast(`Marked ${s.label}`, { emoji: s.emoji }) }}
+                onClick={async () => { if (await patchLead({ hot_score: s.value })) toast(`Marked ${s.label}`, { emoji: s.emoji }) }}
                 className={`flex-1 flex flex-col items-center gap-1 py-2.5 rounded-xl border-2 transition-all active:scale-95 ${
                   lead.hot_score === s.value
                     ? `${s.className} border-transparent`
@@ -451,14 +508,14 @@ export default function LeadWorkspace({ lead: initialLead, initialNotes, initial
         <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
           <h3 className="font-semibold text-navy-900 text-sm mb-4">Contact</h3>
           <div className="space-y-2">
-            <a href={`tel:${lead.phone}`} className="flex items-center gap-3 text-sm text-navy-700 hover:text-wine">
+            <a href={telHref} className="flex items-center gap-3 text-sm text-navy-700 hover:text-wine">
               <Phone size={14} className="text-sky-400" />{formatPhone(lead.phone)}
             </a>
             <a href={`mailto:${lead.email}`} className="flex items-center gap-3 text-sm text-navy-700 hover:text-wine break-all">
               <Mail size={14} className="text-sky-400 shrink-0" />{lead.email}
             </a>
             {lead.phone && (
-              <a href={`https://wa.me/${lead.phone.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm text-green-600 hover:text-green-700">
+              <a href={waBase} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm text-green-600 hover:text-green-700">
                 <MessageSquare size={14} />WhatsApp
               </a>
             )}
@@ -640,7 +697,7 @@ export default function LeadWorkspace({ lead: initialLead, initialNotes, initial
                 <button type="button" onClick={() => setApptMode('video')} className={`py-2 rounded-xl border text-xs font-semibold transition-all ${apptMode === 'video' ? 'bg-navy-900 border-navy-900 text-white' : 'bg-white border-gray-200 text-navy-700 hover:border-navy-300'}`}>🎥 Video call</button>
               </div>
               <div className="flex gap-2">
-                <input type="datetime-local" value={apptWhen} onChange={(e) => setApptWhen(e.target.value)} className="input-field text-sm flex-1" title="When" />
+                <input type="datetime-local" value={apptWhen} min={minDateTime} onChange={(e) => setApptWhen(e.target.value)} className="input-field text-sm flex-1" title="When" />
                 <select value={apptDuration} onChange={(e) => setApptDuration(Number(e.target.value))} className="input-field text-sm w-24" title="Duration">
                   <option value={15}>15 min</option>
                   <option value={30}>30 min</option>

@@ -5,10 +5,12 @@ import { ArrowRight, CheckCircle2, Phone, Sparkles } from 'lucide-react'
 import { useT } from '@/components/LanguageProvider'
 import { useProfile } from '@/components/ProfileProvider'
 import { isValidName, isValidPhone, stripDigits, stripNonPhone } from '@/lib/validate'
+import { useAntiSpam } from '@/components/forms/useAntiSpam'
 
 export default function QuickLeadForm() {
   const { t } = useT()
   const profile = useProfile()
+  const { honeypot, stamp } = useAntiSpam()
   const [form, setForm] = useState({ full_name: '', phone: '', intent: 'Buy' })
   const [loading, setLoading] = useState(false)
   const [submitted, setSubmitted] = useState(false)
@@ -25,7 +27,7 @@ export default function QuickLeadForm() {
       const res = await fetch('/api/forms', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+        body: JSON.stringify(stamp({
           form_type: 'contact',
           full_name: form.full_name,
           phone: form.phone,
@@ -33,7 +35,7 @@ export default function QuickLeadForm() {
           client_type: clientType,
           message: `🎯 Quick-start form — wants to: ${form.intent}. Warm lead, reach out fast!`,
           source: 'Website Popup',
-        }),
+        })),
       })
       const d = await res.json().catch(() => ({ success: false }))
       if (!res.ok || !d.success) { setError(t('forms.error')); return }
@@ -68,6 +70,7 @@ export default function QuickLeadForm() {
               </div>
 
               <form onSubmit={submit} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                {honeypot}
                 <input
                   value={form.full_name}
                   onChange={(e) => setForm({ ...form, full_name: stripDigits(e.target.value) })}

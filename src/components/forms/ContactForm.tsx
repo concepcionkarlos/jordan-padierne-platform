@@ -7,14 +7,16 @@ import type { ContactFormData } from '@/lib/types'
 import { AREAS, CLIENT_TYPES, TIMELINES, BUDGET_RANGES } from '@/lib/utils'
 import { useT } from '@/components/LanguageProvider'
 import { isValidName, isValidPhone, isValidEmailFormat, stripDigits, stripNonPhone } from '@/lib/validate'
+import { useAntiSpam } from '@/components/forms/useAntiSpam'
 
 export default function ContactForm() {
   const { t } = useT()
+  const { honeypot, stamp } = useAntiSpam()
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const { register, handleSubmit, formState: { errors }, reset } = useForm<ContactFormData>()
+  const { register, handleSubmit, formState: { errors }, reset } = useForm<ContactFormData>({ mode: 'onBlur', defaultValues: { source: 'Website' } })
 
   const onSubmit = async (data: ContactFormData) => {
     setLoading(true)
@@ -23,7 +25,7 @@ export default function ContactForm() {
       const res = await fetch('/api/forms', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ form_type: 'contact', ...data }),
+        body: JSON.stringify(stamp({ form_type: 'contact', ...data })),
       })
       if (!res.ok) throw new Error('Submission failed')
       setSubmitted(true)
@@ -47,6 +49,7 @@ export default function ContactForm() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+      {honeypot}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <div>
           <label className="label">{t('forms.fullName')} *</label>
