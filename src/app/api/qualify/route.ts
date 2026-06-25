@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase'
 import { evaluateLead } from '@/lib/evaluate'
+import { aiEvaluateLead } from '@/lib/ai-evaluate'
 import { sendQualificationAlert } from '@/lib/email'
 import { guardPublic } from '@/lib/antispam'
 
@@ -65,7 +66,10 @@ export async function POST(req: NextRequest) {
     const leadId = lead.id
 
     // ─── Intelligent evaluation ───
-    const ev = evaluateLead({ full_name: lead.full_name, ...answers })
+    // Claude reads the answers and writes Jordan a next-step plan; if the AI
+    // call isn't configured or fails, fall back to the rule-based engine.
+    const qa = { full_name: lead.full_name, ...answers }
+    const ev = (await aiEvaluateLead(qa)) ?? evaluateLead(qa)
     const mergedTags = Array.from(new Set([...(lead.tags ?? []), ...ev.tags]))
 
     // ─── Update the lead with all qualification data ───
