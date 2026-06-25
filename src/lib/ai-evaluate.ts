@@ -39,7 +39,14 @@ function normalize(out: any): Evaluation | null {
     ? out.hot_score
     : temperature === 'Hot' ? 3 : temperature === 'Warm' ? 2 : 1
   const tags: string[] = Array.isArray(out.tags)
-    ? out.tags.filter((t: any) => typeof t === 'string' && ALLOWED_TAGS.includes(t)).slice(0, 8)
+    ? Array.from(
+        new Set(
+          out.tags
+            .filter((t: any) => typeof t === 'string')
+            .map((t: string) => t.toLowerCase().trim().replace(/\s+/g, '_'))
+            .filter((t: string) => ALLOWED_TAGS.includes(t))
+        )
+      ).slice(0, 8)
     : []
   const tasks = Array.isArray(out.tasks)
     ? out.tasks
@@ -68,31 +75,40 @@ function withTimeout(ms: number) {
 async function evaluateWithGemini(a: QualAnswers): Promise<Evaluation | null> {
   const key = process.env.GEMINI_API_KEY
   if (!key) return null
-  const model = process.env.GEMINI_MODEL || 'gemini-2.0-flash'
+  const model = process.env.GEMINI_MODEL || 'gemini-2.5-flash'
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`
-  const { signal, clear } = withTimeout(22000)
-  try {
-    const res = await fetch(url, {
-      method: 'POST',
-      signal,
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        system_instruction: { parts: [{ text: `${SYSTEM}\n\n${SHAPE}` }] },
-        contents: [{ role: 'user', parts: [{ text: buildUserPrompt(a) }] }],
-        generationConfig: { responseMimeType: 'application/json', temperature: 0.4, maxOutputTokens: 1024 },
-      }),
-    })
-    if (!res.ok) { console.error('[ai-evaluate] gemini HTTP', res.status, await res.text().catch(() => '')); return null }
-    const data = await res.json()
-    const text = data?.candidates?.[0]?.content?.parts?.map((p: any) => p?.text).filter(Boolean).join('') ?? ''
-    if (!text) return null
-    return normalize(JSON.parse(text))
-  } catch (err) {
-    console.error('[ai-evaluate] gemini', err)
-    return null
-  } finally {
-    clear()
+  const payload = JSON.stringify({
+    system_instruction: { parts: [{ text: `${SYSTEM}\n\n${SHAPE}` }] },
+    contents: [{ role: 'user', parts: [{ text: buildUserPrompt(a) }] }],
+    generationConfig: { responseMimeType: 'application/json', temperature: 0.4, maxOutputTokens: 1024 },
+  })
+  // Up to 2 attempts — the free tier occasionally returns a transient 503.
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    const c = new AbortController()
+    const t = setTimeout(() => c.abort(), 22000)
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        signal: c.signal,
+        headers: { 'content-type': 'application/json' },
+        body: payload,
+      })
+      if (!res.ok) {
+        if (res.status === 503 && attempt === 1) { await new Promise((r) => setTimeout(r, 1500)); continue }
+        console.error('[ai-evaluate] gemini HTTP', res.status, await res.text().catch(() => ''))
+        return null
+      }
+      const data = await res.json()
+      const text = data?.candidates?.[0]?.content?.parts?.map((p: any) => p?.text).filter(Boolean).join('') ?? ''
+      return text ? normalize(JSON.parse(text)) : null
+    } catch (err) {
+      console.error('[ai-evaluate] gemini', err)
+      return null
+    } finally {
+      clearTimeout(t)
+    }
   }
+  return null
 }
 
 // ─── Claude (Anthropic Messages API) ─────────────────────────────────────────

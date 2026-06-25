@@ -36,3 +36,4 @@ next-env.d.ts
 # Local admin utility (do not commit)
 scripts/reset-admin-password.mjs
 scripts/check-lead.mjs
+scripts/test-gemini.mjs
