@@ -96,6 +96,13 @@ export default function LeadWorkspace({ lead: initialLead, initialNotes, initial
   ].filter((w) => w.value !== null && w.value !== undefined && w.value !== '')
   const motivation = meta.motivation
 
+  // ─── Journey / pipeline progression ───
+  const JOURNEY = ['NEW', 'QUALIFIED', 'CONTACTED', 'SHOWING_SCHEDULED', 'NEGOTIATION', 'CLOSED']
+  const journeyIdx = JOURNEY.indexOf(lead.pipeline_stage)
+  const isLost = lead.pipeline_stage === 'LOST'
+  const nextStage = journeyIdx >= 0 && journeyIdx < JOURNEY.length - 1 ? JOURNEY[journeyIdx + 1] : null
+  const whatsappDigits = (lead.phone ?? '').replace(/\D/g, '')
+
   // ─── Coach: next best action ───
   const now = new Date()
   const upcoming = appts.find((a) => new Date(a.starts_at) >= now && a.status === 'scheduled')
@@ -292,6 +299,32 @@ export default function LeadWorkspace({ lead: initialLead, initialNotes, initial
 
   return (
     <div className="space-y-6">
+      {/* ─── Lead journey ─── */}
+      <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-semibold text-navy-900 text-sm">Lead journey</h3>
+          {nextStage && <span className="text-xs text-wine font-semibold">Next: {getPipelineStageLabel(nextStage)}</span>}
+        </div>
+        <div className="flex items-start overflow-x-auto pb-1">
+          {JOURNEY.map((st, i) => {
+            const done = journeyIdx > i
+            const current = journeyIdx === i
+            return (
+              <div key={st} className="flex items-center shrink-0">
+                <button type="button" onClick={() => setStage(st)} title={`Move to ${getPipelineStageLabel(st)}`} className="flex flex-col items-center gap-1.5 group">
+                  <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all ${done ? 'bg-green-500 text-white' : current ? 'bg-wine text-white ring-4 ring-wine/15' : 'bg-gray-100 text-gray-400 group-hover:bg-gray-200'}`}>
+                    {done ? <Check size={13} /> : i + 1}
+                  </span>
+                  <span className={`text-[10px] font-semibold whitespace-nowrap ${current ? 'text-wine' : done ? 'text-navy-700' : 'text-gray-400'}`}>{getPipelineStageLabel(st)}</span>
+                </button>
+                {i < JOURNEY.length - 1 && <div className={`w-7 sm:w-10 h-0.5 mx-1 mb-5 ${journeyIdx > i ? 'bg-green-400' : 'bg-gray-100'}`} />}
+              </div>
+            )
+          })}
+        </div>
+        {isLost && <p className="text-xs text-gray-400 mt-2">Marked as Lost — click a stage to revive this lead.</p>}
+      </div>
+
       {/* ─── Coach: Next Best Action ─── */}
       <div className="bg-gradient-to-r from-navy-900 to-navy-700 rounded-2xl p-5 lg:p-6 shadow-card relative overflow-hidden">
         <div className="absolute top-0 right-0 w-48 h-48 bg-sky-500/10 rounded-full blur-3xl" />
@@ -446,6 +479,16 @@ export default function LeadWorkspace({ lead: initialLead, initialNotes, initial
             >
               <Send size={14} /> {sendingForm ? 'Sending…' : formSentAt ? 'Resend buyer form' : 'Send buyer form'}
             </button>
+            {whatsappDigits && (
+              <a
+                href={`https://wa.me/${whatsappDigits}?text=${encodeURIComponent(`Hi ${firstNm}! 👋 Jordan here. Take 60 seconds to tell me what you're looking for so I can match you with the right homes: https://jordanpadierne.com/qualify/${lead.id}`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-2 flex items-center justify-center gap-1.5 w-full text-sm py-2 rounded-xl bg-green-500 hover:bg-green-600 text-white font-semibold transition-colors"
+              >
+                <MessageSquare size={14} /> Send form via WhatsApp
+              </a>
+            )}
             {formSentAt && (
               <p className="text-xs text-gray-400 text-center mt-2">
                 Sent {formatRelativeTime(formSentAt)} · they fill it in → this profile updates automatically

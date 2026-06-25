@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Home, Send, ChevronDown, Check } from 'lucide-react'
+import { Home, Send, ChevronDown, Check, MessageSquare } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
 import { toast } from '@/lib/toast'
 
@@ -21,6 +21,15 @@ export default function SendPropertiesPanel({ lead }: { lead: any }) {
   const firstNm = (lead.full_name || '').trim().split(' ')[0] || 'the client'
   const budgetMax = lead.budget_max ? Number(lead.budget_max) : null
   const area = lead.preferred_area ? norm(lead.preferred_area) : ''
+  const whatsappDigits = String(lead.phone ?? '').replace(/\D/g, '')
+
+  function shareWhatsApp() {
+    if (selected.size === 0 || !whatsappDigits) return
+    const chosen = (props ?? []).filter((p) => selected.has(p.id))
+    const lines = chosen.map((p) => `• ${p.title} — ${formatCurrency(Number(p.price))}${p.city ? ` (${p.city})` : ''}`)
+    const text = `Hi ${firstNm}! 🏡 Jordan here — a few homes I think you'll like:\n${lines.join('\n')}\n\n${message.trim() ? message.trim() + '\n\n' : ''}Want photos & details? Reply here or call 305-799-6973.`
+    window.open(`https://wa.me/${whatsappDigits}?text=${encodeURIComponent(text)}`, '_blank')
+  }
 
   async function expand() {
     const next = !open
@@ -136,14 +145,26 @@ export default function SendPropertiesPanel({ lead }: { lead: any }) {
             placeholder={`Personal note for ${firstNm} (optional)`}
             className="input-field text-sm resize-none"
           />
-          <button
-            type="button"
-            onClick={send}
-            disabled={selected.size === 0 || sending}
-            className="btn-wine w-full text-sm justify-center disabled:opacity-50"
-          >
-            <Send size={14} /> {sending ? 'Sending…' : `Send ${selected.size || ''} to ${firstNm}`}
-          </button>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={send}
+              disabled={selected.size === 0 || sending}
+              className="btn-wine flex-1 text-sm justify-center disabled:opacity-50"
+            >
+              <Send size={14} /> {sending ? 'Sending…' : `Email ${selected.size || ''}`}
+            </button>
+            {whatsappDigits && (
+              <button
+                type="button"
+                onClick={shareWhatsApp}
+                disabled={selected.size === 0}
+                className="flex items-center justify-center gap-1.5 px-3.5 text-sm rounded-xl bg-green-500 hover:bg-green-600 text-white font-semibold disabled:opacity-50 transition-colors"
+              >
+                <MessageSquare size={14} /> WhatsApp
+              </button>
+            )}
+          </div>
         </div>
       )}
     </div>
