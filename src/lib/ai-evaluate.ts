@@ -40,8 +40,8 @@ function normalize(out: any): Evaluation | null {
     : temperature === 'Hot' ? 3 : temperature === 'Warm' ? 2 : 1
   const tags: string[] = Array.isArray(out.tags)
     ? Array.from(
-        new Set(
-          out.tags
+        new Set<string>(
+          (out.tags as any[])
             .filter((t: any) => typeof t === 'string')
             .map((t: string) => t.toLowerCase().trim().replace(/\s+/g, '_'))
             .filter((t: string) => ALLOWED_TAGS.includes(t))
