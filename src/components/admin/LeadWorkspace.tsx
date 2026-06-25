@@ -19,6 +19,7 @@ import { fireConfetti } from '@/lib/confetti'
 import TemplatesPanel from './TemplatesPanel'
 import ProgressRing from './ProgressRing'
 import Tooltip from './Tooltip'
+import SendPropertiesPanel from './SendPropertiesPanel'
 import { Sparkles, ArrowRight } from 'lucide-react'
 
 const STAGES = ['NEW', 'QUALIFIED', 'CONTACTED', 'SHOWING_SCHEDULED', 'NEGOTIATION', 'CLOSED', 'LOST']
@@ -457,7 +458,7 @@ export default function LeadWorkspace({ lead: initialLead, initialNotes, initial
         <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-semibold text-navy-900 text-sm">Tags</h3>
-            <button type="button" onClick={() => setShowTagPicker(!showTagPicker)} className="text-sky-500 hover:text-sky-600">
+            <button type="button" onClick={() => setShowTagPicker(!showTagPicker)} className="text-sky-500 hover:text-sky-600" aria-label="Add tag">
               <Plus size={15} className={showTagPicker ? 'rotate-45 transition-transform' : 'transition-transform'} />
             </button>
           </div>
@@ -571,6 +572,9 @@ export default function LeadWorkspace({ lead: initialLead, initialNotes, initial
             </div>
           </div>
         </div>
+
+        {/* Send matching homes */}
+        <SendPropertiesPanel lead={lead} />
 
         {/* Appointments */}
         <div id="appt-anchor" className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm scroll-mt-24">
