@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   Phone, Mail, MapPin, Calendar, DollarSign, MessageSquare,
-  Send, Plus, Check, Clock, Trash2, StickyNote, ChevronDown, TrendingUp, CalendarPlus,
+  Send, Plus, Check, Clock, Trash2, StickyNote, ChevronDown, TrendingUp, CalendarPlus, Target,
 } from 'lucide-react'
 import {
   formatDate, formatPhone, formatRelativeTime, formatCurrency,
@@ -67,6 +67,30 @@ export default function LeadWorkspace({ lead: initialLead, initialNotes, initial
   const commission = dealValue ? commissionFor(dealValue, commRate) : 0
   const smart = scoreLead({ ...lead, noteCount: notes.length, apptCount: appts.length })
   const aiNote = notes.find((n) => n.author === 'AI Evaluation')
+
+  // ─── "What they want" — the qualify-form answers, surfaced as a work hub ───
+  const meta = (lead.metadata ?? {}) as Record<string, any>
+  const firstNm = (lead.full_name || '').trim().split(' ')[0] || 'This lead'
+  const budgetTxt = lead.budget_max
+    ? `${lead.budget_min ? formatCurrency(lead.budget_min) + ' – ' : 'Up to '}${formatCurrency(lead.budget_max)}`
+    : lead.budget_min ? `${formatCurrency(lead.budget_min)}+` : null
+  const wants = [
+    { label: 'Looking to', value: meta.intent ?? lead.client_type },
+    { label: 'Budget', value: budgetTxt },
+    { label: 'Area', value: lead.preferred_area ?? meta.preferred_area },
+    { label: 'Property type', value: meta.property_type },
+    { label: 'Bedrooms', value: meta.bedrooms },
+    { label: 'Timeline', value: lead.timeline ?? meta.timeline },
+    { label: 'Financing', value: lead.financing_status ?? meta.financing_status },
+    { label: 'Must-haves', value: meta.must_haves },
+    { label: 'Selling because', value: meta.why_selling },
+    { label: 'Their property', value: meta.property_address },
+    { label: 'Condition', value: meta.condition },
+    { label: 'Hopes to get', value: meta.expected_price ? formatCurrency(Number(meta.expected_price)) : null },
+    { label: 'Best time to reach', value: meta.best_time },
+    { label: 'Prefers contact by', value: meta.contact_method },
+  ].filter((w) => w.value !== null && w.value !== undefined && w.value !== '')
+  const motivation = meta.motivation
 
   // ─── Coach: next best action ───
   const now = new Date()
@@ -282,6 +306,32 @@ export default function LeadWorkspace({ lead: initialLead, initialNotes, initial
           </div>
           <p className="text-navy-700 text-sm leading-relaxed whitespace-pre-wrap">{aiNote.content}</p>
           <p className="text-gray-400 text-xs mt-3">Auto-evaluated · {formatRelativeTime(aiNote.created_at)}</p>
+        </div>
+      )}
+
+      {/* ─── What the client is looking for (their form answers) ─── */}
+      {wants.length > 0 && (
+        <div className="bg-white rounded-2xl border border-gray-100 p-5 lg:p-6 shadow-sm">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-8 h-8 rounded-lg bg-wine-50 flex items-center justify-center">
+              <Target size={15} className="text-wine" />
+            </div>
+            <h3 className="font-serif text-lg font-bold text-navy-900">What {firstNm} is looking for</h3>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-5 gap-y-4">
+            {wants.map((w) => (
+              <div key={w.label}>
+                <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">{w.label}</p>
+                <p className="text-navy-900 text-sm font-semibold mt-0.5 break-words">{String(w.value)}</p>
+              </div>
+            ))}
+          </div>
+          {motivation && (
+            <div className="mt-4 pt-4 border-t border-gray-50">
+              <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-1">In their words</p>
+              <p className="text-navy-700 text-sm italic">“{String(motivation)}”</p>
+            </div>
+          )}
         </div>
       )}
 
