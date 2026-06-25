@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
-import { Plus, X, Building2, Trash2, Upload, Star, Edit2 } from 'lucide-react'
+import { Plus, X, Building2, Trash2, Upload, Star, Edit2, Sparkles, Wand2 } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
 import { AREAS } from '@/lib/utils'
 
@@ -54,8 +54,40 @@ export default function PropertyManager({ initial }: { initial: any[] }) {
   const [editId, setEditId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
+  // AI Quick-Add: paste any listing text → Gemini/Claude fills the form.
+  const [aiOpen, setAiOpen] = useState(false)
+  const [aiText, setAiText] = useState('')
+  const [aiLoading, setAiLoading] = useState(false)
+  const [aiError, setAiError] = useState('')
 
   function openNew() { setForm(EMPTY); setEditId(null); setOpen(true) }
+
+  async function runAi() {
+    if (aiText.trim().length < 8) return
+    setAiLoading(true); setAiError('')
+    try {
+      const res = await fetch('/api/properties/parse', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: aiText }),
+      })
+      const json = await res.json()
+      if (json.success && json.parsed) {
+        // Pre-fill the editor; Jordan reviews, adds photos, and saves.
+        setForm({ ...EMPTY, ...json.parsed, images: [] })
+        setEditId(null)
+        setAiOpen(false)
+        setAiText('')
+        setOpen(true)
+      } else {
+        setAiError(json.error || 'Could not read that. Try the manual form.')
+      }
+    } catch {
+      setAiError('Something went wrong. Try again or use the manual form.')
+    } finally {
+      setAiLoading(false)
+    }
+  }
   function openEdit(p: any) {
     setForm({ ...EMPTY, ...p, images: p.images ?? [] })
     setEditId(p.id)
@@ -114,7 +146,12 @@ export default function PropertyManager({ initial }: { initial: any[] }) {
           <h1 className="font-serif text-2xl font-bold text-navy-900">Properties</h1>
           <p className="text-gray-500 text-sm mt-0.5">{properties.length} listings · shown live on your public site</p>
         </div>
-        <button type="button" onClick={openNew} className="btn-primary text-sm px-4 py-2.5"><Plus size={15} /> Add Property</button>
+        <div className="flex items-center gap-2">
+          <button type="button" onClick={() => { setAiError(''); setAiText(''); setAiOpen(true) }} className="inline-flex items-center gap-1.5 text-sm px-4 py-2.5 rounded-xl font-semibold bg-gradient-to-r from-wine to-wine-700 text-white shadow-sm hover:opacity-95 transition-opacity">
+            <Sparkles size={15} /> Quick-add with AI
+          </button>
+          <button type="button" onClick={openNew} className="btn-primary text-sm px-4 py-2.5"><Plus size={15} /> Add Property</button>
+        </div>
       </div>
 
       {properties.length === 0 ? (
@@ -122,7 +159,10 @@ export default function PropertyManager({ initial }: { initial: any[] }) {
           <Building2 size={40} className="text-gray-200 mx-auto mb-4" />
           <h3 className="font-serif text-lg font-bold text-navy-900 mb-2">No Properties Yet</h3>
           <p className="text-gray-400 text-sm mb-6">Add your first listing — it appears instantly on your public Properties page.</p>
-          <button type="button" onClick={openNew} className="btn-primary"><Plus size={16} /> Add First Property</button>
+          <div className="flex items-center justify-center gap-2">
+            <button type="button" onClick={() => { setAiError(''); setAiText(''); setAiOpen(true) }} className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl font-semibold bg-gradient-to-r from-wine to-wine-700 text-white shadow-sm hover:opacity-95 transition-opacity"><Sparkles size={16} /> Quick-add with AI</button>
+            <button type="button" onClick={openNew} className="btn-primary"><Plus size={16} /> Add Manually</button>
+          </div>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -264,6 +304,40 @@ export default function PropertyManager({ initial }: { initial: any[] }) {
               <button type="button" onClick={save} disabled={saving || !form.title.trim() || !form.price} className="btn-primary flex-1 disabled:opacity-50">
                 {saving ? 'Saving…' : editId ? 'Save Changes' : 'Add Property'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* AI Quick-Add modal */}
+      {aiOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-navy-900/40 backdrop-blur-sm" onClick={() => !aiLoading && setAiOpen(false)} />
+          <div className="relative bg-white rounded-3xl shadow-premium w-full max-w-lg overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-wine-50 to-transparent">
+              <h2 className="font-serif text-lg font-bold text-navy-900 flex items-center gap-2"><Sparkles size={18} className="text-wine" /> Quick-add with AI</h2>
+              <button type="button" onClick={() => !aiLoading && setAiOpen(false)} className="text-gray-400 hover:text-navy-900" aria-label="Close"><X size={20} /></button>
+            </div>
+            <div className="p-6 space-y-3">
+              <p className="text-sm text-gray-500 leading-relaxed">
+                Paste anything about the property — an MLS sheet, an email, a flyer, even a quick WhatsApp note (English or Español). The AI fills in the form for you. You review and save.
+              </p>
+              <textarea
+                value={aiText}
+                onChange={(e) => setAiText(e.target.value)}
+                rows={8}
+                className="input-field resize-none text-sm"
+                placeholder={"e.g.\nLuxury 2/2 condo in Brickell, 1,150 sqft, asking $749,000. Floor-to-ceiling windows, bay views, pool & gym. New construction.\n\n— or paste a whole MLS listing —"}
+                autoFocus
+              />
+              {aiError && <p className="text-wine text-xs font-medium">{aiError}</p>}
+              <div className="flex gap-3 pt-1">
+                <button type="button" onClick={() => setAiOpen(false)} disabled={aiLoading} className="btn-secondary flex-1">Cancel</button>
+                <button type="button" onClick={runAi} disabled={aiLoading || aiText.trim().length < 8} className="btn-primary flex-1 disabled:opacity-50">
+                  {aiLoading ? 'Reading…' : <><Wand2 size={15} /> Fill the form</>}
+                </button>
+              </div>
+              <p className="text-[11px] text-gray-400 text-center pt-1">The AI only suggests — nothing is saved until you review and hit “Add Property”.</p>
             </div>
           </div>
         </div>
