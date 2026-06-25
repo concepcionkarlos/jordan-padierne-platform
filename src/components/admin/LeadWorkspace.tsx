@@ -55,6 +55,9 @@ export default function LeadWorkspace({ lead: initialLead, initialNotes, initial
   const [apptType, setApptType] = useState('showing')
   const [apptWhen, setApptWhen] = useState('')
   const [apptLocation, setApptLocation] = useState('')
+  // Buyer form
+  const [sendingForm, setSendingForm] = useState(false)
+  const [formSentAt, setFormSentAt] = useState<string | null>(initialLead.metadata?.form_sent_at ?? null)
 
   const freshness = getLeadFreshness(lead)
   const hotScore = getHotScore(lead.hot_score)
@@ -149,6 +152,34 @@ export default function LeadWorkspace({ lead: initialLead, initialNotes, initial
   async function deleteNote(id: string) {
     setNotes((prev) => prev.filter((n) => n.id !== id))
     await fetch(`/api/notes?id=${id}`, { method: 'DELETE' })
+  }
+
+  // ─── Send the buyer qualification form to this lead ───
+  async function sendBuyerForm() {
+    if (!lead.email || /placeholder|no-email/i.test(lead.email)) {
+      toast('This lead has no real email on file.', { type: 'warn' })
+      return
+    }
+    setSendingForm(true)
+    try {
+      const res = await fetch('/api/leads/send-form', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lead_id: lead.id }),
+      })
+      const json = await res.json().catch(() => ({ success: false }))
+      if (res.ok && json.success) {
+        setFormSentAt(json.sent_at)
+        if (json.note) setNotes((prev) => [json.note, ...prev])
+        toast(`Buyer form sent to ${lead.email} 📨`, { type: 'success' })
+      } else {
+        toast(json.error || 'Could not send the form.', { type: 'warn' })
+      }
+    } catch {
+      toast('Could not send the form.', { type: 'warn' })
+    } finally {
+      setSendingForm(false)
+    }
   }
 
   // ─── Tags ───
@@ -331,6 +362,23 @@ export default function LeadWorkspace({ lead: initialLead, initialNotes, initial
               <div className="flex items-center gap-3 text-sm text-navy-700">
                 <MapPin size={14} className="text-sky-400" />{lead.preferred_area}
               </div>
+            )}
+          </div>
+
+          {/* Send buyer qualification form */}
+          <div className="mt-4 pt-4 border-t border-gray-50">
+            <button
+              type="button"
+              onClick={sendBuyerForm}
+              disabled={sendingForm}
+              className="btn-wine w-full justify-center text-sm py-2.5 disabled:opacity-60"
+            >
+              <Send size={14} /> {sendingForm ? 'Sending…' : formSentAt ? 'Resend buyer form' : 'Send buyer form'}
+            </button>
+            {formSentAt && (
+              <p className="text-xs text-gray-400 text-center mt-2">
+                Sent {formatRelativeTime(formSentAt)} · they fill it in → this profile updates automatically
+              </p>
             )}
           </div>
         </div>
