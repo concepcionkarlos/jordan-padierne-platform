@@ -122,6 +122,8 @@ export default function LeadsTable({ leads }: Props) {
                 const fresh = getLeadFreshness(lead)
                 const sc = scoreLead(lead)
                 const tags: string[] = lead.tags ?? []
+                const profileDone = lead.status === 'qualified' || lead.pipeline_stage === 'QUALIFIED'
+                const formSent = !!lead.metadata?.form_sent_at
                 return (
                   <tr key={lead.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-5 py-4">
@@ -143,6 +145,11 @@ export default function LeadsTable({ leads }: Props) {
                               const def = getTagDef(t)
                               return <span key={t} className="text-xs">{def.emoji}</span>
                             })}
+                            {profileDone ? (
+                              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-green-100 text-green-700">✅ Profile</span>
+                            ) : formSent ? (
+                              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700">📨 Form sent</span>
+                            ) : null}
                           </div>
                         </div>
                       </Link>

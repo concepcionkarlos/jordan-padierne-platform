@@ -278,7 +278,7 @@ export default function LeadWorkspace({ lead: initialLead, initialNotes, initial
               <Sparkles size={15} className="text-sky-600" />
             </div>
             <h3 className="font-semibold text-navy-900 text-sm">AI Evaluation</h3>
-            <span className="text-xs text-sky-600 bg-sky-100 px-2 py-0.5 rounded-full font-semibold ml-auto">Profile completed</span>
+            <span className={`text-xs px-2 py-0.5 rounded-full font-bold ml-auto ${hotScore.className}`}>{hotScore.emoji} {hotScore.label}</span>
           </div>
           <p className="text-navy-700 text-sm leading-relaxed whitespace-pre-wrap">{aiNote.content}</p>
           <p className="text-gray-400 text-xs mt-3">Auto-evaluated · {formatRelativeTime(aiNote.created_at)}</p>
