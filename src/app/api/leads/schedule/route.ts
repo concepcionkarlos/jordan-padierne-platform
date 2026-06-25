@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
     // ── Video: prefer real Google Meet (Google emails the native invite) ──
     let videoUrl = ''
     let viaGoogle = false
-    if (isVideo && isGoogleMeetConfigured() && hasRealEmail) {
+    if (isVideo && hasRealEmail && (await isGoogleMeetConfigured())) {
       const g = await createGoogleMeetEvent({
         title: evtTitle,
         description: [notes, 'Questions? Call or text Jordan at 305-799-6973.'].filter(Boolean).join('\n\n'),

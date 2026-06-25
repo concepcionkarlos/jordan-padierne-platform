@@ -1,13 +1,14 @@
 export const dynamic = 'force-dynamic'
-import { Settings, Mail, Shield, Globe, MessageSquare, Phone, Bell, CheckCircle2, XCircle } from 'lucide-react'
+import { Settings, Mail, Shield, Globe, MessageSquare, Phone, Bell, CheckCircle2, XCircle, Calendar, Video } from 'lucide-react'
 import { isEmailConfigured } from '@/lib/email'
 import { isSupabaseConfigured } from '@/lib/supabase'
 import { getSetting } from '@/lib/settings'
+import { googleOAuthConfigured, isGoogleMeetConfigured } from '@/lib/google-meet'
 import ReviewLinkSetting from '@/components/admin/ReviewLinkSetting'
 import EmailTestButton from '@/components/admin/EmailTestButton'
 import AgentProfileForm from '@/components/admin/AgentProfileForm'
 
-export default async function SettingsPage() {
+export default async function SettingsPage({ searchParams }: { searchParams: { google?: string } }) {
   const emailConnected = isEmailConfigured()
   const supabaseConnected = isSupabaseConfigured()
 
@@ -29,6 +30,10 @@ export default async function SettingsPage() {
     languages: languages ?? 'English, Spanish',
   }
 
+  const googleConfigured = googleOAuthConfigured()
+  const googleConnected = await isGoogleMeetConfigured()
+  const googleMsg = searchParams?.google
+
   return (
     <div className="p-6 lg:p-8 max-w-3xl">
       <div className="mb-8">
@@ -37,6 +42,37 @@ export default async function SettingsPage() {
       </div>
 
       <div className="space-y-6">
+        {/* Google Calendar & Meet */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-50 flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-navy-50 flex items-center justify-center">
+              <Video size={16} className="text-navy-700" />
+            </div>
+            <h2 className="font-semibold text-navy-900">Google Calendar &amp; Meet</h2>
+            {googleConnected
+              ? <span className="ml-auto flex items-center gap-1.5 text-xs font-semibold text-green-600"><CheckCircle2 size={14} /> Connected</span>
+              : <span className="ml-auto flex items-center gap-1.5 text-xs font-semibold text-gray-400"><XCircle size={14} /> Not connected</span>}
+          </div>
+          <div className="p-6">
+            {googleMsg === 'connected' && <p className="text-sm text-green-600 mb-3">✅ Connected — video appointments now create real Google Meet links.</p>}
+            {googleMsg === 'denied' && <p className="text-sm text-wine mb-3">Authorization was cancelled.</p>}
+            {(googleMsg === 'failed' || googleMsg === 'state') && <p className="text-sm text-wine mb-3">Could not complete the connection. Please try again.</p>}
+            {googleMsg === 'missing_config' && <p className="text-sm text-wine mb-3">Add the OAuth env vars below first, then redeploy.</p>}
+            <p className="text-gray-500 text-sm mb-4">Connect Jordan’s Google account so video appointments create real Google Meet links on his calendar and email native invites to clients.</p>
+            {!googleConfigured ? (
+              <div className="bg-light-gray rounded-lg p-3 text-xs font-mono text-gray-600 space-y-1">
+                <p>GOOGLE_OAUTH_CLIENT_ID=…</p>
+                <p>GOOGLE_OAUTH_CLIENT_SECRET=…</p>
+                <p>GOOGLE_OAUTH_REDIRECT_URI=https://jordanpadierne.com/api/google/callback</p>
+              </div>
+            ) : (
+              <a href="/api/google/connect" className="btn-primary text-sm px-5 py-2.5 inline-flex">
+                <Calendar size={15} /> {googleConnected ? 'Reconnect Google Calendar' : 'Connect Google Calendar'}
+              </a>
+            )}
+          </div>
+        </div>
+
         {/* Agent Profile */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-50 flex items-center gap-3">

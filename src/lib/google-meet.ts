@@ -1,74 +1,88 @@
-// Create real Google Calendar events with Google Meet links, on Jordan's
-// calendar, using a Google Cloud service account with domain-wide delegation
-// (impersonates the Workspace user). No interactive OAuth, works headless.
-//
-// Activates when these env vars are set (otherwise callers fall back to Jitsi):
-//   GOOGLE_SA_EMAIL          – service account client_email
-//   GOOGLE_SA_PRIVATE_KEY    – service account private_key (\n-escaped is fine)
-//   GOOGLE_CALENDAR_USER     – the Workspace user/calendar to write to
-//                              (defaults to SMTP_FROM / info@jordanpadierne.com)
+// Real Google Calendar events with Google Meet links, via OAuth 2.0 user
+// consent (no service-account key — blocked by org policy). The admin connects
+// once: we store a refresh token and the server uses it to create events on
+// their calendar. Activates when GOOGLE_OAUTH_CLIENT_ID/SECRET are set AND the
+// admin has connected (a refresh token is stored); otherwise callers fall back.
 
-import crypto from 'crypto'
+import { getSetting, setSetting } from '@/lib/settings'
 
 const TOKEN_URL = 'https://oauth2.googleapis.com/token'
+const AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth'
+const SCOPE = 'https://www.googleapis.com/auth/calendar.events'
+const REFRESH_KEY = 'google_refresh_token'
 
-export function isGoogleMeetConfigured(): boolean {
-  return !!(process.env.GOOGLE_SA_EMAIL && process.env.GOOGLE_SA_PRIVATE_KEY)
+export function googleOAuthConfigured(): boolean {
+  return !!(process.env.GOOGLE_OAUTH_CLIENT_ID && process.env.GOOGLE_OAUTH_CLIENT_SECRET)
 }
 
-function calendarUser(): string {
-  return process.env.GOOGLE_CALENDAR_USER || process.env.SMTP_FROM || 'info@jordanpadierne.com'
+export function googleRedirectUri(): string {
+  return process.env.GOOGLE_OAUTH_REDIRECT_URI || 'https://jordanpadierne.com/api/google/callback'
 }
 
-function b64url(input: Buffer | string): string {
-  return Buffer.from(input).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+export function buildConsentUrl(state: string): string {
+  const params = new URLSearchParams({
+    client_id: process.env.GOOGLE_OAUTH_CLIENT_ID!,
+    redirect_uri: googleRedirectUri(),
+    response_type: 'code',
+    scope: SCOPE,
+    access_type: 'offline',
+    prompt: 'consent', // always return a refresh token
+    state,
+  })
+  return `${AUTH_URL}?${params.toString()}`
 }
 
-async function getAccessToken(): Promise<string | null> {
-  const email = process.env.GOOGLE_SA_EMAIL
-  let key = process.env.GOOGLE_SA_PRIVATE_KEY
-  if (!email || !key) return null
-  key = key.replace(/\\n/g, '\n') // env vars often store the key with literal \n
-
-  const now = Math.floor(Date.now() / 1000)
-  const header = { alg: 'RS256', typ: 'JWT' }
-  const claim = {
-    iss: email,
-    sub: calendarUser(), // impersonate the Workspace user (domain-wide delegation)
-    scope: 'https://www.googleapis.com/auth/calendar.events',
-    aud: TOKEN_URL,
-    iat: now,
-    exp: now + 3600,
-  }
-  const signingInput = `${b64url(JSON.stringify(header))}.${b64url(JSON.stringify(claim))}`
-  let signature: Buffer
-  try {
-    signature = crypto.createSign('RSA-SHA256').update(signingInput).sign(key)
-  } catch (e) {
-    console.error('[google-meet] sign', e)
-    return null
-  }
-  const jwt = `${signingInput}.${b64url(signature)}`
-
+// Exchange the authorization code for a refresh token and store it.
+export async function storeRefreshTokenFromCode(code: string): Promise<boolean> {
+  if (!googleOAuthConfigured()) return false
   const res = await fetch(TOKEN_URL, {
     method: 'POST',
     headers: { 'content-type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({
-      grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-      assertion: jwt,
+      code,
+      client_id: process.env.GOOGLE_OAUTH_CLIENT_ID!,
+      client_secret: process.env.GOOGLE_OAUTH_CLIENT_SECRET!,
+      redirect_uri: googleRedirectUri(),
+      grant_type: 'authorization_code',
     }),
   })
   if (!res.ok) {
-    console.error('[google-meet] token', res.status, await res.text().catch(() => ''))
+    console.error('[google] code exchange', res.status, await res.text().catch(() => ''))
+    return false
+  }
+  const data = await res.json()
+  if (!data.refresh_token) return false
+  return setSetting(REFRESH_KEY, data.refresh_token)
+}
+
+async function getAccessToken(): Promise<string | null> {
+  if (!googleOAuthConfigured()) return null
+  const refresh = await getSetting(REFRESH_KEY)
+  if (!refresh) return null
+  const res = await fetch(TOKEN_URL, {
+    method: 'POST',
+    headers: { 'content-type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      refresh_token: refresh,
+      client_id: process.env.GOOGLE_OAUTH_CLIENT_ID!,
+      client_secret: process.env.GOOGLE_OAUTH_CLIENT_SECRET!,
+      grant_type: 'refresh_token',
+    }),
+  })
+  if (!res.ok) {
+    console.error('[google] refresh', res.status, await res.text().catch(() => ''))
     return null
   }
   const data = await res.json()
   return data.access_token ?? null
 }
 
-// Creates the event with a Meet link and (sendUpdates: all) lets Google email
-// the native calendar invite to the client. Returns the Meet URL, or null on
-// any failure so the caller can fall back.
+// True only when OAuth is configured AND the admin has connected their calendar.
+export async function isGoogleMeetConfigured(): Promise<boolean> {
+  if (!googleOAuthConfigured()) return false
+  return !!(await getSetting(REFRESH_KEY))
+}
+
 export async function createGoogleMeetEvent(o: {
   title: string
   description?: string
@@ -80,6 +94,7 @@ export async function createGoogleMeetEvent(o: {
   const token = await getAccessToken()
   if (!token) return null
 
+  const calendarId = process.env.GOOGLE_CALENDAR_ID || 'primary'
   const end = new Date(o.start.getTime() + o.durationMinutes * 60000)
   const body = {
     summary: o.title,
@@ -89,7 +104,7 @@ export async function createGoogleMeetEvent(o: {
     attendees: [{ email: o.attendeeEmail, displayName: o.attendeeName }],
     conferenceData: {
       createRequest: {
-        requestId: crypto.randomBytes(8).toString('hex'),
+        requestId: Math.random().toString(36).slice(2) + Date.now().toString(36),
         conferenceSolutionKey: { type: 'hangoutsMeet' },
       },
     },
@@ -97,7 +112,7 @@ export async function createGoogleMeetEvent(o: {
   }
 
   const url =
-    `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarUser())}/events` +
+    `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events` +
     `?conferenceDataVersion=1&sendUpdates=all`
 
   const res = await fetch(url, {
@@ -106,7 +121,7 @@ export async function createGoogleMeetEvent(o: {
     body: JSON.stringify(body),
   })
   if (!res.ok) {
-    console.error('[google-meet] create', res.status, await res.text().catch(() => ''))
+    console.error('[google] create event', res.status, await res.text().catch(() => ''))
     return null
   }
   const data = await res.json()
