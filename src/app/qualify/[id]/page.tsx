@@ -4,6 +4,7 @@ import Image from 'next/image'
 import { safeQuery } from '@/lib/db'
 import QualificationForm from '@/components/forms/QualificationForm'
 import ExpLogo from '@/components/ui/ExpLogo'
+import { LanguageProvider } from '@/components/LanguageProvider'
 import { Phone, Shield, Clock } from 'lucide-react'
 
 export const metadata: Metadata = {
@@ -52,7 +53,9 @@ export default async function QualifyPage({ params }: { params: { id: string } }
             </p>
           </div>
 
-          <QualificationForm leadId={lead?.id ?? params.id} firstName={firstName} known={known} />
+          <LanguageProvider>
+            <QualificationForm leadId={lead?.id ?? params.id} firstName={firstName} known={known} />
+          </LanguageProvider>
         </div>
 
         {/* Trust footer */}

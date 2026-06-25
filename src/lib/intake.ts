@@ -77,31 +77,60 @@ export async function finalizeFormLead(body: Record<string, any>, meta?: { ip?: 
 
   const isWarm = formData.source === 'Website Popup' || form_type === 'home_valuation' || form_type === 'rental_application'
 
-  const { data: lead, error: leadError } = await supabase
-    .from('leads')
-    .insert({
-      full_name: formData.full_name,
-      email: formData.email,
-      phone: formData.phone ?? '',
-      client_type: clientTypeMap[form_type] ?? 'Buyer',
-      source: (formData.source as LeadSource) ?? 'Website',
-      status: 'new',
-      pipeline_stage: 'NEW',
-      preferred_area: formData.preferred_area ?? null,
-      budget_min: formData.budget_min ? Number(formData.budget_min) : null,
-      budget_max: formData.budget_max ? Number(formData.budget_max) : null,
-      timeline: formData.timeline ?? null,
-      property_interest: formData.preferred_project ?? formData.property_address ?? null,
-      financing_status: formData.financing_status ?? null,
-      message: formData.message ?? null,
-      hot_score: isWarm ? 2 : 1,
-      tags: isWarm ? ['hot'] : [],
-      metadata: { ...body, email_verified: true },
-    })
-    .select('id')
-    .single()
+  // Profile fields shared by insert + update.
+  const leadFields = {
+    full_name: formData.full_name,
+    phone: formData.phone ?? '',
+    client_type: clientTypeMap[form_type] ?? 'Buyer',
+    preferred_area: formData.preferred_area ?? null,
+    budget_min: formData.budget_min ? Number(formData.budget_min) : null,
+    budget_max: formData.budget_max ? Number(formData.budget_max) : null,
+    timeline: formData.timeline ?? null,
+    property_interest: formData.preferred_project ?? formData.property_address ?? null,
+    financing_status: formData.financing_status ?? null,
+    message: formData.message ?? null,
+  }
 
-  if (leadError) console.error('[intake] lead insert', leadError)
+  // Dedupe by email: if this person is already a lead, ENRICH that record
+  // instead of creating a duplicate (so all their submissions land in one place).
+  const emailLower = String(formData.email ?? '').toLowerCase()
+  const { data: dup } = emailLower && !isPlaceholderEmail(emailLower)
+    ? await supabase.from('leads').select('id, hot_score, tags').ilike('email', emailLower).limit(1)
+    : { data: null }
+
+  let lead: { id: string } | null = null
+  if (dup && dup.length) {
+    const merged: Record<string, unknown> = {
+      last_contact: new Date().toISOString(),
+      hot_score: Math.max(Number(dup[0].hot_score ?? 0), isWarm ? 2 : 1),
+      tags: Array.from(new Set([...(dup[0].tags ?? []), ...(isWarm ? ['hot'] : [])])),
+    }
+    // Only overwrite with non-empty new values (don't wipe known data).
+    for (const [k, v] of Object.entries(leadFields)) {
+      if (v !== null && v !== '' && v !== undefined) merged[k] = v
+    }
+    const { data: updated, error: upErr } = await supabase
+      .from('leads').update(merged).eq('id', dup[0].id).select('id').single()
+    if (upErr) console.error('[intake] lead merge', upErr)
+    lead = updated
+  } else {
+    const { data: created, error: leadError } = await supabase
+      .from('leads')
+      .insert({
+        ...leadFields,
+        email: formData.email,
+        source: (formData.source as LeadSource) ?? 'Website',
+        status: 'new',
+        pipeline_stage: 'NEW',
+        hot_score: isWarm ? 2 : 1,
+        tags: isWarm ? ['hot'] : [],
+        metadata: { ...body, email_verified: true },
+      })
+      .select('id')
+      .single()
+    if (leadError) console.error('[intake] lead insert', leadError)
+    lead = created
+  }
 
   await supabase.from('messages').insert({
     type: messageTypeMap[form_type] ?? 'contact',
