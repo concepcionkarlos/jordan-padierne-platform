@@ -52,7 +52,10 @@ export default function LeadWorkspace({ lead: initialLead, initialNotes, initial
   // Appointment form
   const [showApptForm, setShowApptForm] = useState(false)
   const [apptTitle, setApptTitle] = useState('')
-  const [apptType, setApptType] = useState('showing')
+  const [apptMode, setApptMode] = useState<'in_person' | 'video'>('in_person')
+  const [apptDuration, setApptDuration] = useState(30)
+  const [apptInvite, setApptInvite] = useState(true)
+  const [scheduling, setScheduling] = useState(false)
   const [apptWhen, setApptWhen] = useState('')
   const [apptLocation, setApptLocation] = useState('')
   // Buyer form
@@ -250,22 +253,39 @@ export default function LeadWorkspace({ lead: initialLead, initialNotes, initial
     })
   }
 
-  // ─── Appointments ───
-  async function addAppt() {
+  // ─── Appointments — schedule + email the client a calendar invite ───
+  async function scheduleAndInvite() {
     if (!apptTitle.trim() || !apptWhen) return
-    const res = await fetch('/api/appointments', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        title: apptTitle.trim(), type: apptType, starts_at: new Date(apptWhen).toISOString(),
-        location: apptLocation || null, lead_id: lead.id, status: 'scheduled',
-      }),
-    })
-    const json = await res.json()
-    if (json.success) {
-      setAppts((prev) => [...prev, json.data].sort((a, b) => +new Date(a.starts_at) - +new Date(b.starts_at)))
-      setApptTitle(''); setApptWhen(''); setApptLocation(''); setShowApptForm(false)
-      toast('Appointment scheduled 📅', { type: 'success' })
+    setScheduling(true)
+    try {
+      const res = await fetch('/api/leads/schedule', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          lead_id: lead.id,
+          title: apptTitle.trim(),
+          starts_at: new Date(apptWhen).toISOString(),
+          duration_minutes: apptDuration,
+          mode: apptMode,
+          location: apptMode === 'in_person' ? apptLocation : undefined,
+          send_invite: apptInvite,
+        }),
+      })
+      const json = await res.json().catch(() => ({ success: false }))
+      if (res.ok && json.success) {
+        if (json.appointment) {
+          setAppts((prev) => [...prev, json.appointment].sort((a, b) => +new Date(a.starts_at) - +new Date(b.starts_at)))
+        }
+        setApptTitle(''); setApptWhen(''); setApptLocation(''); setShowApptForm(false)
+        const extra = apptMode === 'video' && json.videoUrl ? ' · video link included' : ''
+        toast(json.invite_sent ? `Invite sent to ${lead.email} 📅${extra}` : 'Appointment scheduled 📅', { type: 'success' })
+      } else {
+        toast(json.error || 'Could not schedule.', { type: 'warn' })
+      }
+    } catch {
+      toast('Could not schedule.', { type: 'warn' })
+    } finally {
+      setScheduling(false)
     }
   }
 
@@ -563,27 +583,40 @@ export default function LeadWorkspace({ lead: initialLead, initialNotes, initial
             </button>
           </div>
           {showApptForm && (
-            <div className="space-y-2 mb-3 pb-3 border-b border-gray-50">
-              <input value={apptTitle} onChange={(e) => setApptTitle(e.target.value)} placeholder="e.g. Showing at Brickell condo" className="input-field text-sm" />
-              <div className="flex gap-2">
-                <select value={apptType} onChange={(e) => setApptType(e.target.value)} className="input-field text-sm flex-1" title="Appointment type">
-                  <option value="showing">🏠 Showing</option>
-                  <option value="call">📞 Call</option>
-                  <option value="meeting">🤝 Meeting</option>
-                  <option value="closing">🔑 Closing</option>
-                  <option value="other">📌 Other</option>
-                </select>
-                <input type="datetime-local" value={apptWhen} onChange={(e) => setApptWhen(e.target.value)} className="input-field text-sm flex-1" title="When" />
+            <div className="space-y-2.5 mb-3 pb-3 border-b border-gray-50">
+              <input value={apptTitle} onChange={(e) => setApptTitle(e.target.value)} placeholder={`e.g. Showing in ${lead.preferred_area || 'Brickell'}`} className="input-field text-sm" />
+              <div className="grid grid-cols-2 gap-2">
+                <button type="button" onClick={() => setApptMode('in_person')} className={`py-2 rounded-xl border text-xs font-semibold transition-all ${apptMode === 'in_person' ? 'bg-navy-900 border-navy-900 text-white' : 'bg-white border-gray-200 text-navy-700 hover:border-navy-300'}`}>🏠 In person</button>
+                <button type="button" onClick={() => setApptMode('video')} className={`py-2 rounded-xl border text-xs font-semibold transition-all ${apptMode === 'video' ? 'bg-navy-900 border-navy-900 text-white' : 'bg-white border-gray-200 text-navy-700 hover:border-navy-300'}`}>🎥 Video call</button>
               </div>
-              <input value={apptLocation} onChange={(e) => setApptLocation(e.target.value)} placeholder="Location (optional)" className="input-field text-sm" />
-              <button type="button" onClick={addAppt} disabled={!apptTitle.trim() || !apptWhen} className="btn-primary w-full text-sm disabled:opacity-50">Schedule</button>
+              <div className="flex gap-2">
+                <input type="datetime-local" value={apptWhen} onChange={(e) => setApptWhen(e.target.value)} className="input-field text-sm flex-1" title="When" />
+                <select value={apptDuration} onChange={(e) => setApptDuration(Number(e.target.value))} className="input-field text-sm w-24" title="Duration">
+                  <option value={15}>15 min</option>
+                  <option value={30}>30 min</option>
+                  <option value={45}>45 min</option>
+                  <option value={60}>60 min</option>
+                </select>
+              </div>
+              {apptMode === 'in_person' ? (
+                <input value={apptLocation} onChange={(e) => setApptLocation(e.target.value)} placeholder="Address / where to meet" className="input-field text-sm" />
+              ) : (
+                <p className="text-xs text-gray-400 flex items-center gap-1.5">🔗 A video-call link is generated and sent to the client automatically.</p>
+              )}
+              <label className="flex items-center gap-2 text-xs text-navy-700">
+                <input type="checkbox" checked={apptInvite} onChange={(e) => setApptInvite(e.target.checked)} className="w-3.5 h-3.5 accent-sky-500" />
+                Email calendar invite to {firstNm}
+              </label>
+              <button type="button" onClick={scheduleAndInvite} disabled={!apptTitle.trim() || !apptWhen || scheduling} className="btn-primary w-full text-sm disabled:opacity-50">
+                {scheduling ? 'Scheduling…' : apptInvite ? 'Schedule & send invite' : 'Schedule'}
+              </button>
             </div>
           )}
           <div className="space-y-2">
             {appts.length === 0 && !showApptForm && <p className="text-gray-300 text-xs text-center py-1">No appointments scheduled.</p>}
             {appts.map((a) => (
               <div key={a.id} className="flex items-center gap-2.5 text-sm">
-                <span className="text-base">{a.type === 'showing' ? '🏠' : a.type === 'call' ? '📞' : a.type === 'meeting' ? '🤝' : a.type === 'closing' ? '🔑' : '📌'}</span>
+                <span className="text-base">{a.type === 'showing' ? '🏠' : a.type === 'video' ? '🎥' : a.type === 'call' ? '📞' : a.type === 'meeting' ? '🤝' : a.type === 'closing' ? '🔑' : '📌'}</span>
                 <div className="flex-1 min-w-0">
                   <p className="text-navy-700 text-xs font-medium truncate">{a.title}</p>
                   <p className="text-gray-400 text-xs">{formatDate(a.starts_at)} · {new Date(a.starts_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</p>

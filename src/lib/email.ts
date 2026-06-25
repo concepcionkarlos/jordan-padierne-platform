@@ -235,6 +235,53 @@ async function send(
   }
 }
 
+// Send a branded email WITH an .ics calendar invite attached, so the client can
+// add the appointment to their calendar in one tap (and get a reminder).
+export async function sendCalendarInvite(
+  to: string,
+  subject: string,
+  html: string,
+  ics: string,
+  replyTo?: string
+): Promise<boolean> {
+  const provider = getProvider()
+  if (provider === 'none') return false
+  const from = process.env.SMTP_FROM || 'info@jordanpadierne.com'
+  try {
+    if (provider === 'resend') {
+      const resend = new Resend(process.env.RESEND_API_KEY)
+      const { error } = await resend.emails.send({
+        from: `Jordan Padierne <${from}>`,
+        to: [to],
+        subject,
+        html,
+        replyTo: replyTo || from,
+        attachments: [{ filename: 'invite.ics', content: Buffer.from(ics).toString('base64') }],
+      })
+      if (error) { console.error('[email/resend invite]', error); return false }
+      return true
+    }
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST || 'smtp.gmail.com',
+      port: parseInt(process.env.SMTP_PORT || '587'),
+      secure: false,
+      auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASSWORD },
+    })
+    await transporter.sendMail({
+      from: `"Jordan Padierne" <${from}>`,
+      to,
+      subject,
+      html,
+      replyTo: replyTo || from,
+      icalEvent: { method: 'REQUEST', filename: 'invite.ics', content: ics },
+    })
+    return true
+  } catch (err) {
+    console.error('[email/invite]', err)
+    return false
+  }
+}
+
 // Generic branded sender for nurture/drip emails built elsewhere (see lib/drip).
 export async function sendEmail(
   to: string,
