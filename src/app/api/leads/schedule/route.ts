@@ -22,7 +22,7 @@ function whenLabel(d: Date): string {
 }
 
 // Schedule an appointment for a lead from the CRM and invite the client.
-// Video → real Google Meet (if a service account is configured) with Google's
+// Video → real Google Meet (if Google Calendar is connected via OAuth) with Google's
 // native calendar invite; otherwise a Jitsi link + our own .ics invite.
 // In-person → our branded .ics invite with the address.
 export async function POST(req: NextRequest) {
