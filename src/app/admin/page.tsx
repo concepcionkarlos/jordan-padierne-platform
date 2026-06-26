@@ -96,9 +96,23 @@ async function getData() {
     .sort((a: any, b: any) => (a.fu.overdue === b.fu.overdue ? 0 : a.fu.overdue ? -1 : 1))
   const overdueTasks = todoTasks.filter((t: any) => t.due_date && new Date(t.due_date) < endToday)
 
+  // ─── Deals at Risk: working-stage deals (money in motion) that have stalled ───
+  // Distinct from "Going Cold" (general lead staleness): these are opportunities
+  // already in progress (Contacted → Negotiation) untouched for 5+ days.
+  const WORKING_STAGES = ['CONTACTED', 'SHOWING_SCHEDULED', 'NEGOTIATION']
+  const RISK_DAYS = 5
+  const dealsAtRisk = active
+    .filter((l: any) => WORKING_STAGES.includes(l.pipeline_stage))
+    .map((l: any) => ({ lead: l, days: getLeadFreshness(l).ageDays, value: l.deal_value ?? l.budget_max ?? 0 }))
+    .filter((x: any) => x.days >= RISK_DAYS)
+    .sort((a: any, b: any) => (WORKING_STAGES.indexOf(b.lead.pipeline_stage) - WORKING_STAGES.indexOf(a.lead.pipeline_stage)) || b.days - a.days)
+    .slice(0, 5)
+  const riskIds = new Set(dealsAtRisk.map((x: any) => x.lead.id))
+
+  // Going Cold = general staleness, EXCLUDING the at-risk deals (kept distinct).
   const staleLeads = active
     .map((l: any) => ({ lead: l, fresh: getLeadFreshness(l) }))
-    .filter((x: any) => x.fresh.level === 'stale' || x.fresh.level === 'cold')
+    .filter((x: any) => (x.fresh.level === 'stale' || x.fresh.level === 'cold') && !riskIds.has(x.lead.id))
     .sort((a: any, b: any) => b.fresh.ageDays - a.fresh.ageDays)
     .slice(0, 5)
 
@@ -118,7 +132,7 @@ async function getData() {
     totalLeads: leads.length, newLeads: leads.filter((l: any) => l.status === 'new').length,
     unreadMessages: messages.filter((m: any) => m.status === 'unread').length, activePipeline: active.length,
     streak, todayCount, earnedThisMonth, forecastValue, closedCount, missions,
-    todaysAppts, followupsDue, overdueTasks, staleLeads, hotLeads, actionFeed, closestToClose,
+    todaysAppts, followupsDue, overdueTasks, staleLeads, hotLeads, actionFeed, closestToClose, dealsAtRisk,
     recentLeads: leads.slice(0, 5),
     onboarding: {
       leads: leads.length, properties: properties.length, notes: notes.length,
@@ -293,32 +307,62 @@ export default async function AdminDashboard() {
         </div>
       </div>
 
-      {/* ─── Closest to Close ─── */}
-      {d.closestToClose && (
-        <div className="bg-gradient-to-br from-green-50 to-white rounded-2xl border border-green-100 shadow-sm p-5 mb-6">
+      {/* ─── Opportunity + Risk: closest to close · deals at risk ─── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        {/* Closest to Close */}
+        <div className="bg-gradient-to-br from-green-50 to-white rounded-2xl border border-green-100 shadow-sm p-5">
           <div className="flex items-center gap-2 mb-4">
             <Target size={16} className="text-green-600" />
             <h2 className="font-semibold text-navy-900 text-sm">Closest to Close</h2>
-            <span className="badge bg-green-100 text-green-700 text-xs ml-auto">{Math.round(d.closestToClose.prob * 100)}% likely</span>
+            {d.closestToClose && <span className="badge bg-green-100 text-green-700 text-xs ml-auto">{Math.round(d.closestToClose.prob * 100)}% likely</span>}
           </div>
-          <div className="flex items-center justify-between gap-4">
-            <div className="min-w-0">
-              <Link href={`/admin/leads/${d.closestToClose.lead.id}`} className="font-serif text-lg font-bold text-navy-900 hover:text-wine transition-colors truncate block">{d.closestToClose.lead.full_name}</Link>
-              <p className="text-gray-400 text-xs mt-0.5">{getPipelineStageLabel(d.closestToClose.lead.pipeline_stage)} · {formatCurrency(d.closestToClose.value)} deal</p>
-            </div>
-            <div className="text-right shrink-0">
-              <p className="text-[10px] text-gray-400 uppercase tracking-wide">Your commission</p>
-              <p className="font-serif text-2xl font-bold text-green-600">{formatCurrency(d.closestToClose.commission)}</p>
-            </div>
+          {d.closestToClose ? (
+            <>
+              <div className="flex items-center justify-between gap-4">
+                <div className="min-w-0">
+                  <Link href={`/admin/leads/${d.closestToClose.lead.id}`} className="font-serif text-lg font-bold text-navy-900 hover:text-wine transition-colors truncate block">{d.closestToClose.lead.full_name}</Link>
+                  <p className="text-gray-400 text-xs mt-0.5">{getPipelineStageLabel(d.closestToClose.lead.pipeline_stage)} · {formatCurrency(d.closestToClose.value)} deal</p>
+                </div>
+                <div className="text-right shrink-0">
+                  <p className="text-[10px] text-gray-400 uppercase tracking-wide">Your commission</p>
+                  <p className="font-serif text-2xl font-bold text-green-600">{formatCurrency(d.closestToClose.commission)}</p>
+                </div>
+              </div>
+              <div className="flex gap-2 mt-4">
+                {d.closestToClose.lead.phone && (
+                  <a href={`tel:${d.closestToClose.lead.phone}`} className="inline-flex items-center gap-1.5 text-sm font-semibold text-green-700 bg-green-100 hover:bg-green-200 px-4 py-2 rounded-xl transition-colors"><Phone size={14} /> Call</a>
+                )}
+                <Link href={`/admin/leads/${d.closestToClose.lead.id}`} className="inline-flex items-center gap-1.5 text-sm font-semibold text-navy-700 border border-gray-200 hover:border-navy-300 px-4 py-2 rounded-xl transition-colors">Open deal <ArrowRight size={14} /></Link>
+              </div>
+            </>
+          ) : (
+            <p className="text-gray-400 text-xs text-center py-6">Add a deal value to an active lead to surface your closest deal.</p>
+          )}
+        </div>
+
+        {/* Deals at Risk */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="px-5 py-4 border-b border-gray-50 flex items-center gap-2 bg-gradient-to-r from-wine-50 to-transparent">
+            <AlertCircle size={15} className="text-wine" />
+            <h2 className="font-semibold text-navy-900 text-sm">Deals at Risk</h2>
+            {d.dealsAtRisk.length > 0 && <span className="badge bg-wine-50 text-wine text-xs ml-auto">{d.dealsAtRisk.length}</span>}
           </div>
-          <div className="flex gap-2 mt-4">
-            {d.closestToClose.lead.phone && (
-              <a href={`tel:${d.closestToClose.lead.phone}`} className="inline-flex items-center gap-1.5 text-sm font-semibold text-green-700 bg-green-100 hover:bg-green-200 px-4 py-2 rounded-xl transition-colors"><Phone size={14} /> Call</a>
-            )}
-            <Link href={`/admin/leads/${d.closestToClose.lead.id}`} className="inline-flex items-center gap-1.5 text-sm font-semibold text-navy-700 border border-gray-200 hover:border-navy-300 px-4 py-2 rounded-xl transition-colors">Open deal <ArrowRight size={14} /></Link>
+          <div className="divide-y divide-gray-50">
+            {d.dealsAtRisk.length === 0 && <p className="px-5 py-8 text-center text-gray-400 text-xs">No active deals stalling. 👏</p>}
+            {d.dealsAtRisk.map(({ lead, days, value }: any) => (
+              <div key={lead.id} className="flex items-center gap-3 px-5 py-3 hover:bg-gray-50 transition-colors">
+                <span className="w-2 h-2 rounded-full bg-wine shrink-0" />
+                <Link href={`/admin/leads/${lead.id}`} className="flex-1 min-w-0">
+                  <p className="font-semibold text-navy-900 text-xs truncate">{lead.full_name}</p>
+                  <p className="text-gray-400 text-xs">{getPipelineStageLabel(lead.pipeline_stage)}{value ? ` · ${formatCurrency(value)}` : ''}</p>
+                </Link>
+                {lead.phone && <a href={`tel:${lead.phone}`} className="text-sky-400 hover:text-sky-600" aria-label="Call"><Phone size={15} /></a>}
+                <span className="badge bg-wine-50 text-wine text-xs">{days}d quiet</span>
+              </div>
+            ))}
           </div>
         </div>
-      )}
+      </div>
 
       {/* ─── Bottom grid: stale + hot + recent ─── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
