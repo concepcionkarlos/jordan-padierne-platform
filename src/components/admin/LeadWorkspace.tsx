@@ -81,6 +81,7 @@ export default function LeadWorkspace({ lead: initialLead, initialNotes, initial
   const dealValue = lead.deal_value ?? lead.budget_max ?? 0
   const commRate = lead.commission_rate ?? 3
   const commission = dealValue ? commissionFor(dealValue, commRate) : 0
+  const openTasks = tasks.filter((t) => t.status !== 'done').length
   const smart = scoreLead({ ...lead, noteCount: notes.length, apptCount: appts.length })
   const aiNote = notes.find((n) => n.author === 'AI Evaluation')
 
@@ -717,9 +718,9 @@ export default function LeadWorkspace({ lead: initialLead, initialNotes, initial
                 <span className={`text-xs px-2 py-0.5 rounded-full font-bold ml-auto shrink-0 ${hotScore.className}`}>{hotScore.emoji} {hotScore.label}</span>
               </div>
               <p className="text-navy-700 text-sm leading-relaxed whitespace-pre-wrap">{aiNote.content}</p>
-              <div className="mt-4 pt-3 border-t border-sky-100 flex items-start gap-1.5 text-xs text-sky-700">
-                <Target size={13} className="shrink-0 mt-0.5" />
-                <span>The recommended next step is at the top of this page; the tasks the AI suggested are in your task list below.</span>
+              <div className="mt-4 pt-3 border-t border-sky-100 flex items-center justify-between gap-2 text-xs">
+                <span className="flex items-start gap-1.5 text-sky-700"><Target size={13} className="shrink-0 mt-0.5" /> Recommended next step is at the top; the AI added your next tasks below.</span>
+                {openTasks > 0 && <a href="#tasks-anchor" className="shrink-0 font-semibold text-sky-700 hover:text-sky-800 whitespace-nowrap">{openTasks} open task{openTasks > 1 ? 's' : ''} ↓</a>}
               </div>
             </div>
           ) : (
@@ -850,7 +851,7 @@ export default function LeadWorkspace({ lead: initialLead, initialNotes, initial
           </div>
 
           {/* Tasks */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div id="tasks-anchor" className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden scroll-mt-24">
             <div className="px-5 py-4 border-b border-gray-50 flex items-center gap-2">
               <Check size={15} className="text-sky-400" />
               <h3 className="font-semibold text-navy-900 text-sm">Tasks</h3>
