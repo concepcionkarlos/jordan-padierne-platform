@@ -77,4 +77,11 @@ struct APIClient {
         let (data, response) = try await send("api/leads", method: "PATCH", jsonBody: ["id": leadId, "next_followup": isoDate])
         _ = try decode(data, response, as: GenericResponse.self)
     }
+
+    func addNote(leadId: String, content: String) async throws -> Note {
+        let (data, response) = try await send("api/notes", method: "POST", jsonBody: ["lead_id": leadId, "content": content])
+        let result = try decode(data, response, as: NoteResponse.self)
+        guard result.success, let note = result.data else { throw APIError.badResponse }
+        return note
+    }
 }

@@ -152,3 +152,8 @@ enum TimelineBuilder {
 struct GenericResponse: Decodable {
     let success: Bool
 }
+
+struct NoteResponse: Decodable {
+    let success: Bool
+    let data: Note?
+}

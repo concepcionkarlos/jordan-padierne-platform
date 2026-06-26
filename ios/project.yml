@@ -34,4 +34,6 @@ targets:
         INFOPLIST_KEY_UIApplicationSceneManifest_Generation: "YES"
         INFOPLIST_KEY_UISupportedInterfaceOrientations: "UIInterfaceOrientationPortrait"
         INFOPLIST_KEY_NSFaceIDUsageDescription: "Unlock the app with Face ID."
+        INFOPLIST_KEY_NSMicrophoneUsageDescription: "Record quick voice notes for your clients."
+        INFOPLIST_KEY_NSSpeechRecognitionUsageDescription: "Transcribe your voice notes on-device."
         # DEVELOPMENT_TEAM + signing are set on your Mac when you archive for TestFlight.

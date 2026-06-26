@@ -1,23 +1,26 @@
 import SwiftUI
 
-// Native iOS companion for the Jordan Padierne CRM (Milestone 1 — authenticated
-// shell). One shared Supabase auth instance backs both the session and the API
-// client (so the same access token authenticates the user and the API calls).
+// Native iOS companion for the Jordan Padierne CRM. One shared Supabase auth
+// instance backs the session, the API client, and the offline note-sync service.
 @main
 struct JordanCRMApp: App {
     @StateObject private var session: AppSession
+    @StateObject private var sync: NoteSyncService
     private let api: APIClient
 
     init() {
         let auth = SupabaseAuthService()
+        let client = APIClient(baseURL: AppConfig.apiBaseURL, auth: auth)
         _session = StateObject(wrappedValue: AppSession(auth: auth))
-        api = APIClient(baseURL: AppConfig.apiBaseURL, auth: auth)
+        _sync = StateObject(wrappedValue: NoteSyncService(api: client))
+        api = client
     }
 
     var body: some Scene {
         WindowGroup {
             RootView(api: api)
                 .environmentObject(session)
+                .environmentObject(sync)
         }
     }
 }

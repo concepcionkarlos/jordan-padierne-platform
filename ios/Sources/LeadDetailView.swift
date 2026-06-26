@@ -26,6 +26,12 @@ final class LeadDetailViewModel: ObservableObject {
         loadingTimeline = false
     }
 
+    func insertNote(_ note: Note) {
+        let item = TimelineItem(id: "note-\(note.id)", kind: .note, title: note.content,
+                                subtitle: note.author, date: AppDate.parse(note.createdAt) ?? Date())
+        timeline.insert(item, at: 0)
+    }
+
     func setStage(_ newStage: String) async {
         guard newStage != stage else { return }
         working = true
@@ -51,7 +57,6 @@ final class LeadDetailViewModel: ObservableObject {
 struct LeadDetailView: View {
     let api: APIClient
     @StateObject private var vm: LeadDetailViewModel
-    @State private var showAddNoteSoon = false
 
     init(api: APIClient, lead: Lead) {
         self.api = api
@@ -70,10 +75,8 @@ struct LeadDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .task { await vm.load() }
         .refreshable { await vm.load() }
-        .alert("Coming soon", isPresented: $showAddNoteSoon) {
-            Button("OK", role: .cancel) {}
-        } message: {
-            Text("Voice notes arrive in the next milestone.")
+        .overlay {
+            VoiceCaptureButton(api: api, lead: vm.lead) { note in vm.insertNote(note) }
         }
     }
 
@@ -105,7 +108,6 @@ struct LeadDetailView: View {
             HStack(spacing: 10) {
                 linkAction("Call", "phone.fill", .green, url: PhoneLinks.tel(vm.lead.phone))
                 linkAction("WhatsApp", "message.fill", .blue, url: PhoneLinks.whatsapp(vm.lead.phone, message: "Hi \(firstName)! 👋 Jordan here."))
-                buttonAction("Note", "mic.fill", .orange) { showAddNoteSoon = true }
                 stageMenu
             }
             .frame(maxWidth: .infinity)
@@ -188,11 +190,6 @@ struct LeadDetailView: View {
         } else {
             actionLabel(title, icon, color).opacity(0.35)
         }
-    }
-
-    private func buttonAction(_ title: String, _ icon: String, _ color: Color, action: @escaping () -> Void) -> some View {
-        Button(action: action) { actionLabel(title, icon, color) }
-            .buttonStyle(.plain)
     }
 
     private func actionLabel(_ title: String, _ icon: String, _ color: Color) -> some View {

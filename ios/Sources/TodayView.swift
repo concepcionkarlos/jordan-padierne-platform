@@ -23,15 +23,18 @@ final class TodayViewModel: ObservableObject {
 // Today — the read-only command center. Next appointment + the four counts from
 // GET /api/today, with loading / error / pull-to-refresh.
 struct TodayView: View {
+    let api: APIClient
     @EnvironmentObject private var session: AppSession
     @StateObject private var vm: TodayViewModel
 
     init(api: APIClient) {
+        self.api = api
         _vm = StateObject(wrappedValue: TodayViewModel(api: api))
     }
 
     #if DEBUG
     init(previewModel: TodayViewModel) {
+        self.api = APIClient(baseURL: AppConfig.apiBaseURL, auth: PreviewAuthService())
         _vm = StateObject(wrappedValue: previewModel)
     }
     #endif
@@ -48,6 +51,7 @@ struct TodayView: View {
                 .refreshable { await vm.load() }
                 .task { await vm.load() }
         }
+        .overlay { VoiceCaptureButton(api: api, lead: nil) }
     }
 
     @ViewBuilder private var content: some View {
