@@ -462,6 +462,21 @@ export default function LeadWorkspace({ lead: initialLead, initialNotes, initial
                 <span className={`w-1.5 h-1.5 rounded-full ${freshness.dotClassName}`} />{freshness.label}
               </span>
             </div>
+            {/* Quick actions — one-tap, always visible in the sticky rail */}
+            <div className="grid grid-cols-4 gap-2 mt-4">
+              <a href={telHref} className={`flex flex-col items-center gap-1 py-2 rounded-xl bg-gray-50 hover:bg-sky-50 text-sky-600 transition-colors ${telHref ? '' : 'opacity-40 pointer-events-none'}`} aria-label="Call">
+                <Phone size={15} /><span className="text-[10px] font-semibold">Call</span>
+              </a>
+              <a href={waBase || undefined} target="_blank" rel="noopener noreferrer" className={`flex flex-col items-center gap-1 py-2 rounded-xl bg-gray-50 hover:bg-green-50 text-green-600 transition-colors ${waBase ? '' : 'opacity-40 pointer-events-none'}`} aria-label="WhatsApp">
+                <MessageSquare size={15} /><span className="text-[10px] font-semibold">WhatsApp</span>
+              </a>
+              <button type="button" onClick={() => { noteInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }); noteInputRef.current?.focus() }} className="flex flex-col items-center gap-1 py-2 rounded-xl bg-gray-50 hover:bg-navy-50 text-navy-600 transition-colors" aria-label="Log a note">
+                <StickyNote size={15} /><span className="text-[10px] font-semibold">Note</span>
+              </button>
+              <button type="button" onClick={() => { setShowApptForm(true); setTimeout(() => document.getElementById('appt-anchor')?.scrollIntoView({ behavior: 'smooth' }), 60) }} className="flex flex-col items-center gap-1 py-2 rounded-xl bg-gray-50 hover:bg-wine-50 text-wine transition-colors" aria-label="Schedule an appointment">
+                <CalendarPlus size={15} /><span className="text-[10px] font-semibold">Schedule</span>
+              </button>
+            </div>
           </div>
 
           {/* Smart Score */}
