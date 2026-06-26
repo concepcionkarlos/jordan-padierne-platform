@@ -252,6 +252,7 @@ export default async function AdminDashboard() {
                 <p className="font-semibold text-navy-900 text-sm truncate">{a.title}</p>
                 <p className="text-gray-400 text-xs">{a.leads?.full_name ?? 'Appointment'}{a.location ? ` · ${a.location}` : ''}</p>
               </div>
+              {a.leads?.phone && <a href={`tel:${a.leads.phone}`} className="text-sky-400 hover:text-sky-600 shrink-0" aria-label="Call"><Phone size={15} /></a>}
               <span className="badge bg-sky-50 text-sky-600 text-xs">{new Date(a.starts_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</span>
             </div>
           ))}
@@ -350,14 +351,15 @@ export default async function AdminDashboard() {
           <div className="divide-y divide-gray-50">
             {d.staleLeads.length === 0 && <p className="px-5 py-8 text-center text-gray-400 text-xs">No stale leads. 👏</p>}
             {d.staleLeads.map(({ lead, fresh }: any) => (
-              <Link key={lead.id} href={`/admin/leads/${lead.id}`} className="flex items-center gap-3 px-5 py-3 hover:bg-gray-50 transition-colors">
+              <div key={lead.id} className="flex items-center gap-3 px-5 py-3 hover:bg-gray-50 transition-colors">
                 <span className={`w-2 h-2 rounded-full shrink-0 ${fresh.dotClassName}`} />
-                <div className="flex-1 min-w-0">
+                <Link href={`/admin/leads/${lead.id}`} className="flex-1 min-w-0">
                   <p className="font-semibold text-navy-900 text-xs truncate">{lead.full_name}</p>
                   <p className="text-gray-400 text-xs">{lead.preferred_area ?? lead.client_type}</p>
-                </div>
-                <span className={`text-xs font-medium ${fresh.className}`}>{fresh.ageDays}d</span>
-              </Link>
+                </Link>
+                {lead.phone && <a href={`tel:${lead.phone}`} className="text-sky-400 hover:text-sky-600 shrink-0" aria-label="Call"><Phone size={14} /></a>}
+                <span className={`text-xs font-medium shrink-0 ${fresh.className}`}>{fresh.ageDays}d</span>
+              </div>
             ))}
           </div>
         </div>
@@ -371,14 +373,16 @@ export default async function AdminDashboard() {
           <div className="divide-y divide-gray-50">
             {d.hotLeads.length === 0 && <p className="px-5 py-8 text-center text-gray-400 text-xs">Mark leads 🔥 to prioritize.</p>}
             {d.hotLeads.map((lead: any) => (
-              <Link key={lead.id} href={`/admin/leads/${lead.id}`} className="flex items-center gap-3 px-5 py-3 hover:bg-gray-50 transition-colors">
+              <div key={lead.id} className="flex items-center gap-3 px-5 py-3 hover:bg-gray-50 transition-colors">
                 <Flame size={14} className="text-red-500 shrink-0" />
-                <div className="flex-1 min-w-0">
+                <Link href={`/admin/leads/${lead.id}`} className="flex-1 min-w-0">
                   <p className="font-semibold text-navy-900 text-xs truncate">{lead.full_name}</p>
                   <p className="text-gray-400 text-xs">{getPipelineStageLabel(lead.pipeline_stage)}</p>
-                </div>
-                <ArrowRight size={13} className="text-gray-300" />
-              </Link>
+                </Link>
+                {lead.phone
+                  ? <a href={`tel:${lead.phone}`} className="text-sky-400 hover:text-sky-600 shrink-0" aria-label="Call"><Phone size={14} /></a>
+                  : <ArrowRight size={13} className="text-gray-300 shrink-0" />}
+              </div>
             ))}
           </div>
         </div>
