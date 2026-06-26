@@ -1,5 +1,6 @@
 import { type ClassValue, clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
+import { stageBadge, statusBadge } from '@/lib/status-tokens'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -59,33 +60,15 @@ export function getPipelineStageLabel(stage: string): string {
   return labels[stage] ?? stage
 }
 
+// Status colours live in one place now — see src/lib/status-tokens.ts. These
+// keep their original signatures (and exact class strings) so every existing
+// caller is untouched; they just read from the shared map.
 export function getPipelineStageColor(stage: string): string {
-  const colors: Record<string, string> = {
-    NEW: 'bg-sky-100 text-sky-700',
-    QUALIFIED: 'bg-blue-100 text-blue-700',
-    CONTACTED: 'bg-purple-100 text-purple-700',
-    SHOWING_SCHEDULED: 'bg-orange-100 text-orange-700',
-    NEGOTIATION: 'bg-amber-100 text-amber-700',
-    CLOSED: 'bg-green-100 text-green-700',
-    LOST: 'bg-red-100 text-red-700',
-  }
-  return colors[stage] ?? 'bg-gray-100 text-gray-700'
+  return stageBadge(stage)
 }
 
 export function getStatusColor(status: string): string {
-  const colors: Record<string, string> = {
-    new: 'bg-sky-100 text-sky-700',
-    contacted: 'bg-blue-100 text-blue-700',
-    qualified: 'bg-purple-100 text-purple-700',
-    active: 'bg-green-100 text-green-700',
-    closed: 'bg-navy-100 text-navy-700',
-    lost: 'bg-red-100 text-red-700',
-    unread: 'bg-wine-50 text-wine-600',
-    read: 'bg-gray-100 text-gray-600',
-    replied: 'bg-green-100 text-green-700',
-    archived: 'bg-gray-100 text-gray-500',
-  }
-  return colors[status] ?? 'bg-gray-100 text-gray-700'
+  return statusBadge(status)
 }
 
 export const AREAS = [

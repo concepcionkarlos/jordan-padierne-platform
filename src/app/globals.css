@@ -27,23 +27,31 @@
   h1, h2, h3 {
     @apply font-serif;
   }
+
+  /* 7.7 — one consistent keyboard focus ring on every interactive element that
+     doesn't define its own. :where() keeps specificity at 0 so component-level
+     focus-visible utilities still win, and the ring follows each element's own
+     radius. focus-visible means mouse clicks never trigger it. */
+  :where(a[href], button, [role="button"], [tabindex]:not([tabindex="-1"])):focus-visible {
+    @apply outline-none ring-2 ring-sky-400 ring-offset-2 ring-offset-white;
+  }
 }
 
 @layer components {
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 bg-navy-900 text-white px-6 py-3 rounded-lg font-semibold font-sans text-sm transition-all duration-200 hover:bg-navy-600 hover:shadow-premium hover:-translate-y-0.5 active:translate-y-0 active:scale-95;
+    @apply inline-flex items-center justify-center gap-2 bg-navy-900 text-white px-6 py-3 rounded-xl font-semibold font-sans text-sm transition-all duration-200 hover:bg-navy-600 hover:shadow-premium hover:-translate-y-0.5 active:translate-y-0 active:scale-95;
   }
 
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 bg-white text-navy-900 border border-gray-200 px-6 py-3 rounded-lg font-semibold font-sans text-sm transition-all duration-200 hover:border-navy-900 hover:shadow-card hover:-translate-y-0.5 active:translate-y-0 active:scale-95;
+    @apply inline-flex items-center justify-center gap-2 bg-white text-navy-900 border border-gray-200 px-6 py-3 rounded-xl font-semibold font-sans text-sm transition-all duration-200 hover:border-navy-900 hover:shadow-card hover:-translate-y-0.5 active:translate-y-0 active:scale-95;
   }
 
   .btn-wine {
-    @apply inline-flex items-center justify-center gap-2 bg-wine text-white px-6 py-3 rounded-lg font-semibold font-sans text-sm transition-all duration-200 hover:bg-wine-700 hover:shadow-premium hover:-translate-y-0.5 active:translate-y-0 active:scale-95;
+    @apply inline-flex items-center justify-center gap-2 bg-wine text-white px-6 py-3 rounded-xl font-semibold font-sans text-sm transition-all duration-200 hover:bg-wine-700 hover:shadow-premium hover:-translate-y-0.5 active:translate-y-0 active:scale-95;
   }
 
   .btn-outline-white {
-    @apply inline-flex items-center justify-center gap-2 bg-transparent text-white border-2 border-white px-6 py-3 rounded-lg font-semibold font-sans text-sm transition-all duration-200 hover:bg-white hover:text-navy-900 active:scale-95;
+    @apply inline-flex items-center justify-center gap-2 bg-transparent text-white border-2 border-white px-6 py-3 rounded-xl font-semibold font-sans text-sm transition-all duration-200 hover:bg-white hover:text-navy-900 active:scale-95;
   }
 
   .card {
