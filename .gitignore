@@ -38,3 +38,6 @@ scripts/reset-admin-password.mjs
 scripts/check-lead.mjs
 scripts/test-gemini.mjs
 scripts/test-google-meet.mjs
+
+# Local DB backups (PII — never commit)
+backups/

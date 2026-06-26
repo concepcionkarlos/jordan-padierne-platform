@@ -2,6 +2,29 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase'
 import { requireUser } from '@/lib/auth'
 
+// Timeline source for a single lead. Additive GET (the web admin never calls it;
+// it's consumed by the native app's Lead Detail timeline).
+export async function GET(req: NextRequest) {
+  const denied = await requireUser(); if (denied) return denied
+  try {
+    const supabase = createServiceClient()
+    const leadId = new URL(req.url).searchParams.get('lead_id')
+    if (!leadId) return NextResponse.json({ success: false, error: 'lead_id required' }, { status: 400 })
+
+    const { data, error } = await supabase
+      .from('notes')
+      .select('id, content, author, created_at, lead_id')
+      .eq('lead_id', leadId)
+      .order('created_at', { ascending: false })
+      .limit(200)
+
+    if (error) throw error
+    return NextResponse.json({ success: true, data })
+  } catch (err) {
+    return NextResponse.json({ success: false, error: String(err) }, { status: 500 })
+  }
+}
+
 export async function POST(req: NextRequest) {
   const denied = await requireUser(); if (denied) return denied
   try {

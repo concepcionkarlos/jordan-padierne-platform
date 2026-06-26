@@ -1,11 +1,15 @@
-import { cookies } from 'next/headers'
+import { cookies, headers } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 
-// Reads the Supabase session from the request cookies (set by the SSR browser
-// client at login) and returns the authenticated user, or null.
+// Reads the authenticated user from the request. The web admin authenticates via
+// the SSR session cookie; native iOS clients send a Supabase access token in the
+// Authorization header. The Bearer branch is additive — when no Authorization
+// header is present (every browser request), the cookie path is unchanged.
 export async function getSessionUser() {
   try {
+    const authz = headers().get('authorization')
+    const bearer = authz && authz.toLowerCase().startsWith('bearer ') ? authz.slice(7).trim() : null
     const store = cookies()
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL ?? '',
@@ -18,7 +22,9 @@ export async function getSessionUser() {
         },
       }
     )
-    const { data } = await supabase.auth.getUser()
+    const { data } = bearer
+      ? await supabase.auth.getUser(bearer)
+      : await supabase.auth.getUser()
     return data.user ?? null
   } catch {
     return null

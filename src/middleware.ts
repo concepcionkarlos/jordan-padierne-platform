@@ -50,7 +50,14 @@ export async function middleware(req: NextRequest) {
     }
   )
 
-  const { data: { user } } = await supabase.auth.getUser()
+  // Native iOS clients send a Supabase access token in the Authorization header
+  // instead of the SSR cookie. Browsers never send this header, so the existing
+  // cookie-based web flow is byte-for-byte unchanged — this is additive only.
+  const authz = req.headers.get('authorization')
+  const bearer = authz && authz.toLowerCase().startsWith('bearer ') ? authz.slice(7).trim() : null
+  const { data: { user } } = bearer
+    ? await supabase.auth.getUser(bearer)
+    : await supabase.auth.getUser()
 
   if (!user) {
     if (isProtectedApi) {
