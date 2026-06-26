@@ -4,6 +4,7 @@ import SwiftUI
 // instance backs the session, the API client, and the offline note-sync service.
 @main
 struct JordanCRMApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @StateObject private var session: AppSession
     @StateObject private var sync: NoteSyncService
     private let api: APIClient

@@ -17,5 +17,9 @@ struct MainTabView: View {
         .onChange(of: scenePhase) { _, newPhase in
             if newPhase == .active { Task { await sync.flush() } }
         }
+        .task {
+            PushRegistration.shared.attach(api: api)
+            await PushRegistration.shared.requestAndRegister()
+        }
     }
 }

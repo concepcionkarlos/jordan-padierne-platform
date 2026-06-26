@@ -24,10 +24,15 @@ targets:
     dependencies:
       - package: Supabase
         product: Supabase
+    entitlements:
+      path: JordanCRM.entitlements
+      properties:
+        aps-environment: development   # Xcode flips this to "production" for TestFlight/archive
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.jordanpadierne.crm
-        TARGETED_DEVICE_FAMILY: "1"          # iPhone only
+        TARGETED_DEVICE_FAMILY: "1"
+        INFOPLIST_KEY_UIBackgroundModes: "remote-notification"          # iPhone only
         GENERATE_INFOPLIST_FILE: "YES"
         INFOPLIST_KEY_CFBundleDisplayName: "Jordan CRM"
         INFOPLIST_KEY_UILaunchScreen_Generation: "YES"

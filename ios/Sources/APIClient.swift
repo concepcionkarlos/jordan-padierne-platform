@@ -84,4 +84,10 @@ struct APIClient {
         guard result.success, let note = result.data else { throw APIError.badResponse }
         return note
     }
+
+    func registerPushToken(_ token: String) async throws {
+        let (data, response) = try await send("api/push/register-ios", method: "POST",
+                                              jsonBody: ["token": token, "label": "Jordan iPhone"])
+        _ = try decode(data, response, as: GenericResponse.self)
+    }
 }
