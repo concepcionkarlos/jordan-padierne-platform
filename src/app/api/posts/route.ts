@@ -3,6 +3,7 @@ import { revalidatePath } from 'next/cache'
 import { createServiceClient } from '@/lib/supabase'
 import { slugify } from '@/lib/posts'
 import { requireUser } from '@/lib/auth'
+import { pickAllowed, POST_FIELDS } from '@/lib/api-write'
 
 export async function GET(req: NextRequest) {
   const denied = await requireUser(); if (denied) return denied
@@ -62,8 +63,10 @@ export async function PATCH(req: NextRequest) {
     if (!id) return NextResponse.json({ success: false, error: 'ID required' }, { status: 400 })
     if (updates.slug) updates.slug = slugify(updates.slug)
     if (updates.read_minutes) updates.read_minutes = Number(updates.read_minutes)
+    const patch = pickAllowed(updates, POST_FIELDS)
+    if (Object.keys(patch).length === 0) return NextResponse.json({ success: false, error: 'No valid fields to update.' }, { status: 400 })
 
-    const { data, error } = await supabase.from('posts').update(updates).eq('id', id).select().single()
+    const { data, error } = await supabase.from('posts').update(patch).eq('id', id).select().single()
     if (error) throw error
 
     revalidatePath('/insights')

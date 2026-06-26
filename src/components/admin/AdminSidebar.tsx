@@ -27,6 +27,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { getSupabaseClient } from '@/lib/supabase'
+import { useProfile } from '@/components/ProfileProvider'
 import InstallPrompt from './InstallPrompt'
 import CommandPalette from './CommandPalette'
 import TrainingButton from './TrainingButton'
@@ -53,6 +54,7 @@ const navItems = [
 export default function AdminSidebar() {
   const pathname = usePathname()
   const router = useRouter()
+  const profile = useProfile()
   const [open, setOpen] = useState(false)
   const [signingOut, setSigningOut] = useState(false)
 
@@ -136,9 +138,9 @@ export default function AdminSidebar() {
         {/* Quick contact */}
         <div className="px-4 py-3 rounded-xl bg-navy-800/50">
           <p className="text-navy-400 text-xs mb-1">Quick Contact</p>
-          <a href="tel:+13057996973" className="flex items-center gap-2 text-sky-400 text-sm font-medium hover:text-sky-300">
+          <a href={profile.phoneHref} className="flex items-center gap-2 text-sky-400 text-sm font-medium hover:text-sky-300">
             <Phone size={13} />
-            305-799-6973
+            {profile.phone}
           </a>
         </div>
         <button

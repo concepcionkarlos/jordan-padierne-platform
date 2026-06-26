@@ -4,12 +4,14 @@ import { useState } from 'react'
 import { Home, Send, ChevronDown, Check, MessageSquare } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
 import { toast } from '@/lib/toast'
+import { useProfile } from '@/components/ProfileProvider'
 
 const norm = (s: unknown) => String(s ?? '').toLowerCase().trim()
 
 // Lets Jordan pick a few homes that match the lead's criteria and email them
 // to the client with a personal note. Pulls live listings from /api/properties.
 export default function SendPropertiesPanel({ lead }: { lead: any }) {
+  const profile = useProfile()
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [props, setProps] = useState<any[] | null>(null)
@@ -27,7 +29,7 @@ export default function SendPropertiesPanel({ lead }: { lead: any }) {
     if (selected.size === 0 || !whatsappDigits) return
     const chosen = (props ?? []).filter((p) => selected.has(p.id))
     const lines = chosen.map((p) => `• ${p.title} — ${formatCurrency(Number(p.price))}${p.city ? ` (${p.city})` : ''}`)
-    const text = `Hi ${firstNm}! 🏡 Jordan here — a few homes I think you'll like:\n${lines.join('\n')}\n\n${message.trim() ? message.trim() + '\n\n' : ''}Want photos & details? Reply here or call 305-799-6973.`
+    const text = `Hi ${firstNm}! 🏡 Jordan here — a few homes I think you'll like:\n${lines.join('\n')}\n\n${message.trim() ? message.trim() + '\n\n' : ''}Want photos & details? Reply here or call ${profile.phone}.`
     window.open(`https://wa.me/${whatsappDigits}?text=${encodeURIComponent(text)}`, '_blank')
   }
 

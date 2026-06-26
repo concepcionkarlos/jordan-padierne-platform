@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { createServiceClient } from '@/lib/supabase'
 import { requireUser } from '@/lib/auth'
+import { pickAllowed, TESTIMONIAL_FIELDS } from '@/lib/api-write'
 
 export async function GET() {
   const denied = await requireUser(); if (denied) return denied
@@ -24,7 +25,11 @@ export async function POST(req: NextRequest) {
   try {
     const supabase = createServiceClient()
     const body = await req.json()
-    const { data, error } = await supabase.from('testimonials').insert(body).select().single()
+    const row = pickAllowed(body, TESTIMONIAL_FIELDS)
+    if (!String(row.client_name ?? '').trim() || !String(row.quote ?? '').trim()) {
+      return NextResponse.json({ success: false, error: 'Client name and quote are required.' }, { status: 400 })
+    }
+    const { data, error } = await supabase.from('testimonials').insert(row).select().single()
     if (error) throw error
     revalidatePath('/') // refresh the public home page immediately
     return NextResponse.json({ success: true, data })

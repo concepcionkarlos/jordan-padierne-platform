@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { createServiceClient } from '@/lib/supabase'
 import { requireUser } from '@/lib/auth'
+import { pickAllowed, PROPERTY_FIELDS } from '@/lib/api-write'
 
 export async function GET(req: NextRequest) {
   const denied = await requireUser(); if (denied) return denied
@@ -27,7 +28,11 @@ export async function POST(req: NextRequest) {
   try {
     const supabase = createServiceClient()
     const body = await req.json()
-    const { data, error } = await supabase.from('properties').insert(body).select().single()
+    const row = pickAllowed(body, PROPERTY_FIELDS)
+    if (!String(row.title ?? '').trim() || !(Number(row.price) > 0)) {
+      return NextResponse.json({ success: false, error: 'Title and a valid price are required.' }, { status: 400 })
+    }
+    const { data, error } = await supabase.from('properties').insert(row).select().single()
     if (error) throw error
     revalidatePath('/properties')
     return NextResponse.json({ success: true, data })
@@ -42,7 +47,9 @@ export async function PATCH(req: NextRequest) {
     const supabase = createServiceClient()
     const { id, ...updates } = await req.json()
     if (!id) return NextResponse.json({ success: false, error: 'ID required' }, { status: 400 })
-    const { data, error } = await supabase.from('properties').update(updates).eq('id', id).select().single()
+    const patch = pickAllowed(updates, PROPERTY_FIELDS)
+    if (Object.keys(patch).length === 0) return NextResponse.json({ success: false, error: 'No valid fields to update.' }, { status: 400 })
+    const { data, error } = await supabase.from('properties').update(patch).eq('id', id).select().single()
     if (error) throw error
     revalidatePath('/properties')
     return NextResponse.json({ success: true, data })
