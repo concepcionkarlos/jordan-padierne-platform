@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import {
   Phone, Mail, MapPin, Calendar, DollarSign, MessageSquare,
   Send, Plus, Check, Clock, Trash2, StickyNote, ChevronDown, TrendingUp, CalendarPlus, Target,
@@ -38,7 +37,6 @@ interface Props {
 }
 
 export default function LeadWorkspace({ lead: initialLead, initialNotes, initialTasks, initialAppointments, messages }: Props) {
-  const router = useRouter()
   const [lead, setLead] = useState(initialLead)
   const [notes, setNotes] = useState<Note[]>(initialNotes)
   const [tasks, setTasks] = useState<Task[]>(initialTasks)
@@ -163,7 +161,8 @@ export default function LeadWorkspace({ lead: initialLead, initialNotes, initial
         toast(json.error || 'Could not save — please try again.', { type: 'warn' })
         return false
       }
-      router.refresh()
+      // Optimistic state already reflects the change; the page re-fetches fresh
+      // on next navigation (force-dynamic). No full router.refresh() per edit.
       return true
     } catch {
       setLead(prevLead)

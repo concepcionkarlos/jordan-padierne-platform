@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { Plus, X, Building2, Trash2, Upload, Star, Edit2, Sparkles, Wand2 } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
@@ -50,7 +49,6 @@ const statusColors: Record<string, string> = {
 const MAX_UPLOAD_MB = 8 // matches the server cap in /api/upload
 
 export default function PropertyManager({ initial }: { initial: any[] }) {
-  const router = useRouter()
   const [properties, setProperties] = useState<any[]>(initial)
   const [open, setOpen] = useState(false)
   const [form, setForm] = useState<Property>(EMPTY)
@@ -148,7 +146,6 @@ export default function PropertyManager({ initial }: { initial: any[] }) {
       if (editId) setProperties((p) => p.map((x) => (x.id === editId ? json.data : x)))
       else setProperties((p) => [json.data, ...p])
       setOpen(false)
-      router.refresh()
     }
   }
 
