@@ -27,10 +27,6 @@ export interface LeadsPage {
 }
 
 export async function getLeadsPage(opts: LeadsQueryOpts = {}): Promise<LeadsPage> {
-  const page = Math.max(1, Math.floor(opts.page ?? 1))
-  const pageSize = Math.min(100, Math.max(5, Math.floor(opts.pageSize ?? 25)))
-  const sort: LeadSort = opts.sort ?? 'score'
-
   // Heavy work stays on the server; only one page is ever serialized to the client.
   const [rawLeads, notes, appts] = await Promise.all([
     safeQuery((db) => db.from('leads').select('*').order('created_at', { ascending: false }).limit(2000), []),
@@ -43,6 +39,17 @@ export async function getLeadsPage(opts: LeadsQueryOpts = {}): Promise<LeadsPage
   for (const n of notes) if (n.lead_id) noteCounts[n.lead_id] = (noteCounts[n.lead_id] ?? 0) + 1
   for (const a of appts) if (a.lead_id) apptCounts[a.lead_id] = (apptCounts[a.lead_id] ?? 0) + 1
   const all = rawLeads.map((l: any) => ({ ...l, noteCount: noteCounts[l.id] ?? 0, apptCount: apptCounts[l.id] ?? 0 }))
+
+  return applyLeadsQuery(all, opts)
+}
+
+// Pure: filter → search → score/recency sort → paginate + whole-book stats over
+// an already-enriched lead array (each lead carries noteCount/apptCount). No DB,
+// so it's directly regression-tested.
+export function applyLeadsQuery(all: any[], opts: LeadsQueryOpts = {}): LeadsPage {
+  const page = Math.max(1, Math.floor(opts.page ?? 1))
+  const pageSize = Math.min(100, Math.max(5, Math.floor(opts.pageSize ?? 25)))
+  const sort: LeadSort = opts.sort ?? 'score'
 
   // Header stats reflect the WHOLE book (never the filtered view).
   const stats = {
@@ -74,13 +81,15 @@ export async function getLeadsPage(opts: LeadsQueryOpts = {}): Promise<LeadsPage
 
   // Sort (score computed once per lead, then ordered).
   let ordered = filtered
-  if (sort === 'score' || sort === 'stale') {
+  if (sort === 'recent') {
+    ordered = [...filtered].sort((a: any, b: any) => +new Date(b.created_at) - +new Date(a.created_at))
+  } else {
     type Scored = { l: any; score: number; age: number }
     ordered = filtered
       .map((l: any): Scored => ({ l, score: scoreLead(l).score, age: getLeadFreshness(l).ageDays }))
-      .sort((a: Scored, b: Scored) => (sort === 'score' ? b.score - a.score : b.age - a.age))
+      .sort((a: Scored, b: Scored) => (sort === 'stale' ? b.age - a.age : b.score - a.score))
       .map((x: Scored) => x.l)
-  } // 'recent' is already created_at desc from the query
+  }
 
   const total = ordered.length
   const start = (page - 1) * pageSize

@@ -5,11 +5,7 @@ import { safeQuery } from '@/lib/db'
 import { getSetting } from '@/lib/settings'
 import { isEmailConfigured } from '@/lib/email'
 import { formatRelativeTime } from '@/lib/utils'
-
-function parseHeartbeat(raw: string | null): { at: string; sent: number } | null {
-  if (!raw) return null
-  try { const o = JSON.parse(raw); return o && o.at ? o : null } catch { return null }
-}
+import { parseHeartbeat, isHeartbeatStale } from '@/lib/cron-status'
 import {
   Zap, Repeat, Star, CalendarCheck, ArrowRight, CheckCircle2, AlertCircle,
   TrendingUp, Clock, Bell,
@@ -31,8 +27,7 @@ async function getStats() {
   ])
 
   const dripLast = parseHeartbeat(dripHb)
-  // Daily cron — if it hasn't recorded a run in >36h, something's wrong.
-  const cronStale = dripLast ? (Date.now() - new Date(dripLast.at).getTime()) > 36 * 3600 * 1000 : false
+  const cronStale = isHeartbeatStale(dripLast)
 
   return {
     devices: (devices as any[]).length,

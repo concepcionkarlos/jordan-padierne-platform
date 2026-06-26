@@ -1,12 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase'
 import { requireUser } from '@/lib/auth'
-
-const TYPE_TO_CLIENT: Record<string, string> = {
-  investor_inquiry: 'Investor',
-  pre_construction_interest: 'Pre-Construction Buyer',
-  buyer_qualification: 'Buyer',
-}
+import { buildLeadDraftFromMessage } from '@/lib/message-convert'
 
 // Convert/link a message to a lead. If a lead with the same email already exists,
 // link to it (no duplicate); otherwise create a new lead from the message. Marks
@@ -35,16 +30,7 @@ export async function POST(req: NextRequest) {
     if (!leadId) {
       const { data: created, error } = await supabase
         .from('leads')
-        .insert({
-          full_name: msg.full_name || 'New lead',
-          email: msg.email || 'no-email@placeholder.com',
-          phone: msg.phone || '',
-          client_type: TYPE_TO_CLIENT[msg.type] || 'Buyer',
-          source: 'Message',
-          status: 'new',
-          pipeline_stage: 'NEW',
-          message: msg.body || null,
-        })
+        .insert(buildLeadDraftFromMessage(msg))
         .select('id')
         .single()
       if (error) throw error

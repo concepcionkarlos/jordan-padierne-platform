@@ -1,31 +1,14 @@
 import nodemailer from 'nodemailer'
 import { Resend } from 'resend'
 import { getProfile } from '@/lib/profile'
-import { DEFAULT_PROFILE } from '@/lib/profile-default'
+import { rewriteBrandContact } from '@/lib/brand-contact'
 
-// ─── Brand contact consistency ────────────────────────────────────────────────
-// The templates below bake in the DEFAULT agent contact info. If Jordan edits
-// his phone/email in Settings, rewrite those defaults in the outgoing HTML so
-// every email shows current, consistent contact details. This is a no-op when
-// the profile still matches the defaults (the common case), and never blocks a
-// send if the profile lookup fails.
-const DEF_INTL = DEFAULT_PROFILE.telephoneIntl      // "+13057996973"
-const DEF_DIGITS = DEF_INTL.replace(/^\+/, '')      // "13057996973"
-const DEF_PHONE = DEFAULT_PROFILE.phone             // "305-799-6973"
-const DEF_EMAIL = DEFAULT_PROFILE.email             // "info@jordanpadierne.com"
-
+// Rewrite the default brand contact in outgoing HTML to Jordan's live profile.
+// Pure substitution lives in lib/brand-contact (testable); this just supplies the
+// profile and never blocks a send if the lookup fails.
 async function applyBrandContact(html: string): Promise<string> {
   try {
-    const p = await getProfile()
-    const intl = p.telephoneIntl
-    const digits = intl.replace(/^\+/, '')
-    let out = html
-    // Replace the +country form before the bare digits (the former contains it).
-    if (intl !== DEF_INTL) out = out.split(DEF_INTL).join(intl)
-    if (digits !== DEF_DIGITS) out = out.split(DEF_DIGITS).join(digits)
-    if (p.phone !== DEF_PHONE) out = out.split(DEF_PHONE).join(p.phone)
-    if (p.email !== DEF_EMAIL) out = out.split(DEF_EMAIL).join(p.email)
-    return out
+    return rewriteBrandContact(html, await getProfile())
   } catch {
     return html
   }
