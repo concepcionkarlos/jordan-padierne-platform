@@ -1,11 +1,20 @@
-// Light loader shown inside the admin shell during page transitions — keeps the
-// sidebar visible and avoids flashing the full-screen public loader.
+import Skeleton from '@/components/ui/Skeleton'
+
+// 7.5 — replaces the old spinner. Generic admin content skeleton: serves the
+// Dashboard and is the graceful fallback for any admin route without its own
+// loading.tsx. The sidebar layout persists; only the content region is replaced
+// while the server component fetches.
 export default function AdminLoading() {
   return (
-    <div className="flex items-center justify-center py-32">
-      <div className="text-center">
-        <div className="w-8 h-8 border-2 border-sky-200 border-t-sky-500 rounded-full animate-spin mx-auto mb-3" />
-        <p className="text-gray-400 text-sm">Loading…</p>
+    <div className="p-6 lg:p-8">
+      <div className="mb-6 space-y-2">
+        <Skeleton className="h-7 w-44" />
+        <Skeleton className="h-4 w-64" />
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Skeleton key={i} className="h-40 rounded-2xl" />
+        ))}
       </div>
     </div>
   )
