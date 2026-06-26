@@ -1,0 +1,6 @@
+# Xcode / build artifacts (the .xcodeproj is generated from project.yml by xcodegen)
+JordanCRM.xcodeproj/
+build/
+DerivedData/
+*.xcuserstate
+.DS_Store

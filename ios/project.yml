@@ -1,0 +1,37 @@
+# XcodeGen spec — source of truth for the Xcode project.
+# Regenerate the .xcodeproj with:  cd ios && xcodegen generate
+name: JordanCRM
+options:
+  bundleIdPrefix: com.jordanpadierne
+  deploymentTarget:
+    iOS: "17.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+packages:
+  Supabase:
+    url: https://github.com/supabase/supabase-swift
+    from: "2.0.0"
+targets:
+  JordanCRM:
+    type: application
+    platform: iOS
+    sources:
+      - Sources
+    dependencies:
+      - package: Supabase
+        product: Supabase
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.jordanpadierne.crm
+        TARGETED_DEVICE_FAMILY: "1"          # iPhone only
+        GENERATE_INFOPLIST_FILE: "YES"
+        INFOPLIST_KEY_CFBundleDisplayName: "Jordan CRM"
+        INFOPLIST_KEY_UILaunchScreen_Generation: "YES"
+        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: "YES"
+        INFOPLIST_KEY_UISupportedInterfaceOrientations: "UIInterfaceOrientationPortrait"
+        INFOPLIST_KEY_NSFaceIDUsageDescription: "Unlock the app with Face ID."
+        # DEVELOPMENT_TEAM + signing are set on your Mac when you archive for TestFlight.
