@@ -1,5 +1,6 @@
 export const dynamic = 'force-dynamic'
-import { Settings, Mail, Shield, Globe, MessageSquare, Phone, Bell, CheckCircle2, XCircle, Calendar, Video } from 'lucide-react'
+import Link from 'next/link'
+import { Settings, Mail, Shield, Globe, MessageSquare, Phone, Bell, CheckCircle2, XCircle, Calendar, Video, FileText, ChevronRight } from 'lucide-react'
 import { isEmailConfigured } from '@/lib/email'
 import { isSupabaseConfigured } from '@/lib/supabase'
 import { getSetting } from '@/lib/settings'
@@ -42,6 +43,21 @@ export default async function SettingsPage({ searchParams }: { searchParams: { g
       </div>
 
       <div className="space-y-6">
+        {/* Submission Log — the raw record of every website form (formerly its own
+            nav item; lives here now as a reference/audit log, not daily workflow). */}
+        <Link href="/admin/forms" className="block bg-white rounded-2xl border border-gray-100 shadow-sm hover:border-sky-200 hover:shadow-card transition-all">
+          <div className="px-6 py-4 flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-navy-50 flex items-center justify-center">
+              <FileText size={16} className="text-navy-700" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h2 className="font-semibold text-navy-900">Submission Log</h2>
+              <p className="text-gray-400 text-xs">Raw record of every form submitted on the website</p>
+            </div>
+            <ChevronRight size={16} className="text-gray-300" />
+          </div>
+        </Link>
+
         {/* Google Calendar & Meet */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-50 flex items-center gap-3">

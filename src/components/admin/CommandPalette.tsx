@@ -10,21 +10,24 @@ import {
   Plus, Flame, StickyNote, CalendarPlus,
 } from 'lucide-react'
 
+// Order mirrors the sidebar grouping (Work → Content → Grow → bottom) so the
+// palette and the nav teach the same map. "Clients" and "Submission log" are
+// the same destinations as the retired Contacts/Forms nav items.
 const PAGES = [
   { label: 'Dashboard', href: '/admin', icon: LayoutDashboard },
   { label: 'Leads', href: '/admin/leads', icon: Users },
+  { label: 'Clients', href: '/admin/leads?stage=CLOSED', icon: UserCircle },
   { label: 'Pipeline', href: '/admin/pipeline', icon: GitBranch },
   { label: 'Calendar', href: '/admin/calendar', icon: CalendarDays },
   { label: 'Tasks', href: '/admin/tasks', icon: CheckSquare },
-  { label: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
   { label: 'Messages', href: '/admin/messages', icon: MessageSquare },
-  { label: 'Contacts', href: '/admin/contacts', icon: UserCircle },
-  { label: 'Forms', href: '/admin/forms', icon: FileText },
   { label: 'Properties', href: '/admin/properties', icon: Building2 },
+  { label: 'Insights', href: '/admin/insights', icon: Newspaper },
   { label: 'Testimonials', href: '/admin/testimonials', icon: MessageSquareQuote },
   { label: 'Videos', href: '/admin/videos', icon: Youtube },
-  { label: 'Insights', href: '/admin/insights', icon: Newspaper },
+  { label: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
   { label: 'Growth Engine', href: '/admin/automations', icon: Rocket },
+  { label: 'Submission log', href: '/admin/forms', icon: FileText },
   { label: 'Training', href: '/admin/training', icon: GraduationCap },
   { label: 'Settings', href: '/admin/settings', icon: Settings },
 ]

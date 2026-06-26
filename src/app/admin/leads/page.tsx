@@ -7,20 +7,27 @@ import { getLeadsPage } from '@/lib/leads-query'
 
 const PAGE_SIZE = 25
 
-export default async function LeadsPage({ searchParams }: { searchParams: { tag?: string } }) {
+export default async function LeadsPage({ searchParams }: { searchParams: { tag?: string; stage?: string } }) {
   // Server-renders only the first page (default sort: Smart Score). The table
   // fetches further pages / searches on demand, so the browser never holds the
-  // whole book. An optional ?tag= seeds a filter (e.g. command palette "Hot leads").
+  // whole book. An optional ?tag= seeds a filter (e.g. command palette "Hot leads");
+  // ?stage=CLOSED is the "Clients" view (the closed-won slice — no separate page).
   const initialTag = searchParams?.tag || null
-  const initial = await getLeadsPage({ page: 1, pageSize: PAGE_SIZE, sort: 'score', tag: initialTag })
+  const initialStage = searchParams?.stage || null
+  const initial = await getLeadsPage({ page: 1, pageSize: PAGE_SIZE, sort: 'score', tag: initialTag, stage: initialStage ?? 'ALL' })
   const stats = initial.stats
+  const isClients = initialStage === 'CLOSED'
 
   return (
     <div className="p-6 lg:p-8">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="font-serif text-2xl font-bold text-navy-900">Leads</h1>
-          <p className="text-gray-500 text-sm mt-0.5">{stats.total} total · {stats.active} active</p>
+          <h1 className="font-serif text-2xl font-bold text-navy-900">{isClients ? 'Clients' : 'Leads'}</h1>
+          <p className="text-gray-500 text-sm mt-0.5">
+            {isClients
+              ? <>{initial.total} {initial.total === 1 ? 'client' : 'clients'} · closed deals</>
+              : <>{stats.total} total · {stats.active} active</>}
+          </p>
         </div>
         <div className="flex gap-2">
           <ImportLeadsModal />
@@ -52,7 +59,9 @@ export default async function LeadsPage({ searchParams }: { searchParams: { tag?
         💡 Sort by <strong>⚡ Smart Score</strong> to see who&apos;s most ready to buy. The colored dot shows lead freshness — green is fresh, red is going cold. Click any lead to open its Coach.
       </TipBanner>
 
-      <LeadsTable initial={initial} pageSize={PAGE_SIZE} initialTag={initialTag} />
+      {/* key re-seeds the table when the URL filter changes (e.g. palette → Clients
+          while already on Leads); in-page filtering keeps the same key, no remount. */}
+      <LeadsTable key={`${initialStage ?? 'all'}-${initialTag ?? 'none'}`} initial={initial} pageSize={PAGE_SIZE} initialTag={initialTag} initialStage={initialStage} />
     </div>
   )
 }

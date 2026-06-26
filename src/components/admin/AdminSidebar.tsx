@@ -7,9 +7,7 @@ import {
   Menu, X, Search,
   LayoutDashboard,
   Users,
-  UserCircle,
   MessageSquare,
-  FileText,
   Building2,
   CheckSquare,
   GitBranch,
@@ -33,22 +31,37 @@ import CommandPalette from './CommandPalette'
 import TrainingButton from './TrainingButton'
 import PushToggle from './PushToggle'
 
-const navItems = [
-  { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true },
-  { href: '/admin/leads', label: 'Leads', icon: Users },
-  { href: '/admin/pipeline', label: 'Pipeline', icon: GitBranch },
-  { href: '/admin/calendar', label: 'Calendar', icon: CalendarDays },
-  { href: '/admin/tasks', label: 'Tasks', icon: CheckSquare },
-  { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
-  { href: '/admin/messages', label: 'Messages', icon: MessageSquare },
-  { href: '/admin/contacts', label: 'Contacts', icon: UserCircle },
-  { href: '/admin/forms', label: 'Forms', icon: FileText },
-  { href: '/admin/properties', label: 'Properties', icon: Building2 },
-  { href: '/admin/testimonials', label: 'Testimonials', icon: MessageSquareQuote },
-  { href: '/admin/videos', label: 'Videos', icon: Youtube },
-  { href: '/admin/insights', label: 'Insights', icon: Newspaper },
-  { href: '/admin/automations', label: 'Growth Engine', icon: Rocket },
-  { href: '/admin/settings', label: 'Settings', icon: Settings },
+type NavItem = { href: string; label: string; icon: any; exact?: boolean }
+
+// Grouped navigation — Jordan should grasp the whole structure in under a minute.
+const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
+  {
+    label: 'Work',
+    items: [
+      { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true },
+      { href: '/admin/leads', label: 'Leads', icon: Users },
+      { href: '/admin/pipeline', label: 'Pipeline', icon: GitBranch },
+      { href: '/admin/calendar', label: 'Calendar', icon: CalendarDays },
+      { href: '/admin/tasks', label: 'Tasks', icon: CheckSquare },
+      { href: '/admin/messages', label: 'Messages', icon: MessageSquare },
+    ],
+  },
+  {
+    label: 'Content',
+    items: [
+      { href: '/admin/properties', label: 'Properties', icon: Building2 },
+      { href: '/admin/insights', label: 'Insights', icon: Newspaper },
+      { href: '/admin/testimonials', label: 'Testimonials', icon: MessageSquareQuote },
+      { href: '/admin/videos', label: 'Videos', icon: Youtube },
+    ],
+  },
+  {
+    label: 'Growth',
+    items: [
+      { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
+      { href: '/admin/automations', label: 'Growth Engine', icon: Rocket },
+    ],
+  },
 ]
 
 export default function AdminSidebar() {
@@ -73,6 +86,18 @@ export default function AdminSidebar() {
   const isActive = (item: { href: string; exact?: boolean }) => {
     if (item.exact) return pathname === item.href
     return pathname.startsWith(item.href) && item.href !== '/admin'
+  }
+
+  const NavLink = ({ item }: { item: NavItem }) => {
+    const Icon = item.icon
+    const active = isActive(item)
+    return (
+      <Link href={item.href} className={cn(active ? 'sidebar-link-active' : 'sidebar-link')}>
+        <Icon size={17} />
+        {item.label}
+        {active && <ChevronRight size={13} className="ml-auto text-sky/60" />}
+      </Link>
+    )
   }
 
   return (
@@ -105,36 +130,26 @@ export default function AdminSidebar() {
         <CommandPalette />
       </div>
 
-      {/* Nav */}
-      <nav className="flex-1 px-3 py-4 overflow-y-auto space-y-1 scrollbar-thin">
-        {navItems.map((item) => {
-          const Icon = item.icon
-          const active = isActive(item)
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                active ? 'sidebar-link-active' : 'sidebar-link'
-              )}
-            >
-              <Icon size={17} />
-              {item.label}
-              {active && <ChevronRight size={13} className="ml-auto text-sky/60" />}
-            </Link>
-          )
-        })}
+      {/* Grouped nav */}
+      <nav className="flex-1 px-3 py-4 overflow-y-auto space-y-5 scrollbar-thin">
+        {NAV_GROUPS.map((group) => (
+          <div key={group.label}>
+            <p className="px-4 mb-1.5 text-[10px] font-bold text-navy-500 uppercase tracking-widest">{group.label}</p>
+            <div className="space-y-1">
+              {group.items.map((item) => <NavLink key={item.href} item={item} />)}
+            </div>
+          </div>
+        ))}
       </nav>
 
       {/* Install prompt */}
       <InstallPrompt />
 
-      {/* Bottom */}
+      {/* Bottom — Settings + Training, then utilities */}
       <div className="px-3 py-4 border-t border-navy-800 space-y-2">
-        {/* Push alerts */}
-        <PushToggle />
-        {/* Training */}
+        <NavLink item={{ href: '/admin/settings', label: 'Settings', icon: Settings }} />
         <TrainingButton />
+        <PushToggle />
         {/* Quick contact */}
         <div className="px-4 py-3 rounded-xl bg-navy-800/50">
           <p className="text-navy-400 text-xs mb-1">Quick Contact</p>

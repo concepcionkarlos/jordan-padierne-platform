@@ -11,15 +11,18 @@ interface Props {
   initial: LeadsPage
   pageSize: number
   initialTag?: string | null
+  initialStage?: string | null
 }
 
 const STAGE_FILTERS = ['ALL', 'NEW', 'QUALIFIED', 'CONTACTED', 'SHOWING_SCHEDULED', 'NEGOTIATION', 'CLOSED', 'LOST']
 const CLIENT_FILTERS = ['All Types', 'Buyer', 'Investor', 'International Buyer', 'Luxury Buyer', 'Pre-Construction Buyer', 'Seller']
 
-export default function LeadsTable({ initial, pageSize, initialTag = null }: Props) {
+export default function LeadsTable({ initial, pageSize, initialTag = null, initialStage = null }: Props) {
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
-  const [stageFilter, setStageFilter] = useState('ALL')
+  // ?stage= (e.g. the "Clients" = CLOSED view) seeds the stage filter; the server
+  // already rendered the matching first page, so the table opens pre-filtered.
+  const [stageFilter, setStageFilter] = useState(initialStage && STAGE_FILTERS.includes(initialStage) ? initialStage : 'ALL')
   const [clientFilter, setClientFilter] = useState('All Types')
   const [tagFilter, setTagFilter] = useState<string | null>(initialTag)
   const [sortBy, setSortBy] = useState<LeadSort>('score')
