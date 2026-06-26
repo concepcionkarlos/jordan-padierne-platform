@@ -687,18 +687,37 @@ export default function LeadWorkspace({ lead: initialLead, initialNotes, initial
             {isLost && <p className="text-xs text-gray-400 mt-2">Marked as Lost — click a stage to revive this lead.</p>}
           </div>
 
-          {/* AI Evaluation summary (when the client completed their profile) */}
-          {aiNote && (
-            <div className="bg-gradient-to-br from-sky-50 to-white rounded-2xl border-2 border-sky-100 p-5 shadow-sm">
-              <div className="flex items-center gap-2 mb-3">
-                <div className="w-8 h-8 rounded-lg bg-sky-100 flex items-center justify-center">
-                  <Sparkles size={15} className="text-sky-600" />
+          {/* AI Lead Brief — visible whether or not it has run yet */}
+          {aiNote ? (
+            <div className="rounded-2xl border-2 border-sky-100 bg-gradient-to-br from-sky-50 to-white p-5 shadow-sm">
+              <div className="flex items-center gap-2.5 mb-3">
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-sky-500 to-sky-600 flex items-center justify-center shadow-sm shrink-0">
+                  <Sparkles size={16} className="text-white" />
                 </div>
-                <h3 className="font-semibold text-navy-900 text-sm">AI Evaluation</h3>
-                <span className={`text-xs px-2 py-0.5 rounded-full font-bold ml-auto ${hotScore.className}`}>{hotScore.emoji} {hotScore.label}</span>
+                <div className="min-w-0">
+                  <h3 className="font-semibold text-navy-900 text-sm leading-tight">AI Lead Brief</h3>
+                  <p className="text-[10px] text-sky-600 font-bold uppercase tracking-wide">Auto-generated · {formatRelativeTime(aiNote.created_at)}</p>
+                </div>
+                <span className={`text-xs px-2 py-0.5 rounded-full font-bold ml-auto shrink-0 ${hotScore.className}`}>{hotScore.emoji} {hotScore.label}</span>
               </div>
               <p className="text-navy-700 text-sm leading-relaxed whitespace-pre-wrap">{aiNote.content}</p>
-              <p className="text-gray-400 text-xs mt-3">Auto-evaluated · {formatRelativeTime(aiNote.created_at)}</p>
+              <div className="mt-4 pt-3 border-t border-sky-100 flex items-start gap-1.5 text-xs text-sky-700">
+                <Target size={13} className="shrink-0 mt-0.5" />
+                <span>The recommended next step is at the top of this page; the tasks the AI suggested are in your task list below.</span>
+              </div>
+            </div>
+          ) : (
+            <div className="rounded-2xl border-2 border-dashed border-sky-200 bg-sky-50/40 p-5">
+              <div className="flex items-center gap-2.5 mb-2">
+                <div className="w-9 h-9 rounded-xl bg-sky-100 flex items-center justify-center shrink-0">
+                  <Sparkles size={16} className="text-sky-600" />
+                </div>
+                <h3 className="font-semibold text-navy-900 text-sm">AI Lead Brief</h3>
+              </div>
+              <p className="text-gray-500 text-sm leading-relaxed">No AI read yet. Send {firstNm} the buyer form — once they complete it, the AI scores the lead, writes this brief, and adds your next-step tasks automatically.</p>
+              <button type="button" onClick={sendBuyerForm} disabled={sendingForm} className="mt-3 btn-primary text-sm py-2 disabled:opacity-60">
+                <Send size={14} /> {sendingForm ? 'Sending…' : 'Send buyer form'}
+              </button>
             </div>
           )}
 
