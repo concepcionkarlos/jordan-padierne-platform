@@ -26,7 +26,6 @@ import {
 import { cn } from '@/lib/utils'
 import { getSupabaseClient } from '@/lib/supabase'
 import { useProfile } from '@/components/ProfileProvider'
-import InstallPrompt from './InstallPrompt'
 import CommandPalette from './CommandPalette'
 import TrainingButton from './TrainingButton'
 import PushToggle from './PushToggle'
@@ -141,9 +140,6 @@ export default function AdminSidebar() {
           </div>
         ))}
       </nav>
-
-      {/* Install prompt */}
-      <InstallPrompt />
 
       {/* Bottom — Settings + Training, then utilities */}
       <div className="px-3 py-4 border-t border-navy-800 space-y-2">

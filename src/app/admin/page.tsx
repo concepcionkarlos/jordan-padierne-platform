@@ -212,7 +212,11 @@ export default async function AdminDashboard() {
           <div>
             <p className="text-sky-400 text-sm font-medium">{greeting}, Jordan 👋</p>
             <h1 className="font-serif text-2xl lg:text-3xl font-bold text-white mt-1">
-              {d.planCount > 0 ? `You have ${d.planCount} thing${d.planCount > 1 ? 's' : ''} to do today` : "You're all caught up! 🎉"}
+              {d.onboarding.leads === 0
+                ? 'Let’s get your first client in 🎯'
+                : d.planCount > 0
+                  ? `You have ${d.planCount} thing${d.planCount > 1 ? 's' : ''} to do today`
+                  : "You're all caught up! 🎉"}
             </h1>
             <p className="text-navy-200 text-sm mt-1.5">
               {d.streak > 0 ? `🔥 ${d.streak}-day streak — keep it going!` : 'Log an activity today to start a streak 🔥'}

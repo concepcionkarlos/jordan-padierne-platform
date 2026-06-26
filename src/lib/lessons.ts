@@ -21,7 +21,7 @@ export const LESSONS: Lesson[] = [
       'This dashboard is your daily starting point. Every morning, open it and it will tell you exactly what to do — no guessing.',
       'Everything is connected: your website sends leads here automatically, the system evaluates them, and it builds your to-do list for you.',
     ],
-    tip: 'Install it on your phone: open the site in Safari → Share → "Add to Home Screen". It works just like an app.',
+    tip: 'Open this dashboard every morning — it’s the one screen that tells you who to call and what to do next.',
   },
   {
     id: 'coach',
@@ -111,6 +111,17 @@ export const LESSONS: Lesson[] = [
     ],
   },
   {
+    id: 'mobile',
+    emoji: '📱',
+    title: 'Your CRM, now in your pocket',
+    short: 'The iPhone app is your field companion — see who needs you, call or WhatsApp in one tap, and log notes by voice from anywhere.',
+    body: [
+      "The iPhone app isn't another CRM to manage — it's your field companion. Built for the car, the curb, and the open house. Open it and instantly see who needs you, call or WhatsApp in one tap, and log a note just by talking — right as you walk out of a showing. Everything syncs back to this dashboard automatically.",
+      "Same clients, same pipeline — just made for when you're on the move.",
+    ],
+    tip: 'Coming to your iPhone soon.',
+  },
+  {
     id: 'ready',
     emoji: '🚀',
     title: "You're ready to go!",
@@ -120,5 +131,53 @@ export const LESSONS: Lesson[] = [
       'You can replay this training anytime from the "Training" button in the sidebar. The more you use it, the more the CRM works for you.',
     ],
     tip: 'Replay this tour or read any lesson again from Training in the sidebar.',
+  },
+]
+
+// First-run welcome tour — a tight 6-step version of the lessons above. The full
+// set (incl. the iPhone-app lesson) stays in the Training Center; this is just
+// enough to get Jordan to his first win without fatigue.
+export interface TourStep {
+  emoji: string
+  title: string
+  short: string
+  tip?: string
+}
+
+export const TOUR_STEPS: TourStep[] = [
+  {
+    emoji: '👋',
+    title: 'Welcome to your command center',
+    short: 'This is where you run your whole business. Open it every morning and it tells you exactly who to call and what to do — no guessing.',
+    tip: 'Everything connects: your website sends leads here automatically, the system sizes them up, and your to-do list builds itself.',
+  },
+  {
+    emoji: '⚡',
+    title: 'Your Coach tells you what to do',
+    short: 'Each day the CRM ranks every client and hands you the #1 next move for each one. Just work the list top to bottom — each action is one tap.',
+    tip: "Open any client and you'll see “Your Next Move” at the top, with a button that does it for you.",
+  },
+  {
+    emoji: '👥',
+    title: "Know who's ready to buy",
+    short: 'Every client gets an automatic 0–100 Smart Score, plus a Hot / Warm / Cold temperature and tags (Cash Buyer, VIP, Investor…), so your most-ready clients rise to the top.',
+    tip: "The colored dot shows freshness — green is fresh, red means it's been days. Reach out before they go cold.",
+  },
+  {
+    emoji: '📊',
+    title: 'Move deals to the finish line',
+    short: "Slide each deal through your pipeline: New → Qualified → Showing → Negotiation → Closed. Mark one CLOSED and you'll see your commission — and a little celebration. 🎉",
+    tip: 'Logging your calls and notes daily keeps your streak alive — consistency is what closes deals.',
+  },
+  {
+    emoji: '📧',
+    title: 'It runs itself',
+    short: "New clients are invited to complete a quick profile. The moment they do, the CRM scores them, tags them, and writes your tasks — like “🔥 Call now — cash buyer” — and emails you a summary.",
+    tip: 'A lead can land fully evaluated, with your to-do list ready, before you even pick up the phone.',
+  },
+  {
+    emoji: '🚀',
+    title: "Let's get your first win",
+    short: "You're set. Add your first client — or import your contacts — and your Coach takes it from there.",
   },
 ]

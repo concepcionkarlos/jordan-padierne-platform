@@ -1,8 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { X, ArrowRight, ArrowLeft, Sparkles } from 'lucide-react'
-import { LESSONS } from '@/lib/lessons'
+import { TOUR_STEPS } from '@/lib/lessons'
 import { fireConfetti } from '@/lib/confetti'
 
 const SEEN_KEY = 'jp-tour-seen-v1'
@@ -16,6 +17,7 @@ export function replayTour() {
 export default function WelcomeTour() {
   const [open, setOpen] = useState(false)
   const [step, setStep] = useState(0)
+  const router = useRouter()
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -40,8 +42,8 @@ export default function WelcomeTour() {
 
   if (!open) return null
 
-  const lesson = LESSONS[step]
-  const isLast = step === LESSONS.length - 1
+  const lesson = TOUR_STEPS[step]
+  const isLast = step === TOUR_STEPS.length - 1
 
   return (
     <div className="fixed inset-0 z-[90] flex items-center justify-center p-4">
@@ -56,7 +58,7 @@ export default function WelcomeTour() {
           </button>
           <div className="relative">
             <span className="inline-flex items-center gap-1 text-xs font-bold text-sky-300 uppercase tracking-widest mb-3">
-              <Sparkles size={12} /> Training · {step + 1} of {LESSONS.length}
+              <Sparkles size={12} /> Training · {step + 1} of {TOUR_STEPS.length}
             </span>
             <div className="text-5xl mb-2">{lesson.emoji}</div>
             <h2 className="font-serif text-2xl font-bold text-white leading-tight">{lesson.title}</h2>
@@ -77,7 +79,7 @@ export default function WelcomeTour() {
 
           {/* Progress dots */}
           <div className="flex items-center justify-center gap-1.5 mt-6">
-            {LESSONS.map((_, i) => (
+            {TOUR_STEPS.map((_, i) => (
               <button
                 key={i}
                 type="button"
@@ -91,12 +93,15 @@ export default function WelcomeTour() {
           {/* Nav */}
           <div className="flex items-center gap-3 mt-6">
             {step > 0 ? (
-              <button type="button" onClick={() => setStep((s) => s - 1)} className="btn-secondary px-4"><ArrowLeft size={16} /></button>
+              <button type="button" onClick={() => setStep((s) => s - 1)} className="btn-secondary px-4" aria-label="Previous step"><ArrowLeft size={16} /></button>
             ) : (
               <button type="button" onClick={finish} className="text-gray-400 hover:text-navy-700 text-sm font-medium px-4 py-3">Skip</button>
             )}
             {isLast ? (
-              <button type="button" onClick={finish} className="btn-wine cta-shine flex-1 justify-center py-3.5">Let&apos;s go! 🚀</button>
+              <div className="flex-1 flex flex-col gap-2">
+                <button type="button" onClick={() => { finish(); router.push('/admin/leads?add=1') }} className="btn-wine cta-shine w-full justify-center py-3">Add my first client <ArrowRight size={16} /></button>
+                <button type="button" onClick={() => { finish(); router.push('/admin/leads') }} className="btn-secondary w-full justify-center py-2.5">Import my contacts</button>
+              </div>
             ) : (
               <button type="button" onClick={() => setStep((s) => s + 1)} className="btn-wine flex-1 justify-center py-3.5">Next <ArrowRight size={16} /></button>
             )}
