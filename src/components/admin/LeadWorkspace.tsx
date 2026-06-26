@@ -83,6 +83,36 @@ export default function LeadWorkspace({ lead: initialLead, initialNotes, initial
   const smart = scoreLead({ ...lead, noteCount: notes.length, apptCount: appts.length })
   const aiNote = notes.find((n) => n.author === 'AI Evaluation')
 
+  // ─── Unified activity timeline — the client's system of record ───
+  // Built from data already loaded: notes (which also capture logged calls,
+  // WhatsApp, emails sent, properties sent, and the AI evaluation), appointments,
+  // form submissions / original inquiry, and tasks created/completed.
+  // NOTE (future tracking): pipeline stage changes live in `pipeline_entries`,
+  // which the workspace does not currently load — documented, not overbuilt.
+  type TLItem = { id: string; kind: string; at: string; title: string; sub?: string; author?: string; noteId?: string; apptType?: string }
+  const timeline: TLItem[] = (() => {
+    const items: TLItem[] = []
+    for (const n of notes) {
+      items.push({ id: `note-${n.id}`, kind: n.author === 'AI Evaluation' ? 'ai' : 'note', at: n.created_at, title: n.content, author: n.author, noteId: n.id })
+    }
+    for (const a of appts) {
+      const created = (a as any).created_at ?? a.starts_at
+      const when = `${formatDate(a.starts_at)} · ${new Date(a.starts_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`
+      items.push({ id: `appt-${a.id}`, kind: 'appointment', at: created, title: a.title || 'Appointment', sub: when, apptType: a.type })
+    }
+    for (const m of messages) {
+      items.push({ id: `msg-${m.id}`, kind: 'message', at: m.created_at, title: m.subject || 'Form submission', sub: m.body })
+    }
+    if (lead.message) items.push({ id: 'inquiry', kind: 'inquiry', at: lead.created_at, title: 'Original inquiry', sub: lead.message })
+    for (const t of tasks) {
+      const created = (t as any).created_at
+      if (created) items.push({ id: `task-${t.id}`, kind: 'task', at: created, title: t.title })
+      const done = (t as any).completed_at
+      if (t.status === 'done' && done) items.push({ id: `taskdone-${t.id}`, kind: 'task_done', at: done, title: t.title })
+    }
+    return items.filter((i) => i.at).sort((a, b) => +new Date(b.at) - +new Date(a.at))
+  })()
+
   // ─── "What they want" — the qualify-form answers, surfaced as a work hub ───
   const meta = (lead.metadata ?? {}) as Record<string, any>
   const firstNm = (lead.full_name || '').trim().split(' ')[0] || 'This lead'
@@ -375,6 +405,17 @@ export default function LeadWorkspace({ lead: initialLead, initialNotes, initial
       {action && <div className="ml-auto">{action}</div>}
     </div>
   )
+
+  // Per-kind icon + color for the activity timeline.
+  const TL_DOT: Record<string, { Icon: any; cls: string; label?: string; labelCls?: string }> = {
+    note: { Icon: StickyNote, cls: 'bg-sky-50 text-sky-500' },
+    ai: { Icon: Sparkles, cls: 'bg-sky-100 text-sky-600', label: 'AI Evaluation', labelCls: 'text-sky-600' },
+    appointment: { Icon: CalendarPlus, cls: 'bg-wine-50 text-wine', label: 'Appointment', labelCls: 'text-wine' },
+    message: { Icon: MessageSquare, cls: 'bg-purple-50 text-purple-600', label: 'Form submission', labelCls: 'text-purple-600' },
+    inquiry: { Icon: Mail, cls: 'bg-gray-100 text-gray-500', label: 'Inquiry', labelCls: 'text-gray-400' },
+    task: { Icon: Check, cls: 'bg-amber-50 text-amber-600', label: 'Task created', labelCls: 'text-amber-600' },
+    task_done: { Icon: Check, cls: 'bg-green-50 text-green-600', label: 'Task completed', labelCls: 'text-green-600' },
+  }
 
   return (
     <div className="space-y-6">
@@ -715,12 +756,12 @@ export default function LeadWorkspace({ lead: initialLead, initialNotes, initial
             )}
           </div>
 
-          {/* Notes & Activity Log */}
+          {/* Activity Timeline — the client's system of record */}
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
             <div className="px-5 py-4 border-b border-gray-50 flex items-center gap-2">
               <StickyNote size={15} className="text-sky-400" />
-              <h3 className="font-semibold text-navy-900 text-sm">Notes & Activity Log</h3>
-              <span className="text-gray-400 text-xs ml-auto">{notes.length}</span>
+              <h3 className="font-semibold text-navy-900 text-sm">Activity Timeline</h3>
+              <span className="text-gray-400 text-xs ml-auto">{timeline.length}</span>
             </div>
             <div className="p-5">
               <div className="flex gap-2 mb-4">
@@ -744,23 +785,31 @@ export default function LeadWorkspace({ lead: initialLead, initialNotes, initial
                   </button>
                 ))}
               </div>
-              {/* Notes list */}
+              {/* Unified timeline */}
               <div className="space-y-3">
-                {notes.length === 0 && <p className="text-gray-300 text-sm text-center py-4">No activity logged yet. Add your first note above.</p>}
-                {notes.map((note) => (
-                  <div key={note.id} className="group flex gap-3 pb-3 border-b border-gray-50 last:border-0">
-                    <div className="w-7 h-7 rounded-full bg-sky-50 flex items-center justify-center shrink-0 mt-0.5">
-                      <StickyNote size={12} className="text-sky-500" />
+                {timeline.length === 0 && <p className="text-gray-300 text-sm text-center py-4">No activity yet. Add your first note above.</p>}
+                {timeline.map((it) => {
+                  const dot = TL_DOT[it.kind] ?? TL_DOT.note
+                  const Icon = dot.Icon
+                  return (
+                    <div key={it.id} className="group flex gap-3 pb-3 border-b border-gray-50 last:border-0">
+                      <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${dot.cls}`}>
+                        <Icon size={12} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        {dot.label && <p className={`text-[10px] font-bold uppercase tracking-wide ${dot.labelCls ?? 'text-gray-400'}`}>{dot.label}</p>}
+                        <p className={`text-navy-700 text-sm leading-relaxed ${it.kind === 'ai' ? 'whitespace-pre-wrap' : ''} ${it.kind === 'task_done' ? 'line-through text-gray-400' : ''}`}>{it.title}</p>
+                        {it.sub && <p className="text-gray-500 text-xs mt-0.5 whitespace-pre-wrap line-clamp-3">{it.sub}</p>}
+                        <p className="text-gray-400 text-xs mt-1">{it.kind === 'note' && it.author ? `${it.author} · ` : ''}{formatRelativeTime(it.at)}</p>
+                      </div>
+                      {it.kind === 'note' && it.noteId && (
+                        <button type="button" onClick={() => deleteNote(it.noteId!)} className="opacity-0 group-hover:opacity-100 text-gray-300 hover:text-wine transition-all shrink-0" aria-label="Delete note">
+                          <Trash2 size={13} />
+                        </button>
+                      )}
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-navy-700 text-sm leading-relaxed">{note.content}</p>
-                      <p className="text-gray-400 text-xs mt-1">{note.author} · {formatRelativeTime(note.created_at)}</p>
-                    </div>
-                    <button type="button" onClick={() => deleteNote(note.id)} className="opacity-0 group-hover:opacity-100 text-gray-300 hover:text-wine transition-all shrink-0" aria-label="Delete note">
-                      <Trash2 size={13} />
-                    </button>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             </div>
           </div>
