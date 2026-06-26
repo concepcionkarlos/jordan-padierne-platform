@@ -18,6 +18,7 @@ struct MainTabView: View {
             if newPhase == .active { Task { await sync.flush() } }
         }
         .task {
+            guard AppConfig.pushEnabled else { return }   // dormant until Increment ③
             PushRegistration.shared.attach(api: api)
             await PushRegistration.shared.requestAndRegister()
         }

@@ -21,18 +21,21 @@ targets:
     platform: iOS
     sources:
       - Sources
+      - Assets.xcassets
     dependencies:
       - package: Supabase
         product: Supabase
-    entitlements:
-      path: JordanCRM.entitlements
-      properties:
-        aps-environment: development   # Xcode flips this to "production" for TestFlight/archive
+    # NOTE: the APNs push entitlement (aps-environment) + remote-notification
+    # background mode are re-added in Push Increment ③, once the App ID has Push
+    # enabled and the .p8 key exists — keeping them out now lets the core app sign
+    # and install without any push provisioning.
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.jordanpadierne.crm
         TARGETED_DEVICE_FAMILY: "1"
-        INFOPLIST_KEY_UIBackgroundModes: "remote-notification"          # iPhone only
+        CODE_SIGN_STYLE: Automatic
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: "NO"          # iPhone only
         GENERATE_INFOPLIST_FILE: "YES"
         INFOPLIST_KEY_CFBundleDisplayName: "Jordan CRM"
         INFOPLIST_KEY_UILaunchScreen_Generation: "YES"
