@@ -93,7 +93,9 @@ export default function PropertyManager({ initial }: { initial: any[] }) {
         setAiText('')
         setOpen(true)
       } else {
-        setAiError(json.error || 'Could not read that. Try the manual form.')
+        // Never surface a technical/provider failure — keep it friendly + actionable.
+        const friendly = 'The AI couldn’t read that — please fill the form in manually.'
+        setAiError(json.error && json.error !== 'Internal error' ? json.error : friendly)
       }
     } catch {
       setAiError('Something went wrong. Try again or use the manual form.')
