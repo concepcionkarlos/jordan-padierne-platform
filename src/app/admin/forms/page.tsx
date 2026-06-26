@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic'
 import { safeQuery } from '@/lib/db'
 import { formatRelativeTime } from '@/lib/utils'
 import { FileText } from 'lucide-react'
+import PageHeader from '@/components/ui/PageHeader'
 
 async function getFormSubmissions(): Promise<any[]> {
   return safeQuery(
@@ -38,10 +39,7 @@ export default async function FormsPage() {
 
   return (
     <div className="p-6 lg:p-8">
-      <div className="mb-6">
-        <h1 className="font-serif text-2xl font-bold text-navy-900">Form Submissions</h1>
-        <p className="text-gray-500 text-sm mt-0.5">{submissions.length} total submissions</p>
-      </div>
+      <PageHeader title="Form Submissions" subtitle={`${submissions.length} total submissions`} />
 
       {/* Counts by type */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-8">

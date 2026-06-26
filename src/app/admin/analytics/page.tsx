@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic'
 import { safeQuery } from '@/lib/db'
 import { formatCurrency } from '@/lib/utils'
+import PageHeader from '@/components/ui/PageHeader'
 import { commissionFor, weightedDealValue, isThisMonth, isThisYear, MONTH_NAMES } from '@/lib/goals'
 import { TrendingUp, Target, DollarSign, Award, Users } from 'lucide-react'
 
@@ -59,10 +60,7 @@ export default async function AnalyticsPage() {
 
   return (
     <div className="p-6 lg:p-8">
-      <div className="mb-8">
-        <h1 className="font-serif text-2xl font-bold text-navy-900">Analytics</h1>
-        <p className="text-gray-500 text-sm mt-0.5">Your performance at a glance — {MONTH_NAMES[now.getMonth()]} {now.getFullYear()}</p>
-      </div>
+      <PageHeader title="Analytics" subtitle={`Your performance at a glance — ${MONTH_NAMES[now.getMonth()]} ${now.getFullYear()}`} />
 
       {/* Commission cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">

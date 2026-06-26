@@ -4,6 +4,7 @@ import AddLeadModal from '@/components/admin/AddLeadModal'
 import ImportLeadsModal from '@/components/admin/ImportLeadsModal'
 import TipBanner from '@/components/admin/TipBanner'
 import { getLeadsPage } from '@/lib/leads-query'
+import PageHeader from '@/components/ui/PageHeader'
 
 const PAGE_SIZE = 25
 
@@ -20,20 +21,13 @@ export default async function LeadsPage({ searchParams }: { searchParams: { tag?
 
   return (
     <div className="p-6 lg:p-8">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="font-serif text-2xl font-bold text-navy-900">{isClients ? 'Clients' : 'Leads'}</h1>
-          <p className="text-gray-500 text-sm mt-0.5">
-            {isClients
-              ? <>{initial.total} {initial.total === 1 ? 'client' : 'clients'} · closed deals</>
-              : <>{stats.total} total · {stats.active} active</>}
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <ImportLeadsModal />
-          <AddLeadModal />
-        </div>
-      </div>
+      <PageHeader
+        title={isClients ? 'Clients' : 'Leads'}
+        subtitle={isClients
+          ? <>{initial.total} {initial.total === 1 ? 'client' : 'clients'} · closed deals</>
+          : <>{stats.total} total · {stats.active} active</>}
+        action={<><ImportLeadsModal /><AddLeadModal /></>}
+      />
 
       {/* Quick stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">

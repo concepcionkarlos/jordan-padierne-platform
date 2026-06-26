@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react'
 import { Plus, Trash2, Pencil, X, FileText, Eye, EyeOff, ExternalLink } from 'lucide-react'
+import PageHeader from '@/components/ui/PageHeader'
 import { POST_CATEGORIES, categoryLabel, type Post } from '@/lib/posts'
 import { toast } from '@/lib/toast'
 import { useModalA11y } from '@/lib/useModalA11y'
@@ -80,13 +81,11 @@ export default function PostsManager({ initial }: { initial: Post[] }) {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="font-serif text-2xl font-bold text-navy-900">Insights</h1>
-          <p className="text-gray-500 text-sm mt-0.5">{items.length} articles · <a href="/insights" target="_blank" className="text-sky-600 hover:underline inline-flex items-center gap-0.5">view live <ExternalLink size={11} /></a></p>
-        </div>
-        <button type="button" onClick={startNew} className="btn-primary text-sm px-4 py-2.5"><Plus size={15} /> New Article</button>
-      </div>
+      <PageHeader
+        title="Insights"
+        subtitle={<>{items.length} articles · <a href="/insights" target="_blank" className="text-sky-600 hover:underline inline-flex items-center gap-0.5">view live <ExternalLink size={11} /></a></>}
+        action={<button type="button" onClick={startNew} className="btn-primary text-sm px-4 py-2.5"><Plus size={15} /> New Article</button>}
+      />
 
       {items.length === 0 ? (
         <div className="bg-white rounded-2xl border border-gray-100 p-16 text-center">

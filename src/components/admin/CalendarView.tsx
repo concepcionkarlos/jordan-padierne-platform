@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Plus, X, Phone, MapPin, Check, Trash2, Calendar as CalIcon } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
+import PageHeader from '@/components/ui/PageHeader'
 
 interface Appt {
   id: string
@@ -81,15 +82,15 @@ export default function CalendarView({ initial, leads }: { initial: Appt[]; lead
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="font-serif text-2xl font-bold text-navy-900">Calendar</h1>
-          <p className="text-gray-500 text-sm mt-0.5">{upcoming.length} upcoming appointments</p>
-        </div>
-        <button type="button" onClick={() => setShowForm(!showForm)} className="btn-primary text-sm px-4 py-2.5">
-          <Plus size={15} /> Schedule
-        </button>
-      </div>
+      <PageHeader
+        title="Calendar"
+        subtitle={`${upcoming.length} upcoming appointments`}
+        action={
+          <button type="button" onClick={() => setShowForm(!showForm)} className="btn-primary text-sm px-4 py-2.5">
+            <Plus size={15} /> Schedule
+          </button>
+        }
+      />
 
       {/* Quick add form */}
       {showForm && (

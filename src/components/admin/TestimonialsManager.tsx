@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react'
 import { Plus, X, Star, Trash2, Quote, MessageSquareQuote } from 'lucide-react'
+import PageHeader from '@/components/ui/PageHeader'
 import { toast } from '@/lib/toast'
 import { useModalA11y } from '@/lib/useModalA11y'
 
@@ -52,13 +53,11 @@ export default function TestimonialsManager({ initial }: { initial: any[] }) {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="font-serif text-2xl font-bold text-navy-900">Testimonials</h1>
-          <p className="text-gray-500 text-sm mt-0.5">{items.length} reviews · shown live on your home page</p>
-        </div>
-        <button type="button" onClick={() => setOpen(true)} className="btn-primary text-sm px-4 py-2.5"><Plus size={15} /> Add Review</button>
-      </div>
+      <PageHeader
+        title="Testimonials"
+        subtitle={`${items.length} reviews · shown live on your home page`}
+        action={<button type="button" onClick={() => setOpen(true)} className="btn-primary text-sm px-4 py-2.5"><Plus size={15} /> Add Review</button>}
+      />
 
       {items.length === 0 ? (
         <div className="bg-white rounded-2xl border border-gray-100 p-16 text-center">

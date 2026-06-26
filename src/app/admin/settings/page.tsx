@@ -1,5 +1,6 @@
 export const dynamic = 'force-dynamic'
 import Link from 'next/link'
+import PageHeader from '@/components/ui/PageHeader'
 import { Settings, Mail, Shield, Globe, MessageSquare, Phone, Bell, CheckCircle2, XCircle, Calendar, Video, FileText, ChevronRight } from 'lucide-react'
 import { isEmailConfigured } from '@/lib/email'
 import { isSupabaseConfigured } from '@/lib/supabase'
@@ -37,10 +38,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: { g
 
   return (
     <div className="p-6 lg:p-8 max-w-3xl">
-      <div className="mb-8">
-        <h1 className="font-serif text-2xl font-bold text-navy-900">Settings</h1>
-        <p className="text-gray-500 text-sm mt-0.5">Platform configuration and integrations.</p>
-      </div>
+      <PageHeader title="Settings" subtitle="Platform configuration and integrations." />
 
       <div className="space-y-6">
         {/* Submission Log — the raw record of every website form (formerly its own

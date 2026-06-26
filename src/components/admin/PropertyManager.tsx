@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import Image from 'next/image'
 import { Plus, X, Building2, Trash2, Upload, Star, Edit2, Sparkles, Wand2 } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
+import PageHeader from '@/components/ui/PageHeader'
 import { AREAS } from '@/lib/utils'
 import { useModalA11y } from '@/lib/useModalA11y'
 
@@ -164,18 +165,18 @@ export default function PropertyManager({ initial }: { initial: any[] }) {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="font-serif text-2xl font-bold text-navy-900">Properties</h1>
-          <p className="text-gray-500 text-sm mt-0.5">{properties.length} listings · shown live on your public site</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <button type="button" onClick={() => { setAiError(''); setAiText(''); setAiOpen(true) }} className="inline-flex items-center gap-1.5 text-sm px-4 py-2.5 rounded-xl font-semibold bg-gradient-to-r from-wine to-wine-700 text-white shadow-sm hover:opacity-95 transition-opacity">
-            <Sparkles size={15} /> Quick-add with AI
-          </button>
-          <button type="button" onClick={openNew} className="btn-primary text-sm px-4 py-2.5"><Plus size={15} /> Add Property</button>
-        </div>
-      </div>
+      <PageHeader
+        title="Properties"
+        subtitle={`${properties.length} listings · shown live on your public site`}
+        action={
+          <>
+            <button type="button" onClick={() => { setAiError(''); setAiText(''); setAiOpen(true) }} className="inline-flex items-center gap-1.5 text-sm px-4 py-2.5 rounded-xl font-semibold bg-gradient-to-r from-wine to-wine-700 text-white shadow-sm hover:opacity-95 transition-opacity">
+              <Sparkles size={15} /> Quick-add with AI
+            </button>
+            <button type="button" onClick={openNew} className="btn-primary text-sm px-4 py-2.5"><Plus size={15} /> Add Property</button>
+          </>
+        }
+      />
 
       {properties.length === 0 ? (
         <div className="bg-white rounded-2xl border border-gray-100 p-16 text-center">

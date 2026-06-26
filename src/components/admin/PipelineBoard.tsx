@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { UserCircle, Phone, Flame } from 'lucide-react'
 import { getPipelineStageLabel, formatCurrency, formatRelativeTime } from '@/lib/utils'
+import PageHeader from '@/components/ui/PageHeader'
 import { weightedDealValue, commissionFor } from '@/lib/goals'
 
 const STAGES = ['NEW', 'QUALIFIED', 'CONTACTED', 'SHOWING_SCHEDULED', 'NEGOTIATION', 'CLOSED', 'LOST'] as const
@@ -69,22 +70,22 @@ export default function PipelineBoard({ initial }: { initial: any[] }) {
 
   return (
     <div className="p-6 lg:p-8">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
-        <div>
-          <h1 className="font-serif text-2xl font-bold text-navy-900">Pipeline</h1>
-          <p className="text-gray-500 text-sm mt-0.5">{active.length} active deals · drag a card to move it</p>
-        </div>
-        <div className="flex gap-3">
-          <div className="bg-white rounded-xl border border-gray-100 px-4 py-2">
-            <p className="text-xs text-gray-400">Pipeline Value</p>
-            <p className="font-serif text-lg font-bold text-navy-900">{formatCurrency(Math.round(totalValue))}</p>
-          </div>
-          <div className="bg-navy-900 rounded-xl px-4 py-2">
-            <p className="text-xs text-navy-300">Forecast Commission</p>
-            <p className="font-serif text-lg font-bold text-sky-400">{formatCurrency(Math.round(weightedForecast))}</p>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        title="Pipeline"
+        subtitle={`${active.length} active deals · drag a card to move it`}
+        action={
+          <>
+            <div className="bg-white rounded-xl border border-gray-100 px-4 py-2">
+              <p className="text-xs text-gray-400">Pipeline Value</p>
+              <p className="font-serif text-lg font-bold text-navy-900">{formatCurrency(Math.round(totalValue))}</p>
+            </div>
+            <div className="bg-navy-900 rounded-xl px-4 py-2">
+              <p className="text-xs text-navy-300">Forecast Commission</p>
+              <p className="font-serif text-lg font-bold text-sky-400">{formatCurrency(Math.round(weightedForecast))}</p>
+            </div>
+          </>
+        }
+      />
 
       <div className="flex gap-4 overflow-x-auto pb-4">
         {STAGES.map((stage) => {

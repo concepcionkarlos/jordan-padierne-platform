@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { CheckSquare, Calendar, AlertCircle, Plus, X, Trash2, ArrowRight, RotateCcw } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
+import PageHeader from '@/components/ui/PageHeader'
 
 type Task = {
   id: string
@@ -89,20 +90,20 @@ export default function TasksBoard({ initial }: { initial: Task[] }) {
 
   return (
     <div className="p-6 lg:p-8">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="font-serif text-2xl font-bold text-navy-900">Tasks</h1>
-          <p className="text-gray-500 text-sm mt-0.5">
-            {todo.length} pending · {inProgress.length} in progress · {done.length} done
-            {overdue.length > 0 && (
-              <span className="text-wine font-semibold ml-2">· {overdue.length} overdue</span>
-            )}
-          </p>
-        </div>
-        <button type="button" onClick={() => setAdding((v) => !v)} className="btn-primary text-sm px-4 py-2.5">
-          {adding ? <><X size={15} /> Cancel</> : <><Plus size={15} /> New Task</>}
-        </button>
-      </div>
+      <PageHeader
+        title="Tasks"
+        subtitle={<>
+          {todo.length} pending · {inProgress.length} in progress · {done.length} done
+          {overdue.length > 0 && (
+            <span className="text-wine font-semibold ml-2">· {overdue.length} overdue</span>
+          )}
+        </>}
+        action={
+          <button type="button" onClick={() => setAdding((v) => !v)} className="btn-primary text-sm px-4 py-2.5">
+            {adding ? <><X size={15} /> Cancel</> : <><Plus size={15} /> New Task</>}
+          </button>
+        }
+      />
 
       {/* New task form */}
       {adding && (
