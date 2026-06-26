@@ -83,7 +83,7 @@ export default function PropertiesGrid({ properties }: Props) {
               <div key={p.id} className="card group hover-lift">
                 <div className="relative h-56 overflow-hidden bg-gray-100">
                   {p.images?.[0]
-                    ? <Image src={p.images[0]} alt={p.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+                    ? <Image src={p.images[0]} alt={p.title} fill sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw" className="object-cover group-hover:scale-105 transition-transform duration-500" />
                     : <div className="w-full h-full flex items-center justify-center"><Building2 size={36} className="text-gray-200" /></div>}
                   <div className="absolute top-4 left-4 flex gap-2 flex-wrap">
                     <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${badge.className}`}>{badge.label}</span>
