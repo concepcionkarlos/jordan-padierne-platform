@@ -1,9 +1,8 @@
 export const dynamic = 'force-dynamic'
 import Link from 'next/link'
 import PageHeader from '@/components/ui/PageHeader'
-import { Settings, Mail, Shield, Globe, MessageSquare, Phone, Bell, CheckCircle2, XCircle, Calendar, Video, FileText, ChevronRight } from 'lucide-react'
+import { Mail, Shield, Globe, MessageSquare, Bell, CheckCircle2, XCircle, Calendar, Video, FileText, ChevronRight } from 'lucide-react'
 import { isEmailConfigured } from '@/lib/email'
-import { isSupabaseConfigured } from '@/lib/supabase'
 import { getSetting } from '@/lib/settings'
 import { googleOAuthConfigured, isGoogleMeetConfigured } from '@/lib/google-meet'
 import ReviewLinkSetting from '@/components/admin/ReviewLinkSetting'
@@ -12,7 +11,6 @@ import AgentProfileForm from '@/components/admin/AgentProfileForm'
 
 export default async function SettingsPage({ searchParams }: { searchParams: { google?: string } }) {
   const emailConnected = isEmailConfigured()
-  const supabaseConnected = isSupabaseConfigured()
 
   // Load the saved agent profile (falls back to the brand defaults).
   const [name, license, phone, email, broker, languages] = await Promise.all([
@@ -71,14 +69,10 @@ export default async function SettingsPage({ searchParams }: { searchParams: { g
             {googleMsg === 'connected' && <p className="text-sm text-green-600 mb-3">✅ Connected — video appointments now create real Google Meet links.</p>}
             {googleMsg === 'denied' && <p className="text-sm text-wine mb-3">Authorization was cancelled.</p>}
             {(googleMsg === 'failed' || googleMsg === 'state') && <p className="text-sm text-wine mb-3">Could not complete the connection. Please try again.</p>}
-            {googleMsg === 'missing_config' && <p className="text-sm text-wine mb-3">Add the OAuth env vars below first, then redeploy.</p>}
+            {googleMsg === 'missing_config' && <p className="text-sm text-wine mb-3">Google Calendar isn’t set up yet — please contact your administrator.</p>}
             <p className="text-gray-500 text-sm mb-4">Connect Jordan’s Google account so video appointments create real Google Meet links on his calendar and email native invites to clients.</p>
             {!googleConfigured ? (
-              <div className="bg-light-gray rounded-lg p-3 text-xs font-mono text-gray-600 space-y-1">
-                <p>GOOGLE_OAUTH_CLIENT_ID=…</p>
-                <p>GOOGLE_OAUTH_CLIENT_SECRET=…</p>
-                <p>GOOGLE_OAUTH_REDIRECT_URI=https://jordanpadierne.com/api/google/callback</p>
-              </div>
+              <p className="text-sm text-gray-400">Not connected yet — your administrator can enable Google Calendar &amp; Meet.</p>
             ) : (
               <a href="/api/google/connect" className="btn-primary text-sm px-5 py-2.5 inline-flex">
                 <Calendar size={15} /> {googleConnected ? 'Reconnect Google Calendar' : 'Connect Google Calendar'}
@@ -157,7 +151,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: { g
                     <p className="text-gray-400 text-xs">
                       {emailConnected
                         ? `Sending from ${process.env.SMTP_FROM || 'info@jordanpadierne.com'}`
-                        : 'Configure SMTP_USER and SMTP_PASSWORD in environment variables'}
+                        : 'Not connected yet — your administrator can enable email.'}
                     </p>
                   </div>
                 </div>
@@ -167,17 +161,6 @@ export default async function SettingsPage({ searchParams }: { searchParams: { g
                 }
               </div>
               {emailConnected && <EmailTestButton />}
-              {!emailConnected && (
-                <div className="mt-3 bg-white rounded-lg p-3 border border-gray-200 text-xs font-mono text-gray-600 space-y-1">
-                  <p>SMTP_HOST=smtp.gmail.com</p>
-                  <p>SMTP_PORT=587</p>
-                  <p>SMTP_USER=info@jordanpadierne.com</p>
-                  <p>SMTP_PASSWORD=<span className="text-gray-400">[Google App Password]</span></p>
-                  <p>SMTP_FROM=info@jordanpadierne.com</p>
-                  <p>ADMIN_NOTIFICATION_EMAIL=info@jordanpadierne.com</p>
-                  <p>SUPPORT_NOTIFICATION_EMAIL=support@jordanpadierne.com</p>
-                </div>
-              )}
             </div>
 
             {/* WhatsApp */}
@@ -194,55 +177,6 @@ export default async function SettingsPage({ searchParams }: { searchParams: { g
               </div>
             </div>
 
-            {/* iOS App */}
-            <div className="p-4 rounded-xl border border-dashed border-gray-200 bg-gray-50">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Phone size={18} className="text-gray-400" />
-                  <div>
-                    <p className="text-navy-900 text-sm font-medium">iOS Mobile App</p>
-                    <p className="text-gray-400 text-xs">API and database ready — pending development</p>
-                  </div>
-                </div>
-                <span className="badge bg-gray-100 text-gray-400 text-xs">Future</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Database Status */}
-        <div className="bg-navy-900 rounded-2xl p-6">
-          <h3 className="text-white font-semibold text-sm mb-4 flex items-center gap-2">
-            <Settings size={14} className="text-sky-400" />
-            Database Status
-          </h3>
-          <div className="space-y-2.5">
-            {[
-              { table: 'leads', label: 'Leads' },
-              { table: 'contacts', label: 'Contacts' },
-              { table: 'messages', label: 'Messages' },
-              { table: 'properties', label: 'Properties' },
-              { table: 'tasks', label: 'Tasks' },
-              { table: 'notes', label: 'Notes' },
-              { table: 'pipeline_entries', label: 'Pipeline' },
-              { table: 'form_submissions', label: 'Form Submissions' },
-              { table: 'settings', label: 'Settings' },
-            ].map(({ table, label }) => (
-              <div key={table} className="flex items-center justify-between">
-                <span className="text-navy-300 text-xs font-mono">{table}</span>
-                <div className="flex items-center gap-2">
-                  {supabaseConnected
-                    ? <><div className="w-2 h-2 rounded-full bg-green-400" /><span className="text-green-400 text-xs">Active</span></>
-                    : <><div className="w-2 h-2 rounded-full bg-gray-600" /><span className="text-gray-500 text-xs">Not connected</span></>
-                  }
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="mt-4 pt-4 border-t border-navy-800">
-            <p className="text-navy-400 text-xs">
-              Supabase Project: <span className="text-sky-400 font-mono">fwikhedmtouggqpiymrc</span>
-            </p>
           </div>
         </div>
       </div>

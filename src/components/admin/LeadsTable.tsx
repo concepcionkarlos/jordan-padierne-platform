@@ -149,7 +149,7 @@ export default function LeadsTable({ initial, pageSize, initialTag = null, initi
             </thead>
             <tbody className="divide-y divide-gray-50">
               {rows.length === 0 && (
-                <tr><td colSpan={6} className="px-5 py-12 text-center text-gray-400 text-sm">{loading ? 'Searching…' : 'No leads match your filters.'}</td></tr>
+                <tr><td colSpan={6} className="px-5 py-12 text-center text-gray-400 text-sm">{loading ? 'Searching…' : (activeFilters > 0 || debouncedSearch.trim().length > 0) ? 'No leads match your filters.' : 'No leads yet. Add your first lead or import your contacts to get started.'}</td></tr>
               )}
               {rows.map((lead) => {
                 const fresh = getLeadFreshness(lead)
