@@ -4,7 +4,7 @@ import { safeQuery } from '@/lib/db'
 import { isSupabaseConfigured } from '@/lib/supabase'
 import { formatRelativeTime, getPipelineStageColor, getPipelineStageLabel, formatCurrency } from '@/lib/utils'
 import { getLeadFreshness, getFollowupStatus, getTagDef } from '@/lib/leads'
-import { buildActivityDays, calcStreak, countTodayActivity, commissionFor, weightedDealValue, isThisMonth } from '@/lib/goals'
+import { buildActivityDays, calcStreak, countTodayActivity, commissionFor, weightedDealValue, isThisMonth, STAGE_PROBABILITY } from '@/lib/goals'
 import { getNextAction, urgencyRank } from '@/lib/coach'
 import ProgressRing from '@/components/admin/ProgressRing'
 import GettingStarted from '@/components/admin/GettingStarted'
@@ -104,11 +104,21 @@ async function getData() {
 
   const hotLeads = active.filter((l: any) => l.hot_score === 3).slice(0, 5)
 
+  // ─── Closest to close: highest-probability active opportunity with money on the line ───
+  const closestToClose = active
+    .filter((l: any) => (l.deal_value ?? l.budget_max ?? 0) > 0)
+    .map((l: any) => {
+      const prob = l.close_probability != null ? l.close_probability / 100 : (STAGE_PROBABILITY[l.pipeline_stage] ?? 0.1)
+      const value = l.deal_value ?? l.budget_max ?? 0
+      return { lead: l, prob, value, commission: commissionFor(value, l.commission_rate ?? 3) }
+    })
+    .sort((a: any, b: any) => b.prob - a.prob || b.value - a.value)[0] ?? null
+
   return {
     totalLeads: leads.length, newLeads: leads.filter((l: any) => l.status === 'new').length,
     unreadMessages: messages.filter((m: any) => m.status === 'unread').length, activePipeline: active.length,
     streak, todayCount, earnedThisMonth, forecastValue, closedCount, missions,
-    todaysAppts, followupsDue, overdueTasks, staleLeads, hotLeads, actionFeed,
+    todaysAppts, followupsDue, overdueTasks, staleLeads, hotLeads, actionFeed, closestToClose,
     recentLeads: leads.slice(0, 5),
     onboarding: {
       leads: leads.length, properties: properties.length, notes: notes.length,
@@ -282,6 +292,33 @@ export default async function AdminDashboard() {
           ))}
         </div>
       </div>
+
+      {/* ─── Closest to Close ─── */}
+      {d.closestToClose && (
+        <div className="bg-gradient-to-br from-green-50 to-white rounded-2xl border border-green-100 shadow-sm p-5 mb-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Target size={16} className="text-green-600" />
+            <h2 className="font-semibold text-navy-900 text-sm">Closest to Close</h2>
+            <span className="badge bg-green-100 text-green-700 text-xs ml-auto">{Math.round(d.closestToClose.prob * 100)}% likely</span>
+          </div>
+          <div className="flex items-center justify-between gap-4">
+            <div className="min-w-0">
+              <Link href={`/admin/leads/${d.closestToClose.lead.id}`} className="font-serif text-lg font-bold text-navy-900 hover:text-wine transition-colors truncate block">{d.closestToClose.lead.full_name}</Link>
+              <p className="text-gray-400 text-xs mt-0.5">{getPipelineStageLabel(d.closestToClose.lead.pipeline_stage)} · {formatCurrency(d.closestToClose.value)} deal</p>
+            </div>
+            <div className="text-right shrink-0">
+              <p className="text-[10px] text-gray-400 uppercase tracking-wide">Your commission</p>
+              <p className="font-serif text-2xl font-bold text-green-600">{formatCurrency(d.closestToClose.commission)}</p>
+            </div>
+          </div>
+          <div className="flex gap-2 mt-4">
+            {d.closestToClose.lead.phone && (
+              <a href={`tel:${d.closestToClose.lead.phone}`} className="inline-flex items-center gap-1.5 text-sm font-semibold text-green-700 bg-green-100 hover:bg-green-200 px-4 py-2 rounded-xl transition-colors"><Phone size={14} /> Call</a>
+            )}
+            <Link href={`/admin/leads/${d.closestToClose.lead.id}`} className="inline-flex items-center gap-1.5 text-sm font-semibold text-navy-700 border border-gray-200 hover:border-navy-300 px-4 py-2 rounded-xl transition-colors">Open deal <ArrowRight size={14} /></Link>
+          </div>
+        </div>
+      )}
 
       {/* ─── Bottom grid: stale + hot + recent ─── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
