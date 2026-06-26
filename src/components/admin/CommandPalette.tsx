@@ -7,6 +7,7 @@ import {
   Search, LayoutDashboard, Users, GitBranch, CalendarDays, CheckSquare,
   BarChart3, MessageSquare, Building2, Settings, UserCircle, Phone, Command,
   FileText, MessageSquareQuote, Youtube, Newspaper, Rocket, GraduationCap,
+  Plus, Flame, StickyNote, CalendarPlus,
 } from 'lucide-react'
 
 const PAGES = [
@@ -26,6 +27,15 @@ const PAGES = [
   { label: 'Growth Engine', href: '/admin/automations', icon: Rocket },
   { label: 'Training', href: '/admin/training', icon: GraduationCap },
   { label: 'Settings', href: '/admin/settings', icon: Settings },
+]
+
+// High-value quick actions (Raycast-style). Each is just a deep link; the target
+// page auto-opens the relevant form via a query param.
+const ACTIONS = [
+  { label: 'Add property', icon: Building2, href: '/admin/properties?add=1' },
+  { label: 'Add lead', icon: Plus, href: '/admin/leads?add=1' },
+  { label: 'Hot leads', icon: Flame, href: '/admin/leads?tag=hot' },
+  { label: "Today's tasks", icon: CheckSquare, href: '/admin/tasks' },
 ]
 
 interface Lead { id: string; full_name: string; phone: string; client_type: string; pipeline_stage: string }
@@ -68,19 +78,22 @@ export default function CommandPalette() {
   }, [open, leads.length])
 
   const q = query.toLowerCase().trim()
+  const matchedActions = q ? ACTIONS.filter((a) => a.label.toLowerCase().includes(q)) : ACTIONS
   const matchedPages = q ? PAGES.filter((p) => p.label.toLowerCase().includes(q)) : PAGES
   const matchedLeads = q
     ? leads.filter((l) => `${l.full_name} ${l.phone} ${l.client_type}`.toLowerCase().includes(q)).slice(0, 6)
     : []
 
   const results = [
+    ...matchedActions.map((a) => ({ type: 'action' as const, ...a })),
     ...matchedPages.map((p) => ({ type: 'page' as const, ...p })),
     ...matchedLeads.map((l) => ({ type: 'lead' as const, ...l })),
   ]
 
-  const go = useCallback((r: any) => {
+  const go = useCallback((r: any, sub?: 'note' | 'schedule') => {
     setOpen(false)
-    router.push(r.type === 'lead' ? `/admin/leads/${r.id}` : r.href)
+    if (r.type === 'lead') router.push(`/admin/leads/${r.id}${sub ? `?focus=${sub}` : ''}`)
+    else router.push(r.href)
   }, [router])
 
   useEffect(() => { setActive(0) }, [query])
@@ -126,6 +139,22 @@ export default function CommandPalette() {
             <div className="max-h-80 overflow-y-auto scrollbar-thin py-2">
               {results.length === 0 && <p className="px-4 py-6 text-center text-gray-400 text-sm">No results for &ldquo;{query}&rdquo;</p>}
 
+              {matchedActions.length > 0 && (
+                <div>
+                  <p className="px-4 py-1 text-[10px] font-bold text-gray-300 uppercase tracking-widest">Quick Actions</p>
+                  {results.filter((r) => r.type === 'action').map((r: any) => {
+                    const Icon = r.icon
+                    const idx = results.indexOf(r)
+                    return (
+                      <button key={r.href} type="button" onClick={() => go(r)} onMouseEnter={() => setActive(idx)}
+                        className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm ${active === idx ? 'bg-sky-50 text-navy-900' : 'text-navy-700'}`}>
+                        <Icon size={16} className="text-wine" />{r.label}
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+
               {matchedPages.length > 0 && (
                 <div>
                   <p className="px-4 py-1 text-[10px] font-bold text-gray-300 uppercase tracking-widest">Pages</p>
@@ -148,15 +177,18 @@ export default function CommandPalette() {
                   {results.filter((r) => r.type === 'lead').map((r: any) => {
                     const idx = results.indexOf(r)
                     return (
-                      <button key={r.id} type="button" onClick={() => go(r)} onMouseEnter={() => setActive(idx)}
-                        className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm ${active === idx ? 'bg-sky-50' : ''}`}>
-                        <div className="w-7 h-7 rounded-full bg-navy-50 flex items-center justify-center shrink-0"><UserCircle size={15} className="text-navy-600" /></div>
-                        <div className="flex-1 text-left min-w-0">
-                          <p className="font-semibold text-navy-900 truncate">{r.full_name}</p>
-                          <p className="text-gray-400 text-xs">{r.client_type}</p>
-                        </div>
-                        {r.phone && <Phone size={13} className="text-gray-300" />}
-                      </button>
+                      <div key={r.id} onMouseEnter={() => setActive(idx)}
+                        className={`w-full flex items-center gap-2 px-4 py-2 text-sm ${active === idx ? 'bg-sky-50' : ''}`}>
+                        <button type="button" onClick={() => go(r)} className="flex items-center gap-3 flex-1 text-left min-w-0">
+                          <div className="w-7 h-7 rounded-full bg-navy-50 flex items-center justify-center shrink-0"><UserCircle size={15} className="text-navy-600" /></div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold text-navy-900 truncate">{r.full_name}</p>
+                            <p className="text-gray-400 text-xs">{r.client_type}</p>
+                          </div>
+                        </button>
+                        <button type="button" onClick={() => go(r, 'note')} className="px-2 py-1 rounded-md text-[11px] font-semibold text-navy-600 hover:bg-navy-100 inline-flex items-center gap-1 shrink-0" aria-label={`Log note on ${r.full_name}`}><StickyNote size={12} /> Note</button>
+                        <button type="button" onClick={() => go(r, 'schedule')} className="px-2 py-1 rounded-md text-[11px] font-semibold text-wine hover:bg-wine-50 inline-flex items-center gap-1 shrink-0" aria-label={`Schedule with ${r.full_name}`}><CalendarPlus size={12} /> Schedule</button>
+                      </div>
                     )
                   })}
                 </div>

@@ -10,17 +10,18 @@ import type { LeadsPage, LeadSort } from '@/lib/leads-query'
 interface Props {
   initial: LeadsPage
   pageSize: number
+  initialTag?: string | null
 }
 
 const STAGE_FILTERS = ['ALL', 'NEW', 'QUALIFIED', 'CONTACTED', 'SHOWING_SCHEDULED', 'NEGOTIATION', 'CLOSED', 'LOST']
 const CLIENT_FILTERS = ['All Types', 'Buyer', 'Investor', 'International Buyer', 'Luxury Buyer', 'Pre-Construction Buyer', 'Seller']
 
-export default function LeadsTable({ initial, pageSize }: Props) {
+export default function LeadsTable({ initial, pageSize, initialTag = null }: Props) {
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [stageFilter, setStageFilter] = useState('ALL')
   const [clientFilter, setClientFilter] = useState('All Types')
-  const [tagFilter, setTagFilter] = useState<string | null>(null)
+  const [tagFilter, setTagFilter] = useState<string | null>(initialTag)
   const [sortBy, setSortBy] = useState<LeadSort>('score')
   const [page, setPage] = useState(1)
   const [reloadKey, setReloadKey] = useState(0)

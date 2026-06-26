@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import {
   Phone, Mail, MapPin, Calendar, DollarSign, MessageSquare,
   Send, Plus, Check, Clock, Trash2, StickyNote, ChevronDown, TrendingUp, CalendarPlus, Target,
@@ -60,6 +60,19 @@ export default function LeadWorkspace({ lead: initialLead, initialNotes, initial
   // Buyer form
   const [sendingForm, setSendingForm] = useState(false)
   const [formSentAt, setFormSentAt] = useState<string | null>(initialLead.metadata?.form_sent_at ?? null)
+  const noteInputRef = useRef<HTMLInputElement>(null)
+
+  // Command-palette deep links: /admin/leads/{id}?focus=note|schedule
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const focus = new URLSearchParams(window.location.search).get('focus')
+    if (focus === 'schedule') {
+      setShowApptForm(true)
+      setTimeout(() => document.getElementById('appt-anchor')?.scrollIntoView({ behavior: 'smooth' }), 80)
+    } else if (focus === 'note') {
+      setTimeout(() => { noteInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }); noteInputRef.current?.focus() }, 80)
+    }
+  }, [])
 
   const freshness = getLeadFreshness(lead)
   const hotScore = getHotScore(lead.hot_score)
@@ -766,6 +779,7 @@ export default function LeadWorkspace({ lead: initialLead, initialNotes, initial
           <div className="p-5">
             <div className="flex gap-2 mb-4">
               <input
+                ref={noteInputRef}
                 value={noteText}
                 onChange={(e) => setNoteText(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addNote() } }}

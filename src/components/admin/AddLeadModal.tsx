@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { X, Plus, UserPlus } from 'lucide-react'
 import { AREAS, CLIENT_TYPES, TIMELINES } from '@/lib/utils'
@@ -20,6 +20,11 @@ export default function AddLeadModal() {
   function update(k: string, v: string) {
     setForm((f) => ({ ...f, [k]: v }))
   }
+
+  // Command-palette "Add lead" deep link (/admin/leads?add=1).
+  useEffect(() => {
+    if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('add') === '1') setOpen(true)
+  }, [])
 
   async function submit() {
     if (!form.full_name.trim() || !form.phone.trim()) return

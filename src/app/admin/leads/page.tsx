@@ -7,11 +7,12 @@ import { getLeadsPage } from '@/lib/leads-query'
 
 const PAGE_SIZE = 25
 
-export default async function LeadsPage() {
+export default async function LeadsPage({ searchParams }: { searchParams: { tag?: string } }) {
   // Server-renders only the first page (default sort: Smart Score). The table
   // fetches further pages / searches on demand, so the browser never holds the
-  // whole book.
-  const initial = await getLeadsPage({ page: 1, pageSize: PAGE_SIZE, sort: 'score' })
+  // whole book. An optional ?tag= seeds a filter (e.g. command palette "Hot leads").
+  const initialTag = searchParams?.tag || null
+  const initial = await getLeadsPage({ page: 1, pageSize: PAGE_SIZE, sort: 'score', tag: initialTag })
   const stats = initial.stats
 
   return (
@@ -51,7 +52,7 @@ export default async function LeadsPage() {
         💡 Sort by <strong>⚡ Smart Score</strong> to see who&apos;s most ready to buy. The colored dot shows lead freshness — green is fresh, red is going cold. Click any lead to open its Coach.
       </TipBanner>
 
-      <LeadsTable initial={initial} pageSize={PAGE_SIZE} />
+      <LeadsTable initial={initial} pageSize={PAGE_SIZE} initialTag={initialTag} />
     </div>
   )
 }

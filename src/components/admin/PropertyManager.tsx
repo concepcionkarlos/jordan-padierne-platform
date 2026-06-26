@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import Image from 'next/image'
 import { Plus, X, Building2, Trash2, Upload, Star, Edit2, Sparkles, Wand2 } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
@@ -69,6 +69,11 @@ export default function PropertyManager({ initial }: { initial: any[] }) {
   useModalA11y(aiOpen, () => { if (!aiLoading) setAiOpen(false) }, aiModalRef)
 
   function openNew() { setForm(EMPTY); setEditId(null); setOpen(true) }
+
+  // Command-palette "Add property" deep link (/admin/properties?add=1).
+  useEffect(() => {
+    if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('add') === '1') openNew()
+  }, [])
 
   async function runAi() {
     if (aiText.trim().length < 8) return
