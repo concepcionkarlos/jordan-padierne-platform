@@ -29,6 +29,8 @@ export async function GET(req: NextRequest) {
   }
 }
 
+const MESSAGE_STATUSES = ['unread', 'read', 'handled']
+
 export async function PATCH(req: NextRequest) {
   const denied = await requireUser(); if (denied) return denied
   try {
@@ -37,7 +39,15 @@ export async function PATCH(req: NextRequest) {
 
     if (!id) return NextResponse.json({ success: false, error: 'ID required' }, { status: 400 })
 
-    const { data, error } = await supabase.from('messages').update(updates).eq('id', id).select().single()
+    // Whitelist — only status + lead_id may be patched on a message.
+    const allowed: Record<string, unknown> = {}
+    if (MESSAGE_STATUSES.includes(updates.status)) allowed.status = updates.status
+    if ('lead_id' in updates) allowed.lead_id = updates.lead_id || null
+    if (Object.keys(allowed).length === 0) {
+      return NextResponse.json({ success: false, error: 'No valid fields to update.' }, { status: 400 })
+    }
+
+    const { data, error } = await supabase.from('messages').update(allowed).eq('id', id).select('*, leads(id, full_name, pipeline_stage)').single()
     if (error) throw error
 
     return NextResponse.json({ success: true, data })
