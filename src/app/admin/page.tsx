@@ -218,36 +218,10 @@ export default async function AdminDashboard() {
         </div>
       </div>
 
-      {/* ─── Daily Missions (gamified daily goals) ─── */}
-      <DailyMissions missions={d.missions} />
-
-      {/* ─── Getting Started (auto-hides when complete) ─── */}
+      {/* ─── Getting Started (auto-hides when complete; harmless for Jordan) ─── */}
       <GettingStarted stats={d.onboarding} />
 
-      {/* ─── Stat cards ─── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        {[
-          { label: 'Total Leads', value: d.totalLeads, icon: Users, color: 'text-navy-700 bg-navy-50' },
-          { label: 'New Leads', value: d.newLeads, icon: AlertCircle, color: 'text-wine bg-wine-50' },
-          { label: 'Unread Messages', value: d.unreadMessages, icon: MessageSquare, color: 'text-sky-600 bg-sky-50' },
-          { label: 'Closed This Month', value: `${d.closedCount}/${MONTHLY_CLOSE_GOAL}`, icon: Target, color: 'text-green-600 bg-green-50' },
-        ].map((s) => {
-          const Icon = s.icon
-          return (
-            <div key={s.label} className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-              <div className="flex items-start justify-between mb-3">
-                <div>
-                  <p className="text-gray-500 text-xs font-semibold uppercase tracking-wide">{s.label}</p>
-                  <p className="font-serif text-3xl font-bold text-navy-900 mt-1">{s.value}</p>
-                </div>
-                <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${s.color}`}><Icon size={20} /></div>
-              </div>
-            </div>
-          )
-        })}
-      </div>
-
-      {/* ─── Coach Action Feed: what to do, per lead, prioritized ─── */}
+      {/* ─── 1) Immediate actions — Coach Action Feed ─── */}
       {d.actionFeed.length > 0 && (
         <TipBanner id="coach">
           💡 <strong>Your Coach</strong> tells you exactly what to do next with each client, ranked by urgency. Work the list top to bottom — each lead you touch keeps your 🔥 streak alive.
@@ -437,6 +411,30 @@ export default async function AdminDashboard() {
           </div>
         </div>
       </div>
+
+      {/* ─── 5) Supporting information — metrics + daily missions (below the operating flow) ─── */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-6 mb-6">
+        {[
+          { label: 'Total Leads', value: d.totalLeads, icon: Users, color: 'text-navy-700 bg-navy-50' },
+          { label: 'New Leads', value: d.newLeads, icon: AlertCircle, color: 'text-wine bg-wine-50' },
+          { label: 'Unread Messages', value: d.unreadMessages, icon: MessageSquare, color: 'text-sky-600 bg-sky-50' },
+          { label: 'Closed This Month', value: `${d.closedCount}/${MONTHLY_CLOSE_GOAL}`, icon: Target, color: 'text-green-600 bg-green-50' },
+        ].map((s) => {
+          const Icon = s.icon
+          return (
+            <div key={s.label} className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
+              <div className="flex items-start justify-between mb-3">
+                <div>
+                  <p className="text-gray-500 text-xs font-semibold uppercase tracking-wide">{s.label}</p>
+                  <p className="font-serif text-3xl font-bold text-navy-900 mt-1">{s.value}</p>
+                </div>
+                <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${s.color}`}><Icon size={20} /></div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+      <DailyMissions missions={d.missions} />
     </div>
   )
 }
