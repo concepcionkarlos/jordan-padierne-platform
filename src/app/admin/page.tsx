@@ -1,7 +1,10 @@
 export const dynamic = 'force-dynamic'
-import { Users, MessageSquare, TrendingUp, AlertCircle, UserCircle, Phone, Clock, Flame, CalendarClock, ArrowRight, Target, Zap, CheckSquare, Calendar } from 'lucide-react'
+import { Users, MessageSquare, TrendingUp, AlertCircle, UserCircle, Phone, Clock, Flame, CalendarClock, ArrowRight, Target, Zap, CheckSquare, Calendar, Bell, CheckCircle2 } from 'lucide-react'
 import { safeQuery } from '@/lib/db'
 import { isSupabaseConfigured } from '@/lib/supabase'
+import { isEmailConfigured } from '@/lib/email'
+import { getSetting } from '@/lib/settings'
+import { parseHeartbeat, isHeartbeatStale } from '@/lib/cron-status'
 import { formatRelativeTime, getPipelineStageColor, getPipelineStageLabel, formatCurrency } from '@/lib/utils'
 import { getLeadFreshness, getFollowupStatus, getTagDef } from '@/lib/leads'
 import { buildActivityDays, calcStreak, countTodayActivity, commissionFor, weightedDealValue, isThisMonth, STAGE_PROBABILITY } from '@/lib/goals'
@@ -27,6 +30,9 @@ async function getData() {
     safeQuery((db) => db.from('properties').select('id').limit(1), []),
     safeQuery((db) => db.from('testimonials').select('id').limit(1), []),
   ])
+
+  // Automation health (existing data only): email provider + cron heartbeat freshness.
+  const cronDripRaw = await getSetting('cron_drip_last_run')
 
   const active = leads.filter((l: any) => !['closed', 'lost'].includes(l.status))
 
@@ -134,6 +140,11 @@ async function getData() {
     streak, todayCount, earnedThisMonth, forecastValue, closedCount, missions,
     todaysAppts, followupsDue, overdueTasks, staleLeads, hotLeads, actionFeed, closestToClose, dealsAtRisk,
     recentLeads: leads.slice(0, 5),
+    automation: {
+      emailOn: isEmailConfigured(),
+      cronStale: isHeartbeatStale(parseHeartbeat(cronDripRaw)),
+      unread: messages.filter((m: any) => m.status === 'unread').length,
+    },
     onboarding: {
       leads: leads.length, properties: properties.length, notes: notes.length,
       appointments: appointments.length, testimonials: testimonials.length,
@@ -160,6 +171,12 @@ export default async function AdminDashboard() {
     hour < 18 ? 'Good afternoon' :
     hour < 22 ? 'Good evening' :
     'Good night'
+
+  // Automation attention — only surfaces when something actually needs Jordan.
+  const autoWarnings: { label: string; href: string }[] = []
+  if (!d.automation.emailOn) autoWarnings.push({ label: 'Email not connected', href: '/admin/settings' })
+  if (d.automation.cronStale) autoWarnings.push({ label: 'Background automations overdue', href: '/admin/automations' })
+  if (d.automation.unread > 0) autoWarnings.push({ label: `${d.automation.unread} unread message${d.automation.unread > 1 ? 's' : ''}`, href: '/admin/messages' })
 
   return (
     <div className="p-6 lg:p-8">
@@ -216,6 +233,38 @@ export default async function AdminDashboard() {
             </div>
           </div>
         </div>
+        {/* Mobile-only revenue (desktop keeps the block above; command strip unchanged) */}
+        <div className="sm:hidden relative flex gap-4 mt-5 pt-5 border-t border-white/15">
+          <div className="flex-1">
+            <p className="text-[11px] text-navy-300">Forecast Commission</p>
+            <p className="font-serif text-xl font-bold text-sky-400">{formatCurrency(Math.round(d.forecastValue))}</p>
+          </div>
+          <div className="flex-1">
+            <p className="text-[11px] text-navy-300">Earned This Month</p>
+            <p className="font-serif text-xl font-bold text-green-400">{formatCurrency(d.earnedThisMonth)}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* ─── Automation attention: does anything need me? ─── */}
+      <div className="mb-6">
+        {autoWarnings.length > 0 ? (
+          <div className="bg-amber-50 border border-amber-200 rounded-2xl px-5 py-3 flex items-center gap-x-3 gap-y-1.5 flex-wrap">
+            <Bell size={15} className="text-amber-600 shrink-0" />
+            <span className="text-amber-900 text-sm font-semibold">Needs attention:</span>
+            {autoWarnings.map((w, i) => (
+              <span key={w.href} className="flex items-center gap-3">
+                {i > 0 && <span className="text-amber-300">·</span>}
+                <Link href={w.href} className="text-amber-800 text-sm font-medium hover:underline underline-offset-2">{w.label}</Link>
+              </span>
+            ))}
+          </div>
+        ) : (
+          <div className="bg-green-50/70 border border-green-100 rounded-2xl px-5 py-2.5 flex items-center gap-2">
+            <CheckCircle2 size={14} className="text-green-600 shrink-0" />
+            <span className="text-green-800 text-xs font-medium">All automations are running.</span>
+          </div>
+        )}
       </div>
 
       {/* ─── Getting Started (auto-hides when complete; harmless for Jordan) ─── */}
