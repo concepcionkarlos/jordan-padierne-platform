@@ -1,15 +1,16 @@
 export const dynamic = 'force-dynamic'
-import { Users, MessageSquare, TrendingUp, AlertCircle, UserCircle, Phone, Clock, Flame, CalendarClock, ArrowRight, Target, Zap, CheckSquare, Calendar, Sparkles } from 'lucide-react'
+import { Users, MessageSquare, TrendingUp, AlertCircle, UserCircle, Phone, Clock, Flame, CalendarClock, ArrowRight, Target, Zap, CheckSquare, Calendar } from 'lucide-react'
 import { safeQuery } from '@/lib/db'
 import { isSupabaseConfigured } from '@/lib/supabase'
 import { formatRelativeTime, getPipelineStageColor, getPipelineStageLabel, formatCurrency } from '@/lib/utils'
 import { getLeadFreshness, getFollowupStatus, getTagDef } from '@/lib/leads'
 import { buildActivityDays, calcStreak, countTodayActivity, commissionFor, weightedDealValue, isThisMonth } from '@/lib/goals'
-import { getNextAction, urgencyMeta, urgencyRank } from '@/lib/coach'
+import { getNextAction, urgencyRank } from '@/lib/coach'
 import ProgressRing from '@/components/admin/ProgressRing'
 import GettingStarted from '@/components/admin/GettingStarted'
 import TipBanner from '@/components/admin/TipBanner'
 import DailyMissions from '@/components/admin/DailyMissions'
+import CoachFeed from '@/components/admin/CoachFeed'
 import Link from 'next/link'
 
 const DAILY_GOAL = 5
@@ -228,36 +229,7 @@ export default async function AdminDashboard() {
           💡 <strong>Your Coach</strong> tells you exactly what to do next with each client, ranked by urgency. Work the list top to bottom — each lead you touch keeps your 🔥 streak alive.
         </TipBanner>
       )}
-      {d.actionFeed.length > 0 && (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-6">
-          <div className="px-5 py-4 border-b border-gray-50 flex items-center gap-2 bg-gradient-to-r from-navy-900/5 to-transparent">
-            <Sparkles size={16} className="text-wine" />
-            <h2 className="font-semibold text-navy-900 text-sm">Your Coach — Next Moves</h2>
-            <span className="text-gray-400 text-xs ml-auto">Smart-prioritized across {d.activePipeline} active leads</span>
-          </div>
-          <div className="divide-y divide-gray-50">
-            {d.actionFeed.map(({ lead, action }: any) => {
-              const um = urgencyMeta(action.urgency)
-              return (
-                <div key={lead.id} className="flex items-center gap-3 px-5 py-3.5 hover:bg-gray-50 transition-colors group">
-                  <span className="text-xl shrink-0">{action.emoji}</span>
-                  <Link href={`/admin/leads/${lead.id}`} className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="font-semibold text-navy-900 text-sm truncate">{action.title}</p>
-                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${um.className} shrink-0`}>{um.label}</span>
-                    </div>
-                    <p className="text-gray-400 text-xs truncate">{lead.full_name} · {action.reason}</p>
-                  </Link>
-                  {lead.phone && (
-                    <a href={`tel:${lead.phone}`} className="w-8 h-8 rounded-lg bg-gray-50 group-hover:bg-sky-50 flex items-center justify-center text-sky-500 shrink-0" aria-label="Call"><Phone size={14} /></a>
-                  )}
-                  <Link href={`/admin/leads/${lead.id}`} className="hidden sm:inline-flex items-center gap-1 text-xs font-semibold text-wine shrink-0">{action.actionLabel}<ArrowRight size={12} /></Link>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      )}
+      <CoachFeed items={d.actionFeed} activePipeline={d.activePipeline} />
 
       {/* ─── Today's Plan ─── */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-6">
