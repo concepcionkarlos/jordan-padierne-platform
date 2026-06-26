@@ -1,14 +1,17 @@
 import { defineConfig } from 'vitest/config'
+import react from '@vitejs/plugin-react'
 import { fileURLToPath } from 'node:url'
 
 // Lightweight regression net. Tests live in /tests and import the REAL
-// production modules via the same `@/` alias the app uses.
+// production modules via the same `@/` alias the app uses. The React plugin
+// lets the component render tests (.test.tsx) transform JSX.
 export default defineConfig({
+  plugins: [react()],
   resolve: {
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
   },
   test: {
-    include: ['tests/**/*.test.ts'],
+    include: ['tests/**/*.test.{ts,tsx}'],
     environment: 'node',
   },
 })

@@ -444,7 +444,9 @@ export default function LeadWorkspace({ lead: initialLead, initialNotes, initial
 
       <div className="lg:grid lg:grid-cols-12 lg:gap-6 lg:items-start">
         {/* ════════════════ CONTEXT RAIL (sticky) ════════════════ */}
-        <aside className="lg:col-span-4 xl:col-span-3 lg:sticky lg:top-6 space-y-4 mb-6 lg:mb-0">
+        {/* max-h + internal scroll so every rail card stays reachable even when
+            the rail is taller than the viewport on a laptop. */}
+        <aside className="lg:col-span-4 xl:col-span-3 lg:sticky lg:top-6 lg:max-h-[calc(100vh-3rem)] lg:overflow-y-auto scrollbar-thin space-y-4 mb-6 lg:mb-0">
           {/* Snapshot — who is this & what matters, always visible */}
           <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
             <div className="flex items-start gap-3">
