@@ -14,6 +14,8 @@ import GettingStarted from '@/components/admin/GettingStarted'
 import TipBanner from '@/components/admin/TipBanner'
 import DailyMissions from '@/components/admin/DailyMissions'
 import CoachFeed from '@/components/admin/CoachFeed'
+import { AiMark, AiBadge } from '@/components/admin/AiBadge'
+import { buildMorningBrief } from '@/lib/morning-brief'
 import Link from 'next/link'
 
 const DAILY_GOAL = 5
@@ -178,6 +180,19 @@ export default async function AdminDashboard() {
   if (d.automation.cronStale) autoWarnings.push({ label: 'Background automations overdue', href: '/admin/automations' })
   if (d.automation.unread > 0) autoWarnings.push({ label: `${d.automation.unread} unread message${d.automation.unread > 1 ? 's' : ''}`, href: '/admin/messages' })
 
+  // Morning AI Brief — deterministic, composed from data already computed above.
+  const fn = (s: string) => (s || '').trim().split(' ')[0] || 'this lead'
+  const brief = buildMorningBrief({
+    topMove: d.actionFeed[0] ? { title: d.actionFeed[0].action.title, name: fn(d.actionFeed[0].lead.full_name) } : null,
+    hottest: d.hotLeads[0] ? { name: fn(d.hotLeads[0].full_name) } : null,
+    closest: d.closestToClose ? { name: fn(d.closestToClose.lead.full_name), prob: d.closestToClose.prob, commission: d.closestToClose.commission } : null,
+    risk: d.dealsAtRisk.map((r: any) => ({ name: fn(r.lead.full_name), days: r.days })),
+    todayAppts: d.todaysAppts.length,
+    followups: d.followupsDue.length,
+    overdue: d.overdueTasks.length,
+  })
+  const briefHref = d.actionFeed[0] ? `/admin/leads/${d.actionFeed[0].lead.id}` : (d.closestToClose ? `/admin/leads/${d.closestToClose.lead.id}` : null)
+
   return (
     <div className="p-6 lg:p-8">
       {!configured && (
@@ -244,6 +259,22 @@ export default async function AdminDashboard() {
             <p className="font-serif text-xl font-bold text-green-400">{formatCurrency(d.earnedThisMonth)}</p>
           </div>
         </div>
+      </div>
+
+      {/* ─── Morning AI Brief — today at a glance, action-oriented ─── */}
+      <div className="rounded-2xl border border-sky-100 bg-gradient-to-br from-sky-50 to-white shadow-sm p-5 mb-6">
+        <div className="flex items-center gap-2.5 mb-3">
+          <AiMark />
+          <div className="min-w-0">
+            <h2 className="font-semibold text-navy-900 text-sm leading-tight">Your Morning Brief</h2>
+            <p className="text-[10px] text-sky-600 font-bold uppercase tracking-wide">Today at a glance</p>
+          </div>
+          <AiBadge className="ml-auto" />
+        </div>
+        <p className="text-navy-800 text-sm leading-relaxed">{brief.join(' ')}</p>
+        {briefHref && (
+          <Link href={briefHref} className="inline-flex items-center gap-1 mt-3 text-sm font-semibold text-sky-700 hover:text-sky-800">Start here <ArrowRight size={14} /></Link>
+        )}
       </div>
 
       {/* ─── Automation attention: does anything need me? ─── */}
