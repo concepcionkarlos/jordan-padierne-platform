@@ -6,6 +6,7 @@ import { Sparkles, Phone, MessageSquare, ArrowRight, Check, CalendarClock, Chevr
 import { urgencyMeta } from '@/lib/coach'
 import { getPipelineStageLabel } from '@/lib/utils'
 import { toast } from '@/lib/toast'
+import { AiBadge } from './AiBadge'
 
 const JOURNEY = ['NEW', 'QUALIFIED', 'CONTACTED', 'SHOWING_SCHEDULED', 'NEGOTIATION', 'CLOSED']
 
@@ -72,10 +73,11 @@ export default function CoachFeed({ items, activePipeline }: Props) {
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-6">
-      <div className="px-5 py-4 border-b border-gray-50 flex items-center gap-2 bg-gradient-to-r from-navy-900/5 to-transparent">
-        <Sparkles size={16} className="text-wine" />
+      <div className="px-5 py-4 border-b border-gray-50 flex items-center gap-2 bg-gradient-to-r from-sky-50 to-transparent">
+        <Sparkles size={16} className="text-sky-500" />
         <h2 className="font-semibold text-navy-900 text-sm">Your Coach — Next Moves</h2>
-        <span className="text-gray-400 text-xs ml-auto">Smart-prioritized across {activePipeline} active leads</span>
+        <AiBadge />
+        <span className="text-gray-400 text-xs ml-auto hidden sm:inline">Smart-prioritized across {activePipeline} active leads</span>
       </div>
       <div className="divide-y divide-gray-50">
         {items.map(({ lead, action }) => {

@@ -19,6 +19,7 @@ import TemplatesPanel from './TemplatesPanel'
 import ProgressRing from './ProgressRing'
 import Tooltip from './Tooltip'
 import SendPropertiesPanel from './SendPropertiesPanel'
+import { AiMark } from './AiBadge'
 import { Sparkles, ArrowRight } from 'lucide-react'
 
 const STAGES = ['NEW', 'QUALIFIED', 'CONTACTED', 'SHOWING_SCHEDULED', 'NEGOTIATION', 'CLOSED', 'LOST']
@@ -708,9 +709,7 @@ export default function LeadWorkspace({ lead: initialLead, initialNotes, initial
           {aiNote ? (
             <div className="rounded-2xl border-2 border-sky-100 bg-gradient-to-br from-sky-50 to-white p-5 shadow-sm">
               <div className="flex items-center gap-2.5 mb-3">
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-sky-500 to-sky-600 flex items-center justify-center shadow-sm shrink-0">
-                  <Sparkles size={16} className="text-white" />
-                </div>
+                <AiMark />
                 <div className="min-w-0">
                   <h3 className="font-semibold text-navy-900 text-sm leading-tight">AI Lead Brief</h3>
                   <p className="text-[10px] text-sky-600 font-bold uppercase tracking-wide">Auto-generated · {formatRelativeTime(aiNote.created_at)}</p>
