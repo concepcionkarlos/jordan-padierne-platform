@@ -59,7 +59,12 @@ export async function getLeadsPage(opts: LeadsQueryOpts = {}): Promise<LeadsPage
   const filtered = all.filter((l: any) => {
     if (opts.stage && opts.stage !== 'ALL' && l.pipeline_stage !== opts.stage) return false
     if (opts.type && opts.type !== 'All Types' && l.client_type !== opts.type) return false
-    if (opts.tag && !(l.tags ?? []).includes(opts.tag)) return false
+    if (opts.tag) {
+      // The "hot" filter unifies the 🔥 indicator (hot_score===3) with the 'hot'
+      // tag, so "Hot leads" always matches what the dashboard/table show as hot.
+      if (opts.tag === 'hot') { if (!((l.tags ?? []).includes('hot') || l.hot_score === 3)) return false }
+      else if (!(l.tags ?? []).includes(opts.tag)) return false
+    }
     if (q) {
       const hay = `${l.full_name ?? ''} ${l.email ?? ''} ${l.phone ?? ''} ${l.preferred_area ?? ''}`.toLowerCase()
       if (!hay.includes(q)) return false
