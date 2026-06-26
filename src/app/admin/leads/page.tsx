@@ -1,38 +1,18 @@
 export const dynamic = 'force-dynamic'
-import { safeQuery } from '@/lib/db'
 import LeadsTable from '@/components/admin/LeadsTable'
 import AddLeadModal from '@/components/admin/AddLeadModal'
 import ImportLeadsModal from '@/components/admin/ImportLeadsModal'
 import TipBanner from '@/components/admin/TipBanner'
-import { getLeadFreshness } from '@/lib/leads'
+import { getLeadsPage } from '@/lib/leads-query'
 
-async function getLeads(): Promise<any[]> {
-  return safeQuery((db) => db.from('leads').select('*').order('created_at', { ascending: false }).limit(500), [])
-}
-async function getNotes(): Promise<any[]> {
-  return safeQuery((db) => db.from('notes').select('lead_id').limit(2000), [])
-}
-async function getAppts(): Promise<any[]> {
-  return safeQuery((db) => db.from('appointments').select('lead_id').limit(2000), [])
-}
+const PAGE_SIZE = 25
 
 export default async function LeadsPage() {
-  const [rawLeads, notes, appts] = await Promise.all([getLeads(), getNotes(), getAppts()])
-
-  // Engagement counts per lead → feed the smart score
-  const noteCounts: Record<string, number> = {}
-  for (const n of notes) if (n.lead_id) noteCounts[n.lead_id] = (noteCounts[n.lead_id] ?? 0) + 1
-  const apptCounts: Record<string, number> = {}
-  for (const a of appts) if (a.lead_id) apptCounts[a.lead_id] = (apptCounts[a.lead_id] ?? 0) + 1
-
-  const leads = rawLeads.map((l) => ({ ...l, noteCount: noteCounts[l.id] ?? 0, apptCount: apptCounts[l.id] ?? 0 }))
-
-  const stats = {
-    total: leads.length,
-    hot: leads.filter((l) => l.hot_score === 3).length,
-    needsAttention: leads.filter((l) => { const f = getLeadFreshness(l); return f.level === 'stale' || f.level === 'cold' }).filter((l) => !['closed', 'lost'].includes(l.status)).length,
-    active: leads.filter((l) => !['CLOSED', 'LOST'].includes(l.pipeline_stage)).length,
-  }
+  // Server-renders only the first page (default sort: Smart Score). The table
+  // fetches further pages / searches on demand, so the browser never holds the
+  // whole book.
+  const initial = await getLeadsPage({ page: 1, pageSize: PAGE_SIZE, sort: 'score' })
+  const stats = initial.stats
 
   return (
     <div className="p-6 lg:p-8">
@@ -71,7 +51,7 @@ export default async function LeadsPage() {
         💡 Sort by <strong>⚡ Smart Score</strong> to see who&apos;s most ready to buy. The colored dot shows lead freshness — green is fresh, red is going cold. Click any lead to open its Coach.
       </TipBanner>
 
-      <LeadsTable leads={leads} />
+      <LeadsTable initial={initial} pageSize={PAGE_SIZE} />
     </div>
   )
 }

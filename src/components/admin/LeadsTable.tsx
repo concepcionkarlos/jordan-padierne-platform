@@ -1,47 +1,75 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import { Search, UserCircle, Phone, Mail, Flame, X } from 'lucide-react'
+import { Search, UserCircle, Phone, Mail, Flame, X, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react'
 import { formatRelativeTime, getPipelineStageColor, getPipelineStageLabel, formatPhone, formatCurrency } from '@/lib/utils'
 import { getLeadFreshness, getHotScore, getTagDef, LEAD_TAGS, scoreLead } from '@/lib/leads'
+import type { LeadsPage, LeadSort } from '@/lib/leads-query'
 
 interface Props {
-  leads: any[]
+  initial: LeadsPage
+  pageSize: number
 }
 
 const STAGE_FILTERS = ['ALL', 'NEW', 'QUALIFIED', 'CONTACTED', 'SHOWING_SCHEDULED', 'NEGOTIATION', 'CLOSED', 'LOST']
 const CLIENT_FILTERS = ['All Types', 'Buyer', 'Investor', 'International Buyer', 'Luxury Buyer', 'Pre-Construction Buyer', 'Seller']
 
-export default function LeadsTable({ leads }: Props) {
+export default function LeadsTable({ initial, pageSize }: Props) {
   const [search, setSearch] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
   const [stageFilter, setStageFilter] = useState('ALL')
   const [clientFilter, setClientFilter] = useState('All Types')
   const [tagFilter, setTagFilter] = useState<string | null>(null)
-  const [sortBy, setSortBy] = useState<'score' | 'recent' | 'stale'>('score')
+  const [sortBy, setSortBy] = useState<LeadSort>('score')
+  const [page, setPage] = useState(1)
+  const [reloadKey, setReloadKey] = useState(0)
 
-  const filtered = useMemo(() => {
-    let result = leads.filter((lead) => {
-      if (stageFilter !== 'ALL' && lead.pipeline_stage !== stageFilter) return false
-      if (clientFilter !== 'All Types' && lead.client_type !== clientFilter) return false
-      if (tagFilter && !(lead.tags ?? []).includes(tagFilter)) return false
-      if (search) {
-        const q = search.toLowerCase()
-        const hay = `${lead.full_name} ${lead.email} ${lead.phone} ${lead.preferred_area ?? ''}`.toLowerCase()
-        if (!hay.includes(q)) return false
-      }
-      return true
+  const [rows, setRows] = useState<any[]>(initial.data)
+  const [total, setTotal] = useState(initial.total)
+  const [loading, setLoading] = useState(false)
+
+  const firstRender = useRef(true)
+
+  // Debounce the search box → only query 250ms after typing stops.
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search), 250)
+    return () => clearTimeout(t)
+  }, [search])
+
+  // Reset to page 1 whenever the query (search/filters/sort) changes.
+  useEffect(() => {
+    if (!firstRender.current) setPage(1)
+  }, [debouncedSearch, stageFilter, clientFilter, tagFilter, sortBy])
+
+  // Refetch when a lead is added/imported elsewhere.
+  useEffect(() => {
+    const onChanged = () => setReloadKey((k) => k + 1)
+    window.addEventListener('leads-changed', onChanged)
+    return () => window.removeEventListener('leads-changed', onChanged)
+  }, [])
+
+  // Server-driven fetch. Skips the very first render (SSR already provided page 1).
+  useEffect(() => {
+    if (firstRender.current) { firstRender.current = false; return }
+    const ctrl = new AbortController()
+    setLoading(true)
+    const qs = new URLSearchParams({
+      search: debouncedSearch, stage: stageFilter, type: clientFilter,
+      tag: tagFilter ?? '', sort: sortBy, page: String(page), pageSize: String(pageSize),
     })
-
-    if (sortBy === 'score') {
-      result = [...result].sort((a, b) => scoreLead(b).score - scoreLead(a).score)
-    } else if (sortBy === 'stale') {
-      result = [...result].sort((a, b) => getLeadFreshness(b).ageDays - getLeadFreshness(a).ageDays)
-    }
-    return result
-  }, [leads, search, stageFilter, clientFilter, tagFilter, sortBy])
+    fetch(`/api/leads/search?${qs.toString()}`, { signal: ctrl.signal })
+      .then((r) => r.json())
+      .then((j) => { if (j.success) { setRows(j.data ?? []); setTotal(j.total ?? 0) } })
+      .catch(() => { /* aborted or network — keep current rows */ })
+      .finally(() => { if (!ctrl.signal.aborted) setLoading(false) })
+    return () => ctrl.abort()
+  }, [debouncedSearch, stageFilter, clientFilter, tagFilter, sortBy, page, reloadKey, pageSize])
 
   const activeFilters = (stageFilter !== 'ALL' ? 1 : 0) + (clientFilter !== 'All Types' ? 1 : 0) + (tagFilter ? 1 : 0)
+  const totalPages = Math.max(1, Math.ceil(total / pageSize))
+  const from = total === 0 ? 0 : (page - 1) * pageSize + 1
+  const to = Math.min(page * pageSize, total)
 
   return (
     <div>
@@ -55,6 +83,7 @@ export default function LeadsTable({ leads }: Props) {
             placeholder="Search by name, email, phone, or area…"
             className="input-field pl-10"
           />
+          {loading && <Loader2 size={15} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-sky-400 animate-spin" />}
         </div>
         <div className="flex gap-2">
           {(['score', 'recent', 'stale'] as const).map((s) => (
@@ -97,11 +126,11 @@ export default function LeadsTable({ leads }: Props) {
             <X size={12} /> Clear
           </button>
         )}
-        <span className="text-xs text-gray-400 ml-auto">{filtered.length} of {leads.length}</span>
+        <span className="text-xs text-gray-400 ml-auto">{total} {total === 1 ? 'result' : 'results'}</span>
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className={`bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden transition-opacity ${loading ? 'opacity-60' : ''}`}>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
@@ -115,10 +144,10 @@ export default function LeadsTable({ leads }: Props) {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {filtered.length === 0 && (
-                <tr><td colSpan={6} className="px-5 py-12 text-center text-gray-400 text-sm">No leads match your filters.</td></tr>
+              {rows.length === 0 && (
+                <tr><td colSpan={6} className="px-5 py-12 text-center text-gray-400 text-sm">{loading ? 'Searching…' : 'No leads match your filters.'}</td></tr>
               )}
-              {filtered.map((lead) => {
+              {rows.map((lead) => {
                 const fresh = getLeadFreshness(lead)
                 const sc = scoreLead(lead)
                 const tags: string[] = lead.tags ?? []
@@ -195,6 +224,18 @@ export default function LeadsTable({ leads }: Props) {
             </tbody>
           </table>
         </div>
+
+        {/* Pagination */}
+        {total > pageSize && (
+          <div className="flex items-center justify-between px-5 py-3 border-t border-gray-50">
+            <span className="text-xs text-gray-400">Showing {from}–{to} of {total}</span>
+            <div className="flex items-center gap-1">
+              <button type="button" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1 || loading} className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold text-navy-700 border border-gray-200 disabled:opacity-40 hover:border-navy-300 transition-colors"><ChevronLeft size={13} /> Prev</button>
+              <span className="text-xs text-gray-500 px-2">Page {page} of {totalPages}</span>
+              <button type="button" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page >= totalPages || loading} className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold text-navy-700 border border-gray-200 disabled:opacity-40 hover:border-navy-300 transition-colors">Next <ChevronRight size={13} /></button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

@@ -91,7 +91,7 @@ export default function ImportLeadsModal() {
     })
     const json = await res.json()
     setImporting(false)
-    if (json.success) { setResult(json.inserted); setStep('done'); router.refresh() }
+    if (json.success) { setResult(json.inserted); setStep('done'); router.refresh(); window.dispatchEvent(new Event('leads-changed')) }
   }
 
   function reset() { setStep('upload'); setHeaders([]); setRows([]); setMapping({}); setResult(0) }
