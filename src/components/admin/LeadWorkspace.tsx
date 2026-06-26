@@ -11,7 +11,7 @@ import {
   getPipelineStageLabel, getPipelineStageColor,
 } from '@/lib/utils'
 import { LEAD_TAGS, getTagDef, HOT_SCORES, getHotScore, getLeadFreshness, scoreLead, scoreColor } from '@/lib/leads'
-import { commissionFor } from '@/lib/goals'
+import { commissionFor, statusFieldsForStage } from '@/lib/goals'
 import { getNextAction, urgencyMeta } from '@/lib/coach'
 import { TEMPLATES, fillTemplate } from '@/lib/templates'
 import { toast } from '@/lib/toast'
@@ -174,9 +174,10 @@ export default function LeadWorkspace({ lead: initialLead, initialNotes, initial
 
   // ─── Stage change with celebration ───
   async function setStage(stage: string) {
-    const status = stage === 'QUALIFIED' ? 'qualified' : stage === 'CLOSED' ? 'closed' : stage === 'LOST' ? 'lost' : 'active'
-    const extra: Record<string, unknown> = { pipeline_stage: stage, status }
-    if (stage === 'CLOSED') extra.closed_at = new Date().toISOString()
+    // Use the same canonical mapping the server applies, so the optimistic UI
+    // matches the persisted record exactly (incl. NEW→'new' and clearing
+    // closed_at when a deal is reopened).
+    const extra: Record<string, unknown> = { pipeline_stage: stage, ...statusFieldsForStage(stage) }
     // Only celebrate once the write is confirmed — never on a failed/false close.
     const ok = await patchLead(extra)
     if (!ok) return
