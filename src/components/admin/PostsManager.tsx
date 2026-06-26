@@ -120,7 +120,7 @@ export default function PostsManager({ initial }: { initial: Post[] }) {
       {open && (
         <div className="fixed inset-0 z-50 flex items-start justify-center p-4 overflow-y-auto">
           <div className="absolute inset-0 bg-navy-900/40 backdrop-blur-sm" onClick={() => setOpen(false)} />
-          <div ref={modalRef} role="dialog" aria-modal="true" aria-label={draft.id ? 'Edit article' : 'New article'} tabIndex={-1} className="relative bg-white rounded-3xl shadow-premium w-full max-w-2xl my-8">
+          <div ref={modalRef} role="dialog" aria-modal="true" aria-label={draft.id ? 'Edit article' : 'New article'} tabIndex={-1} className="relative bg-white rounded-2xl shadow-premium w-full max-w-2xl my-8">
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white rounded-t-3xl z-10">
               <h2 className="font-serif text-lg font-bold text-navy-900">{draft.id ? 'Edit Article' : 'New Article'}</h2>
               <button type="button" onClick={() => setOpen(false)} className="text-gray-400 hover:text-navy-900" aria-label="Close"><X size={20} /></button>

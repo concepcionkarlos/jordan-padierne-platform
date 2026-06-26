@@ -88,7 +88,7 @@ export default function VideosManager({ initial }: { initial: any[] }) {
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-navy-900/40 backdrop-blur-sm" onClick={() => setOpen(false)} />
-          <div ref={modalRef} role="dialog" aria-modal="true" aria-label="Add video" tabIndex={-1} className="relative bg-white rounded-3xl shadow-premium w-full max-w-lg">
+          <div ref={modalRef} role="dialog" aria-modal="true" aria-label="Add video" tabIndex={-1} className="relative bg-white rounded-2xl shadow-premium w-full max-w-lg">
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
               <h2 className="font-serif text-lg font-bold text-navy-900">Add YouTube Video</h2>
               <button type="button" onClick={() => setOpen(false)} className="text-gray-400 hover:text-navy-900" aria-label="Close"><X size={20} /></button>

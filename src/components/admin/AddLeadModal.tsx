@@ -65,7 +65,7 @@ export default function AddLeadModal() {
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-navy-900/40 backdrop-blur-sm" onClick={() => setOpen(false)} />
-          <div className="relative bg-white rounded-3xl shadow-premium w-full max-w-lg max-h-[90vh] overflow-y-auto scrollbar-thin">
+          <div className="relative bg-white rounded-2xl shadow-premium w-full max-w-lg max-h-[90vh] overflow-y-auto scrollbar-thin">
             <div className="sticky top-0 bg-white px-6 py-4 border-b border-gray-100 flex items-center justify-between rounded-t-3xl">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-lg bg-navy-50 flex items-center justify-center"><UserPlus size={16} className="text-navy-700" /></div>

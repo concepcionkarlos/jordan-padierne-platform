@@ -47,7 +47,7 @@ export default function WelcomeTour() {
     <div className="fixed inset-0 z-[90] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-navy-900/70 backdrop-blur-sm" />
 
-      <div className="relative w-full max-w-md bg-white rounded-3xl shadow-premium overflow-hidden animate-modal-pop">
+      <div className="relative w-full max-w-md bg-white rounded-2xl shadow-premium overflow-hidden animate-modal-pop">
         {/* Header */}
         <div className="relative bg-gradient-to-br from-navy-900 to-navy-700 px-7 pt-8 pb-12 text-center overflow-hidden">
           <div className="absolute -top-10 -right-10 w-40 h-40 bg-sky-500/15 rounded-full blur-2xl" />
