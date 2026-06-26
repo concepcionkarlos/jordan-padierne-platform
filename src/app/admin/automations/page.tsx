@@ -4,6 +4,12 @@ import Link from 'next/link'
 import { safeQuery } from '@/lib/db'
 import { getSetting } from '@/lib/settings'
 import { isEmailConfigured } from '@/lib/email'
+import { formatRelativeTime } from '@/lib/utils'
+
+function parseHeartbeat(raw: string | null): { at: string; sent: number } | null {
+  if (!raw) return null
+  try { const o = JSON.parse(raw); return o && o.at ? o : null } catch { return null }
+}
 import {
   Zap, Repeat, Star, CalendarCheck, ArrowRight, CheckCircle2, AlertCircle,
   TrendingUp, Clock, Bell,
@@ -14,13 +20,19 @@ async function getStats() {
   const windowStart = new Date(now - 17 * 86400000).toISOString()
   const nowIso = new Date(now).toISOString()
 
-  const [devices, activeNurture, reviewsSent, upcoming, reviewUrl] = await Promise.all([
+  const [devices, activeNurture, reviewsSent, upcoming, reviewUrl, dripHb, remindersHb] = await Promise.all([
     safeQuery((db) => db.from('push_subscriptions').select('id'), []),
     safeQuery((db) => db.from('leads').select('id').eq('status', 'new').gte('created_at', windowStart), []),
     safeQuery((db) => db.from('leads').select('id').not('metadata->>review_requested_at', 'is', null), []),
     safeQuery((db) => db.from('appointments').select('id, starts_at, status').eq('type', 'consultation').neq('status', 'cancelled').gte('starts_at', nowIso), []),
     getSetting('google_review_url'),
+    getSetting('cron_drip_last_run'),
+    getSetting('cron_reminders_last_run'),
   ])
+
+  const dripLast = parseHeartbeat(dripHb)
+  // Daily cron — if it hasn't recorded a run in >36h, something's wrong.
+  const cronStale = dripLast ? (Date.now() - new Date(dripLast.at).getTime()) > 36 * 3600 * 1000 : false
 
   return {
     devices: (devices as any[]).length,
@@ -29,6 +41,9 @@ async function getStats() {
     upcoming: (upcoming as any[]).length,
     reviewConfigured: !!(reviewUrl && reviewUrl.startsWith('http')),
     emailOn: isEmailConfigured(),
+    dripLast,
+    remindersLast: parseHeartbeat(remindersHb),
+    cronStale,
   }
 }
 
@@ -53,6 +68,8 @@ export default async function AutomationsPage() {
       stat: `${s.activeNurture} lead${s.activeNurture === 1 ? '' : 's'} being nurtured right now`,
       ok: s.emailOn,
       action: s.emailOn ? null : { label: 'Connect email →', href: '/admin/settings' },
+      lastRun: s.dripLast,
+      stale: s.cronStale,
     },
     {
       icon: Star, accent: 'wine',
@@ -143,6 +160,11 @@ export default async function AutomationsPage() {
                   </Link>
                 )}
               </div>
+              {(f as any).lastRun && (
+                <p className={`mt-2 text-xs flex items-center gap-1 ${(f as any).stale ? 'text-amber-600 font-semibold' : 'text-gray-400'}`}>
+                  <Clock size={11} /> {(f as any).stale ? 'Heartbeat overdue — ' : 'Cron last ran '}{formatRelativeTime((f as any).lastRun.at)} · {(f as any).lastRun.sent} sent
+                </p>
+              )}
             </div>
           )
         })}

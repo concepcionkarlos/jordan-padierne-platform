@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase'
 import { sendProfileReminder } from '@/lib/email'
+import { setSetting } from '@/lib/settings'
 
 // Runs daily via Vercel Cron. Finds leads who got the "complete your profile"
 // invite but never finished it, and sends a single reminder after ~2 days.
@@ -46,6 +47,7 @@ export async function GET(req: NextRequest) {
       }
     }
 
+    await setSetting('cron_reminders_last_run', JSON.stringify({ at: new Date().toISOString(), checked: leads?.length ?? 0, sent }))
     return NextResponse.json({ success: true, checked: leads?.length ?? 0, sent })
   } catch (err) {
     console.error('[cron/reminders]', err)

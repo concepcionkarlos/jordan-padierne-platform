@@ -3,6 +3,7 @@ import { createServiceClient } from '@/lib/supabase'
 import { sendEmail } from '@/lib/email'
 import { trackFor, buildDueStep, DRIP_WINDOW_DAYS } from '@/lib/drip'
 import { unsubUrl } from '@/lib/unsubscribe'
+import { setSetting } from '@/lib/settings'
 
 // Runs daily via Vercel Cron. Sends the next due follow-up email to leads that
 // are still 'new' (Jordan hasn't engaged them yet). Stops automatically once a
@@ -66,6 +67,8 @@ export async function GET(req: NextRequest) {
       }
     }
 
+    // Heartbeat → observable on the Growth Engine page so a silent failure shows.
+    await setSetting('cron_drip_last_run', JSON.stringify({ at: new Date(now).toISOString(), checked: leads?.length ?? 0, sent }))
     return NextResponse.json({ success: true, checked: leads?.length ?? 0, sent })
   } catch (err) {
     console.error('[cron/drip]', err)
