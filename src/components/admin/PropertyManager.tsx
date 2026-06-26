@@ -1,11 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { Plus, X, Building2, Trash2, Upload, Star, Edit2, Sparkles, Wand2 } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
 import { AREAS } from '@/lib/utils'
+import { useModalA11y } from '@/lib/useModalA11y'
 
 interface Property {
   id?: string
@@ -62,6 +63,12 @@ export default function PropertyManager({ initial }: { initial: any[] }) {
   const [aiText, setAiText] = useState('')
   const [aiLoading, setAiLoading] = useState(false)
   const [aiError, setAiError] = useState('')
+
+  // Accessible-dialog behavior (ESC, focus-trap, scroll-lock, focus restore).
+  const editModalRef = useRef<HTMLDivElement>(null)
+  const aiModalRef = useRef<HTMLDivElement>(null)
+  useModalA11y(open, () => setOpen(false), editModalRef)
+  useModalA11y(aiOpen, () => { if (!aiLoading) setAiOpen(false) }, aiModalRef)
 
   function openNew() { setForm(EMPTY); setEditId(null); setOpen(true) }
 
@@ -216,7 +223,7 @@ export default function PropertyManager({ initial }: { initial: any[] }) {
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-navy-900/40 backdrop-blur-sm" onClick={() => setOpen(false)} />
-          <div className="relative bg-white rounded-3xl shadow-premium w-full max-w-2xl max-h-[90vh] overflow-y-auto scrollbar-thin">
+          <div ref={editModalRef} role="dialog" aria-modal="true" aria-label={editId ? 'Edit property' : 'Add property'} tabIndex={-1} className="relative bg-white rounded-3xl shadow-premium w-full max-w-2xl max-h-[90vh] overflow-y-auto scrollbar-thin">
             <div className="sticky top-0 bg-white px-6 py-4 border-b border-gray-100 flex items-center justify-between rounded-t-3xl z-10">
               <h2 className="font-serif text-lg font-bold text-navy-900">{editId ? 'Edit Property' : 'Add Property'}</h2>
               <button type="button" onClick={() => setOpen(false)} className="text-gray-400 hover:text-navy-900" aria-label="Close"><X size={20} /></button>
@@ -327,7 +334,7 @@ export default function PropertyManager({ initial }: { initial: any[] }) {
       {aiOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-navy-900/40 backdrop-blur-sm" onClick={() => !aiLoading && setAiOpen(false)} />
-          <div className="relative bg-white rounded-3xl shadow-premium w-full max-w-lg overflow-hidden">
+          <div ref={aiModalRef} role="dialog" aria-modal="true" aria-label="Quick-add a property with AI" tabIndex={-1} className="relative bg-white rounded-3xl shadow-premium w-full max-w-lg overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-wine-50 to-transparent">
               <h2 className="font-serif text-lg font-bold text-navy-900 flex items-center gap-2"><Sparkles size={18} className="text-wine" /> Quick-add with AI</h2>
               <button type="button" onClick={() => !aiLoading && setAiOpen(false)} className="text-gray-400 hover:text-navy-900" aria-label="Close"><X size={20} /></button>

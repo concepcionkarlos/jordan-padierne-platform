@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase'
 import { requestReviewForLead } from '@/lib/reviews'
 import { requireUser } from '@/lib/auth'
+import { statusFieldsForStage } from '@/lib/goals'
 
 export async function GET() {
   const denied = await requireUser(); if (denied) return denied
@@ -38,9 +39,11 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ success: false, error: 'lead_id and stage required' }, { status: 400 })
     }
 
+    // Keep status + closed_at in lockstep with the stage so dragging a deal to
+    // CLOSED on the board counts toward earnings exactly like the workspace does.
     const { error } = await supabase
       .from('leads')
-      .update({ pipeline_stage: stage })
+      .update({ pipeline_stage: stage, ...statusFieldsForStage(stage) })
       .eq('id', lead_id)
 
     if (error) throw error

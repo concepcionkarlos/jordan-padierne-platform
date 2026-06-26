@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic'
 import { safeQuery } from '@/lib/db'
 import { formatCurrency } from '@/lib/utils'
-import { commissionFor, weightedDealValue, isThisMonth, MONTH_NAMES } from '@/lib/goals'
+import { commissionFor, weightedDealValue, isThisMonth, isThisYear, MONTH_NAMES } from '@/lib/goals'
 import { TrendingUp, Target, DollarSign, Award, Users } from 'lucide-react'
 
 const STAGES = ['NEW', 'QUALIFIED', 'CONTACTED', 'SHOWING_SCHEDULED', 'NEGOTIATION', 'CLOSED'] as const
@@ -52,7 +52,9 @@ export default async function AnalyticsPage() {
   const forecast = active.reduce((s, l) => s + weightedDealValue(l) * ((l.commission_rate ?? 3) / 100), 0)
   const closedThisMonth = leads.filter((l) => l.status === 'closed' && isThisMonth(l.closed_at ?? l.updated_at))
   const earnedThisMonth = closedThisMonth.reduce((s, l) => s + commissionFor(l.deal_value ?? l.budget_max ?? 0, l.commission_rate ?? 3), 0)
-  const earnedYTD = leads.filter((l) => l.status === 'closed').reduce((s, l) => s + commissionFor(l.deal_value ?? l.budget_max ?? 0, l.commission_rate ?? 3), 0)
+  // YTD = closed deals in the current calendar year (not all-time).
+  const closedYTD = leads.filter((l) => l.status === 'closed' && isThisYear(l.closed_at ?? l.updated_at))
+  const earnedYTD = closedYTD.reduce((s, l) => s + commissionFor(l.deal_value ?? l.budget_max ?? 0, l.commission_rate ?? 3), 0)
   const pipelineValue = active.reduce((s, l) => s + (l.deal_value ?? l.budget_max ?? 0), 0)
 
   return (
@@ -67,7 +69,7 @@ export default async function AnalyticsPage() {
         {[
           { label: 'Forecast (weighted)', value: formatCurrency(Math.round(forecast)), icon: TrendingUp, color: 'text-sky-600 bg-sky-50', sub: 'Probability-adjusted pipeline' },
           { label: 'Earned This Month', value: formatCurrency(earnedThisMonth), icon: DollarSign, color: 'text-green-600 bg-green-50', sub: `${closedThisMonth.length} deals closed` },
-          { label: 'Earned YTD', value: formatCurrency(earnedYTD), icon: Award, color: 'text-navy-700 bg-navy-50', sub: 'Total commission' },
+          { label: 'Earned YTD', value: formatCurrency(earnedYTD), icon: Award, color: 'text-navy-700 bg-navy-50', sub: `${closedYTD.length} ${closedYTD.length === 1 ? 'deal' : 'deals'} in ${now.getFullYear()}` },
           { label: 'Pipeline Value', value: formatCurrency(Math.round(pipelineValue)), icon: Target, color: 'text-wine bg-wine-50', sub: `${active.length} active deals` },
         ].map((c) => {
           const Icon = c.icon

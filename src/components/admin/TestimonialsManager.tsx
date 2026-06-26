@@ -1,36 +1,53 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Plus, X, Star, Trash2, Quote, MessageSquareQuote } from 'lucide-react'
+import { toast } from '@/lib/toast'
+import { useModalA11y } from '@/lib/useModalA11y'
 
 export default function TestimonialsManager({ initial }: { initial: any[] }) {
   const [items, setItems] = useState<any[]>(initial)
   const [open, setOpen] = useState(false)
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({ client_name: '', client_role: 'Buyer', location: '', rating: 5, quote: '' })
+  const modalRef = useRef<HTMLDivElement>(null)
+  useModalA11y(open, () => setOpen(false), modalRef)
 
   async function save() {
     if (!form.client_name.trim() || !form.quote.trim()) return
     setSaving(true)
-    const res = await fetch('/api/testimonials', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...form, featured: true }),
-    })
-    const json = await res.json()
-    setSaving(false)
-    if (json.success) {
-      setItems((p) => [json.data, ...p])
-      setForm({ client_name: '', client_role: 'Buyer', location: '', rating: 5, quote: '' })
-      setOpen(false)
-    } else {
-      alert(json.error?.includes('testimonials') ? 'Run migration_003 in Supabase first.' : 'Error saving.')
+    try {
+      const res = await fetch('/api/testimonials', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...form, featured: true }),
+      })
+      const json = await res.json().catch(() => ({ success: false }))
+      if (res.ok && json.success) {
+        setItems((p) => [json.data, ...p])
+        setForm({ client_name: '', client_role: 'Buyer', location: '', rating: 5, quote: '' })
+        setOpen(false)
+        toast('Review published', { type: 'success' })
+      } else {
+        toast('Couldn’t save the review — please try again.', { type: 'warn' })
+      }
+    } catch {
+      toast('Couldn’t save the review — check your connection.', { type: 'warn' })
+    } finally {
+      setSaving(false)
     }
   }
 
   async function remove(id: string) {
     if (!confirm('Delete this testimonial?')) return
+    const prev = items
     setItems((p) => p.filter((x) => x.id !== id))
-    await fetch(`/api/testimonials?id=${id}`, { method: 'DELETE' })
+    try {
+      const res = await fetch(`/api/testimonials?id=${id}`, { method: 'DELETE' })
+      const json = await res.json().catch(() => ({ success: false }))
+      if (!res.ok || !json.success) { setItems(prev); toast('Couldn’t delete — please try again.', { type: 'warn' }) }
+    } catch {
+      setItems(prev); toast('Couldn’t delete — please try again.', { type: 'warn' })
+    }
   }
 
   return (
@@ -70,7 +87,7 @@ export default function TestimonialsManager({ initial }: { initial: any[] }) {
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-navy-900/40 backdrop-blur-sm" onClick={() => setOpen(false)} />
-          <div className="relative bg-white rounded-3xl shadow-premium w-full max-w-lg">
+          <div ref={modalRef} role="dialog" aria-modal="true" aria-label="Add review" tabIndex={-1} className="relative bg-white rounded-3xl shadow-premium w-full max-w-lg">
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
               <h2 className="font-serif text-lg font-bold text-navy-900">Add Review</h2>
               <button type="button" onClick={() => setOpen(false)} className="text-gray-400 hover:text-navy-900" aria-label="Close"><X size={20} /></button>
@@ -83,7 +100,7 @@ export default function TestimonialsManager({ initial }: { initial: any[] }) {
                 </div>
                 <div>
                   <label className="label">Type</label>
-                  <select value={form.client_role} onChange={(e) => setForm({ ...form, client_role: e.target.value })} className="input-field">
+                  <select value={form.client_role} onChange={(e) => setForm({ ...form, client_role: e.target.value })} className="input-field" title="Client type">
                     {['Buyer', 'Seller', 'Investor', 'International Buyer', 'First-Time Buyer', 'Luxury Buyer'].map((r) => <option key={r}>{r}</option>)}
                   </select>
                 </div>

@@ -1,9 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import Image from 'next/image'
 import { Plus, Trash2, Youtube, X } from 'lucide-react'
 import { youTubeThumb } from '@/lib/youtube'
+import { toast } from '@/lib/toast'
+import { useModalA11y } from '@/lib/useModalA11y'
 
 export default function VideosManager({ initial }: { initial: any[] }) {
   const [items, setItems] = useState<any[]>(initial)
@@ -11,28 +13,46 @@ export default function VideosManager({ initial }: { initial: any[] }) {
   const [url, setUrl] = useState('')
   const [title, setTitle] = useState('')
   const [saving, setSaving] = useState(false)
+  const modalRef = useRef<HTMLDivElement>(null)
+  useModalA11y(open, () => setOpen(false), modalRef)
 
   async function add() {
     if (!url.trim()) return
     setSaving(true)
-    const res = await fetch('/api/videos', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url: url.trim(), title: title.trim() || null }),
-    })
-    const json = await res.json()
-    setSaving(false)
-    if (json.success) {
-      setItems((p) => [json.data, ...p])
-      setUrl(''); setTitle(''); setOpen(false)
-    } else {
-      alert(json.error?.includes('videos') ? 'Run migration_005 in Supabase first.' : (json.error || 'Invalid YouTube URL'))
+    try {
+      const res = await fetch('/api/videos', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: url.trim(), title: title.trim() || null }),
+      })
+      const json = await res.json().catch(() => ({ success: false }))
+      if (res.ok && json.success) {
+        setItems((p) => [json.data, ...p])
+        setUrl(''); setTitle(''); setOpen(false)
+        toast('Video added', { type: 'success' })
+      } else {
+        const msg = String(json.error || '').toLowerCase()
+        toast(msg.includes('youtube') || msg.includes('url')
+          ? 'That doesn’t look like a valid YouTube link.'
+          : 'Couldn’t add the video — please try again.', { type: 'warn' })
+      }
+    } catch {
+      toast('Couldn’t add the video — check your connection.', { type: 'warn' })
+    } finally {
+      setSaving(false)
     }
   }
 
   async function remove(id: string) {
     if (!confirm('Remove this video?')) return
+    const prev = items
     setItems((p) => p.filter((x) => x.id !== id))
-    await fetch(`/api/videos?id=${id}`, { method: 'DELETE' })
+    try {
+      const res = await fetch(`/api/videos?id=${id}`, { method: 'DELETE' })
+      const json = await res.json().catch(() => ({ success: false }))
+      if (!res.ok || !json.success) { setItems(prev); toast('Couldn’t remove — please try again.', { type: 'warn' }) }
+    } catch {
+      setItems(prev); toast('Couldn’t remove — please try again.', { type: 'warn' })
+    }
   }
 
   return (
@@ -69,7 +89,7 @@ export default function VideosManager({ initial }: { initial: any[] }) {
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-navy-900/40 backdrop-blur-sm" onClick={() => setOpen(false)} />
-          <div className="relative bg-white rounded-3xl shadow-premium w-full max-w-lg">
+          <div ref={modalRef} role="dialog" aria-modal="true" aria-label="Add video" tabIndex={-1} className="relative bg-white rounded-3xl shadow-premium w-full max-w-lg">
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
               <h2 className="font-serif text-lg font-bold text-navy-900">Add YouTube Video</h2>
               <button type="button" onClick={() => setOpen(false)} className="text-gray-400 hover:text-navy-900" aria-label="Close"><X size={20} /></button>

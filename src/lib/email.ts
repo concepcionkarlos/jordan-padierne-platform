@@ -1,5 +1,35 @@
 import nodemailer from 'nodemailer'
 import { Resend } from 'resend'
+import { getProfile } from '@/lib/profile'
+import { DEFAULT_PROFILE } from '@/lib/profile-default'
+
+// ─── Brand contact consistency ────────────────────────────────────────────────
+// The templates below bake in the DEFAULT agent contact info. If Jordan edits
+// his phone/email in Settings, rewrite those defaults in the outgoing HTML so
+// every email shows current, consistent contact details. This is a no-op when
+// the profile still matches the defaults (the common case), and never blocks a
+// send if the profile lookup fails.
+const DEF_INTL = DEFAULT_PROFILE.telephoneIntl      // "+13057996973"
+const DEF_DIGITS = DEF_INTL.replace(/^\+/, '')      // "13057996973"
+const DEF_PHONE = DEFAULT_PROFILE.phone             // "305-799-6973"
+const DEF_EMAIL = DEFAULT_PROFILE.email             // "info@jordanpadierne.com"
+
+async function applyBrandContact(html: string): Promise<string> {
+  try {
+    const p = await getProfile()
+    const intl = p.telephoneIntl
+    const digits = intl.replace(/^\+/, '')
+    let out = html
+    // Replace the +country form before the bare digits (the former contains it).
+    if (intl !== DEF_INTL) out = out.split(DEF_INTL).join(intl)
+    if (digits !== DEF_DIGITS) out = out.split(DEF_DIGITS).join(digits)
+    if (p.phone !== DEF_PHONE) out = out.split(DEF_PHONE).join(p.phone)
+    if (p.email !== DEF_EMAIL) out = out.split(DEF_EMAIL).join(p.email)
+    return out
+  } catch {
+    return html
+  }
+}
 
 // ─── Provider Detection ───────────────────────────────────────────────────────
 
@@ -225,10 +255,11 @@ async function send(
   if (provider === 'none') return false
   // Strip CR/LF from reply-to (it can carry user input) to block header injection.
   const safeReplyTo = replyTo ? replyTo.replace(/[\r\n]+/g, ' ').trim() : replyTo
+  const finalHtml = await applyBrandContact(html)
   try {
     return provider === 'resend'
-      ? await sendViaResend(to, subject, html, safeReplyTo)
-      : await sendViaSMTP(to, subject, html, safeReplyTo)
+      ? await sendViaResend(to, subject, finalHtml, safeReplyTo)
+      : await sendViaSMTP(to, subject, finalHtml, safeReplyTo)
   } catch (err) {
     console.error(`[email/${provider}]`, err)
     return false
@@ -247,6 +278,7 @@ export async function sendCalendarInvite(
   const provider = getProvider()
   if (provider === 'none') return false
   const from = process.env.SMTP_FROM || 'info@jordanpadierne.com'
+  const finalHtml = await applyBrandContact(html)
   try {
     if (provider === 'resend') {
       const resend = new Resend(process.env.RESEND_API_KEY)
@@ -254,7 +286,7 @@ export async function sendCalendarInvite(
         from: `Jordan Padierne <${from}>`,
         to: [to],
         subject,
-        html,
+        html: finalHtml,
         replyTo: replyTo || from,
         attachments: [{ filename: 'invite.ics', content: Buffer.from(ics).toString('base64') }],
       })
@@ -271,7 +303,7 @@ export async function sendCalendarInvite(
       from: `"Jordan Padierne" <${from}>`,
       to,
       subject,
-      html,
+      html: finalHtml,
       replyTo: replyTo || from,
       icalEvent: { method: 'REQUEST', filename: 'invite.ics', content: ics },
     })

@@ -80,12 +80,41 @@ export function weightedDealValue(lead: { deal_value?: number | null; budget_max
   return base * prob
 }
 
+// ─── Pipeline stage → lead status (single source of truth) ───────────────────
+// `pipeline_stage` (the Kanban column) and `status` (used for earnings/active
+// filters) must never disagree, no matter which surface moves the deal — the
+// Lead Workspace stepper OR the Pipeline board. Both PATCH routes derive these
+// fields from the stage so closed deals always count and reopened deals clear.
+export const STAGE_TO_STATUS: Record<string, string> = {
+  NEW: 'new',
+  QUALIFIED: 'qualified',
+  CONTACTED: 'active',
+  SHOWING_SCHEDULED: 'active',
+  NEGOTIATION: 'active',
+  CLOSED: 'closed',
+  LOST: 'lost',
+}
+
+export function statusFieldsForStage(stage: string): { status: string; closed_at: string | null } {
+  return {
+    status: STAGE_TO_STATUS[stage] ?? 'active',
+    // Stamp closed_at only when closing; clear it when a deal is reopened so
+    // stale close dates never leak into "earned this month/year".
+    closed_at: stage === 'CLOSED' ? new Date().toISOString() : null,
+  }
+}
+
 // ─── Month helpers ───────────────────────────────────────────────────────────────
 
 export function isThisMonth(dateStr: string | null | undefined, now = new Date()): boolean {
   if (!dateStr) return false
   const d = new Date(dateStr)
   return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth()
+}
+
+export function isThisYear(dateStr: string | null | undefined, now = new Date()): boolean {
+  if (!dateStr) return false
+  return new Date(dateStr).getFullYear() === now.getFullYear()
 }
 
 export const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']

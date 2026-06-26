@@ -109,7 +109,9 @@ export default function SendPropertiesPanel({ lead }: { lead: any }) {
 
           <div className="space-y-2 max-h-72 overflow-y-auto scrollbar-thin">
             {!loading && list.length === 0 && (
-              <p className="text-gray-300 text-xs text-center py-3">No properties{showAll ? '' : ' match — try “Show all”'}.</p>
+              props && props.length === 0
+                ? <p className="text-gray-400 text-xs text-center py-3">No listings yet — add properties in the <span className="font-semibold text-navy-700">Properties</span> tab to send homes.</p>
+                : <p className="text-gray-300 text-xs text-center py-3">No properties{showAll ? '' : ' match — try “Show all”'}.</p>
             )}
             {list.map((p) => {
               const on = selected.has(p.id)

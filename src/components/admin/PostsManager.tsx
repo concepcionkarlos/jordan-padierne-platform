@@ -1,8 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Plus, Trash2, Pencil, X, FileText, Eye, EyeOff, ExternalLink } from 'lucide-react'
 import { POST_CATEGORIES, categoryLabel, type Post } from '@/lib/posts'
+import { toast } from '@/lib/toast'
+import { useModalA11y } from '@/lib/useModalA11y'
 
 type Draft = Partial<Post>
 
@@ -16,6 +18,8 @@ export default function PostsManager({ initial }: { initial: Post[] }) {
   const [open, setOpen] = useState(false)
   const [draft, setDraft] = useState<Draft>(EMPTY)
   const [saving, setSaving] = useState(false)
+  const modalRef = useRef<HTMLDivElement>(null)
+  useModalA11y(open, () => setOpen(false), modalRef)
 
   const set = (k: keyof Draft, v: any) => setDraft((d) => ({ ...d, [k]: v }))
 
@@ -23,37 +27,55 @@ export default function PostsManager({ initial }: { initial: Post[] }) {
   function startEdit(p: Post) { setDraft({ ...p }); setOpen(true) }
 
   async function save() {
-    if (!draft.title_en?.trim() || !draft.body_en?.trim()) { alert('English title and body are required.'); return }
+    if (!draft.title_en?.trim() || !draft.body_en?.trim()) { toast('English title and body are required.', { type: 'warn' }); return }
     setSaving(true)
     const editing = !!draft.id
-    const res = await fetch('/api/posts', {
-      method: editing ? 'PATCH' : 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(draft),
-    })
-    const json = await res.json()
-    setSaving(false)
-    if (!json.success) {
-      alert(String(json.error).includes('posts') ? 'Run migration_007 in Supabase first.' : (json.error || 'Could not save.'))
-      return
+    try {
+      const res = await fetch('/api/posts', {
+        method: editing ? 'PATCH' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(draft),
+      })
+      const json = await res.json().catch(() => ({ success: false }))
+      if (res.ok && json.success) {
+        setItems((prev) => editing ? prev.map((p) => p.id === json.data.id ? json.data : p) : [json.data, ...prev])
+        setOpen(false)
+        toast(editing ? 'Article updated' : 'Article saved', { type: 'success' })
+      } else {
+        toast('Couldn’t save the article — please try again.', { type: 'warn' })
+      }
+    } catch {
+      toast('Couldn’t save the article — check your connection.', { type: 'warn' })
+    } finally {
+      setSaving(false)
     }
-    setItems((prev) => editing ? prev.map((p) => p.id === json.data.id ? json.data : p) : [json.data, ...prev])
-    setOpen(false)
   }
 
   async function togglePublish(p: Post) {
-    const res = await fetch('/api/posts', {
-      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: p.id, published: !p.published }),
-    })
-    const json = await res.json()
-    if (json.success) setItems((prev) => prev.map((x) => x.id === p.id ? json.data : x))
+    try {
+      const res = await fetch('/api/posts', {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: p.id, published: !p.published }),
+      })
+      const json = await res.json().catch(() => ({ success: false }))
+      if (res.ok && json.success) setItems((prev) => prev.map((x) => x.id === p.id ? json.data : x))
+      else toast('Couldn’t update the article.', { type: 'warn' })
+    } catch {
+      toast('Couldn’t update the article.', { type: 'warn' })
+    }
   }
 
   async function remove(id: string) {
     if (!confirm('Delete this article permanently?')) return
-    setItems((prev) => prev.filter((x) => x.id !== id))
-    await fetch(`/api/posts?id=${id}`, { method: 'DELETE' })
+    const prev = items
+    setItems((p) => p.filter((x) => x.id !== id))
+    try {
+      const res = await fetch(`/api/posts?id=${id}`, { method: 'DELETE' })
+      const json = await res.json().catch(() => ({ success: false }))
+      if (!res.ok || !json.success) { setItems(prev); toast('Couldn’t delete — please try again.', { type: 'warn' }) }
+    } catch {
+      setItems(prev); toast('Couldn’t delete — please try again.', { type: 'warn' })
+    }
   }
 
   return (
@@ -99,7 +121,7 @@ export default function PostsManager({ initial }: { initial: Post[] }) {
       {open && (
         <div className="fixed inset-0 z-50 flex items-start justify-center p-4 overflow-y-auto">
           <div className="absolute inset-0 bg-navy-900/40 backdrop-blur-sm" onClick={() => setOpen(false)} />
-          <div className="relative bg-white rounded-3xl shadow-premium w-full max-w-2xl my-8">
+          <div ref={modalRef} role="dialog" aria-modal="true" aria-label={draft.id ? 'Edit article' : 'New article'} tabIndex={-1} className="relative bg-white rounded-3xl shadow-premium w-full max-w-2xl my-8">
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white rounded-t-3xl z-10">
               <h2 className="font-serif text-lg font-bold text-navy-900">{draft.id ? 'Edit Article' : 'New Article'}</h2>
               <button type="button" onClick={() => setOpen(false)} className="text-gray-400 hover:text-navy-900" aria-label="Close"><X size={20} /></button>
@@ -109,13 +131,13 @@ export default function PostsManager({ initial }: { initial: Post[] }) {
               <div className="grid sm:grid-cols-3 gap-3">
                 <div>
                   <label className="label">Category</label>
-                  <select value={draft.category} onChange={(e) => set('category', e.target.value)} className="input-field">
+                  <select value={draft.category} onChange={(e) => set('category', e.target.value)} className="input-field" title="Category">
                     {POST_CATEGORIES.map((c) => <option key={c} value={c}>{categoryLabel(c, 'en')}</option>)}
                   </select>
                 </div>
                 <div>
                   <label className="label">Read time (min)</label>
-                  <input type="number" min={1} value={draft.read_minutes ?? 3} onChange={(e) => set('read_minutes', e.target.value)} className="input-field" />
+                  <input type="number" min={1} value={draft.read_minutes ?? 3} onChange={(e) => set('read_minutes', e.target.value)} className="input-field" title="Read time in minutes" />
                 </div>
                 <div className="flex items-end gap-4 pb-1">
                   <label className="flex items-center gap-2 text-sm text-navy-700"><input type="checkbox" checked={!!draft.published} onChange={(e) => set('published', e.target.checked)} /> Published</label>
@@ -149,15 +171,15 @@ export default function PostsManager({ initial }: { initial: Post[] }) {
                 <p className="text-xs font-bold text-gray-400 uppercase tracking-wide">Español (opcional — si lo dejas vacío, se muestra el inglés)</p>
                 <div>
                   <label className="label">Título</label>
-                  <input value={draft.title_es ?? ''} onChange={(e) => set('title_es', e.target.value)} className="input-field" />
+                  <input value={draft.title_es ?? ''} onChange={(e) => set('title_es', e.target.value)} className="input-field" title="Título en español" placeholder="(opcional)" />
                 </div>
                 <div>
                   <label className="label">Extracto</label>
-                  <textarea rows={2} value={draft.excerpt_es ?? ''} onChange={(e) => set('excerpt_es', e.target.value)} className="input-field resize-none" />
+                  <textarea rows={2} value={draft.excerpt_es ?? ''} onChange={(e) => set('excerpt_es', e.target.value)} className="input-field resize-none" title="Extracto en español" placeholder="(opcional)" />
                 </div>
                 <div>
                   <label className="label">Cuerpo (Markdown)</label>
-                  <textarea rows={8} value={draft.body_es ?? ''} onChange={(e) => set('body_es', e.target.value)} className="input-field resize-y font-mono text-sm" />
+                  <textarea rows={8} value={draft.body_es ?? ''} onChange={(e) => set('body_es', e.target.value)} className="input-field resize-y font-mono text-sm" title="Cuerpo en español" placeholder="(opcional)" />
                 </div>
               </div>
 

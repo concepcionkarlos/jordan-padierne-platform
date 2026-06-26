@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase'
 import { requestReviewForLead } from '@/lib/reviews'
 import { requireUser } from '@/lib/auth'
+import { statusFieldsForStage } from '@/lib/goals'
 
 export async function GET(req: NextRequest) {
   const denied = await requireUser(); if (denied) return denied
@@ -58,7 +59,14 @@ export async function PATCH(req: NextRequest) {
 
     if (!id) return NextResponse.json({ success: false, error: 'ID required' }, { status: 400 })
 
-    const { data, error } = await supabase.from('leads').update(updates).eq('id', id).select().single()
+    // Single source of truth: when the pipeline stage changes, derive status +
+    // closed_at from it so the two can never drift (e.g. a board-close that the
+    // earnings math would otherwise miss).
+    const patch = (typeof updates.pipeline_stage === 'string')
+      ? { ...updates, ...statusFieldsForStage(updates.pipeline_stage) }
+      : updates
+
+    const { data, error } = await supabase.from('leads').update(patch).eq('id', id).select().single()
     if (error) throw error
 
     // Deal closed → ask the happy client for a Google review (self-guards against repeats)
