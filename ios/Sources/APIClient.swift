@@ -56,6 +56,12 @@ struct APIClient {
         return try decode(data, response, as: LeadsResponse.self).data ?? []
     }
 
+    // MARK: - Create lead (reuse the web POST; server applies defaults + rules)
+    func createLead(fields: [String: Any]) async throws {
+        let (data, response) = try await send("api/leads", method: "POST", jsonBody: fields)
+        _ = try decode(data, response, as: GenericResponse.self)
+    }
+
     // MARK: - Lead detail (header + Coach + timeline, one round-trip)
     func leadDetail(id: String) async throws -> LeadDetailData {
         let (data, response) = try await send("api/leads/\(id)")

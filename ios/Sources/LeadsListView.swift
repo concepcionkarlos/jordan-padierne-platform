@@ -53,6 +53,7 @@ final class LeadsViewModel: ObservableObject {
 struct LeadsListView: View {
     let api: APIClient
     @StateObject private var vm: LeadsViewModel
+    @State private var addingLead = false
 
     init(api: APIClient) {
         self.api = api
@@ -77,6 +78,14 @@ struct LeadsListView: View {
             .onChange(of: vm.search) { _, _ in vm.searchChanged() }
             .refreshable { await vm.load() }
             .task { if vm.leads.isEmpty { await vm.load() } }
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button { addingLead = true } label: { Image(systemName: "plus") }
+                }
+            }
+            .sheet(isPresented: $addingLead) {
+                NewLeadView(api: api) { Task { await vm.load() } }
+            }
         }
     }
 
