@@ -397,3 +397,45 @@ struct SkeletonCard: View {
         }
     }
 }
+
+// ─── Monogram avatar (Contacts-style) ────────────────────────────────────────
+struct Monogram: View {
+    let name: String
+    var size: CGFloat = 64
+    var body: some View {
+        ZStack {
+            Circle().fill(Brand.primary.opacity(0.12))
+            Text(initials).font(.system(size: size * 0.36, weight: .semibold)).foregroundStyle(Brand.primary)
+        }
+        .frame(width: size, height: size)
+    }
+    private var initials: String {
+        let chars = name.split(separator: " ").prefix(2).compactMap { $0.first }
+        return String(chars).uppercased()
+    }
+}
+
+// ─── Contacts-style action (circular button + label) ─────────────────────────
+struct ContactAction: View {
+    let title: String
+    let icon: String
+    var tint: Color = Brand.primary
+    let url: URL?
+    @Environment(\.openURL) private var openURL
+    var body: some View {
+        Button {
+            guard let url else { return }
+            Haptics.impact(.light); openURL(url)
+        } label: {
+            VStack(spacing: Space.xs) {
+                Image(systemName: icon).font(.system(size: Icon.lg, weight: .semibold)).foregroundStyle(.white)
+                    .frame(width: 52, height: 52)
+                    .background(url == nil ? AnyShapeStyle(Color.gray.opacity(0.3)) : AnyShapeStyle(tint), in: Circle())
+                Text(title).font(.caption2.weight(.medium)).foregroundStyle(.secondary)
+            }
+            .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(PressableStyle())
+        .disabled(url == nil)
+    }
+}

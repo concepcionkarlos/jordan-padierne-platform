@@ -24,3 +24,12 @@ enum PhoneLinks {
         return URL(string: string)
     }
 }
+
+// Opens Apple Maps for a place query (a client's area / a property). Formatting only.
+enum MapsLinks {
+    static func directions(query: String?) -> URL? {
+        guard let q = query?.trimmingCharacters(in: .whitespacesAndNewlines), !q.isEmpty,
+              let enc = q.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else { return nil }
+        return URL(string: "http://maps.apple.com/?daddr=\(enc)")
+    }
+}

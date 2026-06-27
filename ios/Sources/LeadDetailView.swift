@@ -82,9 +82,9 @@ final class LeadDetailViewModel: ObservableObject {
     }
 }
 
-// "I opened this client — what's the next right move?"
-// Inline nav title (name shows on scroll) + a Contacts-style content header,
-// then Smart Score, the Coach move, quick actions, and demoted progress + activity.
+// Lead Detail as an Apple-grade contact screen: a Contacts/Health-style header
+// (monogram, name, status, circular actions) over grouped sections that keep ALL
+// the CRM information — readiness, the Coach's move, pipeline progress, activity.
 struct LeadDetailView: View {
     let api: APIClient
     @StateObject private var vm: LeadDetailViewModel
@@ -98,12 +98,11 @@ struct LeadDetailView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: Layout.cardSpacing) {
-                headerCard
+                header
                 if let score = vm.score {
                     SmartScoreCard(score: score, percentile: vm.scorePercentile)
                 }
                 coachSection
-                quickActions
                 pipelineCard
                 timelineCard
             }
@@ -127,27 +126,43 @@ struct LeadDetailView: View {
         }
     }
 
-    // MARK: - Header — who & how engaged.
+    // MARK: - Header (Contacts-style: monogram, name, status, circular actions)
 
-    private var headerCard: some View {
-        PremiumCard {
-            VStack(alignment: .leading, spacing: Space.sm) {
-                Text(vm.lead.fullName).font(.title.weight(.bold)).foregroundStyle(Brand.navy)
-                    .fixedSize(horizontal: false, vertical: true)
-                let meta = [vm.lead.clientType, vm.lead.preferredArea].compactMap { $0 }.joined(separator: " · ")
+    private var header: some View {
+        VStack(spacing: Space.md) {
+            Monogram(name: vm.lead.fullName, size: 76)
+            VStack(spacing: Space.xs) {
+                Text(vm.lead.fullName).font(.title2.weight(.bold)).foregroundStyle(Brand.navy)
+                    .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
                 if !meta.isEmpty {
-                    Text(meta).font(.subheadline).foregroundStyle(.secondary)
+                    Text(meta).font(.subheadline).foregroundStyle(.secondary).multilineTextAlignment(.center)
                 }
                 HStack(spacing: Space.sm) {
                     StatusPill(text: activity.label, color: activity.color)
                     Text(lastInteraction).font(.footnote).foregroundStyle(.secondary)
-                    Spacer(minLength: 0)
                 }
             }
+            contactActionRow
         }
+        .frame(maxWidth: .infinity)
+        .padding(.top, Space.sm)
     }
 
-    // MARK: - Coach (network-gated → skeleton while it loads).
+    private var contactActionRow: some View {
+        HStack(spacing: Space.md) {
+            ContactAction(title: "Call", icon: "phone.fill",
+                          url: PhoneLinks.tel(vm.lead.phone))
+            ContactAction(title: "WhatsApp", icon: "message.fill", tint: .green,
+                          url: PhoneLinks.whatsapp(vm.lead.phone, message: "Hi \(firstName)! 👋 Jordan here."))
+            if let dir = MapsLinks.directions(query: vm.lead.preferredArea) {
+                ContactAction(title: "Directions", icon: "map.fill", tint: Brand.sky, url: dir)
+            }
+        }
+        .padding(.horizontal, Space.lg)
+        .padding(.top, Space.xs)
+    }
+
+    // MARK: - Coach (network-gated → skeleton while it loads)
 
     @ViewBuilder private var coachSection: some View {
         if let c = vm.coach {
@@ -174,29 +189,7 @@ struct LeadDetailView: View {
         }
     }
 
-    // MARK: - Quick actions (the toolkit, minus whatever the Coach already promotes).
-
-    private var quickActions: some View {
-        HStack(spacing: Space.sm) {
-            if !primaryIsCall {
-                ActionButton(title: "Call", icon: "phone.fill", style: .secondary, url: PhoneLinks.tel(vm.lead.phone))
-            }
-            if !primaryIsWhatsApp {
-                ActionButton(title: "WhatsApp", icon: "message.fill", style: .secondary, tint: .green,
-                             url: PhoneLinks.whatsapp(vm.lead.phone, message: "Hi \(firstName)! 👋 Jordan here."))
-            }
-            Menu {
-                Button("Tomorrow") { setFollowup(1) }
-                Button("In 3 days") { setFollowup(3) }
-                Button("In 1 week") { setFollowup(7) }
-            } label: {
-                ActionTile(title: "Follow-up", icon: "bell.fill", enabled: !vm.working)
-            }
-            .disabled(vm.working)
-        }
-    }
-
-    // MARK: - Progress (demoted) — stage + follow-up.
+    // MARK: - Progress (stage + follow-up — all kept)
 
     private var pipelineCard: some View {
         PremiumCard {
@@ -206,10 +199,19 @@ struct LeadDetailView: View {
                     Spacer()
                     stageMenu
                 }
+                Divider()
                 HStack(spacing: Space.xs) {
                     Image(systemName: "bell").font(.footnote).foregroundStyle(.secondary)
                     Text(followupText).font(.footnote).foregroundStyle(.secondary)
-                    Spacer(minLength: 0)
+                    Spacer()
+                    Menu {
+                        Button("Tomorrow") { setFollowup(1) }
+                        Button("In 3 days") { setFollowup(3) }
+                        Button("In 1 week") { setFollowup(7) }
+                    } label: {
+                        Text("Set").font(.footnote.weight(.semibold)).foregroundStyle(Brand.primary).hitTarget()
+                    }
+                    .disabled(vm.working)
                 }
             }
             .animation(Anim.standard, value: vm.stage)
@@ -244,7 +246,7 @@ struct LeadDetailView: View {
         .disabled(vm.working)
     }
 
-    // MARK: - Activity (demoted) — new notes animate in.
+    // MARK: - Activity (new notes animate in)
 
     private var timelineCard: some View {
         PremiumCard {
@@ -286,7 +288,11 @@ struct LeadDetailView: View {
         .padding(.vertical, Space.sm)
     }
 
-    // MARK: - Derived copy (a question answered, not raw data)
+    // MARK: - Derived copy
+
+    private var meta: String {
+        [vm.lead.clientType, vm.lead.preferredArea].compactMap { $0 }.joined(separator: " · ")
+    }
 
     private var activity: (label: String, color: Color) {
         if vm.lead.lastContact == nil { return ("New — not contacted yet", Brand.primary) }
@@ -316,14 +322,6 @@ struct LeadDetailView: View {
     // MARK: - Coach action mapping
 
     private func isStageAction(_ c: LeadCoach) -> Bool { c.actionType == "advance" || c.actionType == "qualify" }
-    private var primaryIsCall: Bool {
-        guard let t = vm.coach?.actionType else { return false }
-        return t == "call" || t == "schedule"
-    }
-    private var primaryIsWhatsApp: Bool {
-        guard let t = vm.coach?.actionType else { return false }
-        return t == "whatsapp" || t == "template"
-    }
     private func primaryURL(_ c: LeadCoach) -> URL? {
         switch c.actionType {
         case "whatsapp", "template": return PhoneLinks.whatsapp(vm.lead.phone, message: "Hi \(firstName)! 👋 Jordan here.")

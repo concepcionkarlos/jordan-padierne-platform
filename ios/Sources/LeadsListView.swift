@@ -111,11 +111,7 @@ struct LeadRow: View {
 
     var body: some View {
         HStack(spacing: Space.md) {
-            ZStack {
-                Circle().fill(Brand.primary.opacity(0.12))
-                Text(initials).font(.subheadline.weight(.bold)).foregroundStyle(Brand.primary)
-            }
-            .frame(width: 44, height: 44)
+            Monogram(name: lead.fullName, size: 44)
 
             VStack(alignment: .leading, spacing: 3) {
                 HStack(spacing: Space.xs) {
@@ -134,11 +130,6 @@ struct LeadRow: View {
         .padding(.vertical, Space.sm)
         .padding(.horizontal, Space.md)
         .background(Brand.cardBg, in: RoundedRectangle(cornerRadius: Radius.card, style: .continuous))
-    }
-
-    private var initials: String {
-        let chars = lead.fullName.split(separator: " ").prefix(2).compactMap { $0.first }
-        return String(chars).uppercased()
     }
 
     private var subtitle: String {
