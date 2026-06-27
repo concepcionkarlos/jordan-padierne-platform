@@ -21,7 +21,7 @@ final class TodayViewModel: ObservableObject {
 }
 
 // "Now" — the executive-assistant home. Morning Brief + the Coach's ranked
-// next-moves are the screen; stats are demoted to a glance.
+// next-moves are the screen; metrics are demoted to a glance at the bottom.
 struct TodayView: View {
     let api: APIClient
     @EnvironmentObject private var session: AppSession
@@ -85,15 +85,15 @@ struct TodayView: View {
 
     private func loadedView(_ data: TodayData) -> some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 18) {
-                header
-                briefCard(data.brief)
-                if let appt = data.nextAppointment { nextAppointmentCard(appt) }
-                nextMoves(data.actions)
-                statsStrip(data.counts)
+            VStack(alignment: .leading, spacing: 16) {
+                header.cardEntrance(0)
+                briefCard(data.brief).cardEntrance(1)
+                nextMoves(data.actions).cardEntrance(2)
+                if let appt = data.nextAppointment { nextAppointmentCard(appt).cardEntrance(3) }
+                metricsSection(data.counts).cardEntrance(4)
             }
             .padding(20)
-            .padding(.bottom, 100)   // breathing room above the mic
+            .padding(.bottom, 110)
         }
         .background(Brand.groupedBg)
     }
@@ -103,152 +103,73 @@ struct TodayView: View {
             Text(greeting).font(.system(.largeTitle, design: .default).weight(.bold)).foregroundStyle(Brand.navy)
             Text("Here's what needs you today").font(.subheadline).foregroundStyle(.secondary)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     // MARK: Morning Brief (primary)
 
     private func briefCard(_ brief: [String]) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 6) {
-                Image(systemName: "sparkles").font(.caption).foregroundStyle(Brand.primary)
-                Text("MORNING BRIEF").font(.caption2.weight(.bold)).foregroundStyle(Brand.primary).tracking(0.6)
-            }
-            ForEach(Array(brief.enumerated()), id: \.offset) { index, line in
-                Text(line)
-                    .font(index == 0 ? .subheadline.weight(.semibold) : .subheadline)
-                    .foregroundStyle(Brand.navy)
-                    .fixedSize(horizontal: false, vertical: true)
+        PremiumCard {
+            VStack(alignment: .leading, spacing: 10) {
+                SectionHeader(title: "Morning Brief", systemImage: "sparkles", accent: Brand.primary)
+                ForEach(Array(brief.enumerated()), id: \.offset) { index, line in
+                    Text(line)
+                        .font(index == 0 ? .subheadline.weight(.semibold) : .subheadline)
+                        .foregroundStyle(Brand.navy)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .brandCard()
-    }
-
-    private func nextAppointmentCard(_ appt: NextAppointment) -> some View {
-        HStack(spacing: 12) {
-            IconTile(symbol: "calendar", tint: Brand.primary)
-            VStack(alignment: .leading, spacing: 2) {
-                Text("NEXT APPOINTMENT").font(.caption2.weight(.bold)).foregroundStyle(.secondary).tracking(0.5)
-                Text(appt.title).font(.subheadline.weight(.semibold)).foregroundStyle(Brand.navy).lineLimit(1)
-                Text(AppDate.shortDateTime(appt.startTime)).font(.caption).foregroundStyle(.secondary)
-            }
-            Spacer(minLength: 0)
-        }
-        .brandCard(padding: 14)
     }
 
     // MARK: Next Moves (Coach — primary)
 
     private func nextMoves(_ actions: [CoachAction]) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("NEXT MOVES").font(.caption2.weight(.bold)).foregroundStyle(.secondary).tracking(0.6)
+            SectionHeader(title: "Next Moves")
             if actions.isEmpty {
-                VStack(spacing: 8) {
-                    IconTile(symbol: "checkmark.seal.fill", tint: .green, size: 44)
-                    Text("You're all caught up").font(.headline).foregroundStyle(Brand.navy)
-                    Text("Add a client in the web CRM and your next best moves will appear here.")
-                        .font(.subheadline).foregroundStyle(.secondary).multilineTextAlignment(.center)
+                PremiumCard {
+                    EmptyState(icon: "checkmark.seal.fill",
+                               title: "You're all caught up",
+                               message: "Add a client in the web CRM and your next best moves appear here.",
+                               tint: .green)
+                    .frame(maxWidth: .infinity)
                 }
-                .frame(maxWidth: .infinity)
-                .brandCard(padding: 24)
             } else {
-                ForEach(actions) { actionCard($0) }
+                ForEach(actions) { CoachActionRow(api: api, action: $0) }
             }
         }
     }
 
-    private func actionCard(_ a: CoachAction) -> some View {
-        HStack(spacing: 12) {
-            NavigationLink {
-                LeadDetailView(api: api, lead: Lead(minimalId: a.leadId, name: a.name, phone: a.phone, stage: a.stage, score: a.score))
-            } label: {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(a.title).font(.subheadline.weight(.semibold)).foregroundStyle(Brand.navy)
-                        .lineLimit(2).multilineTextAlignment(.leading)
-                    HStack(spacing: 6) {
-                        urgencyTag(a.urgency)
-                        Text(a.name).font(.caption).foregroundStyle(.secondary).lineLimit(1)
-                        scorePill(a.score)
-                    }
-                    Text(a.reason).font(.caption2).foregroundStyle(.secondary)
-                        .lineLimit(2).multilineTextAlignment(.leading)
+    private func nextAppointmentCard(_ appt: NextAppointment) -> some View {
+        PremiumCard(padding: 14) {
+            HStack(spacing: 12) {
+                IconTile(symbol: "calendar", tint: Brand.primary)
+                VStack(alignment: .leading, spacing: 2) {
+                    SectionHeader(title: "Next Appointment")
+                    Text(appt.title).font(.subheadline.weight(.semibold)).foregroundStyle(Brand.navy).lineLimit(1)
+                    Text(AppDate.shortDateTime(appt.startTime)).font(.caption).foregroundStyle(.secondary)
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            .buttonStyle(.plain)
-
-            VStack(spacing: 8) {
-                if let url = PhoneLinks.tel(a.phone) {
-                    Link(destination: url) { circleIcon("phone.fill", Brand.primary) }
-                }
-                if let url = PhoneLinks.whatsapp(a.phone, message: "Hi \(firstName(a.name))! 👋 Jordan here.") {
-                    Link(destination: url) { circleIcon("message.fill", .green) }
+                Spacer(minLength: 0)
+                if let url = PhoneLinks.tel(appt.leadPhone) {
+                    CircleIconLink(url: url, symbol: "phone.fill", tint: Brand.primary)
                 }
             }
         }
-        .brandCard(padding: 14)
     }
 
-    // MARK: Stats (demoted glance)
+    // MARK: Today at a glance (demoted metrics)
 
-    private func statsStrip(_ c: Counts) -> some View {
-        HStack(spacing: 8) {
-            statPill("flame.fill", .red, c.hotLeads, "Hot")
-            statPill("bolt.fill", .orange, c.urgentLeads, "Urgent")
-            statPill("clock.badge.exclamationmark", Brand.wine, c.overdueFollowups, "Overdue")
-            statPill("checklist", Brand.primary, c.todaysTasks, "Tasks")
-        }
-    }
-
-    private func statPill(_ symbol: String, _ tint: Color, _ value: Int, _ label: String) -> some View {
-        VStack(spacing: 4) {
-            HStack(spacing: 4) {
-                Image(systemName: symbol).font(.system(size: 11)).foregroundStyle(tint)
-                Text("\(value)").font(.subheadline.weight(.bold)).foregroundStyle(Brand.navy)
+    private func metricsSection(_ c: Counts) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            SectionHeader(title: "Today at a glance")
+            HStack(spacing: 8) {
+                MetricChip(icon: "flame.fill", tint: .red, value: c.hotLeads, label: "Hot")
+                MetricChip(icon: "bolt.fill", tint: .orange, value: c.urgentLeads, label: "Urgent")
+                MetricChip(icon: "clock.badge.exclamationmark", tint: Brand.wine, value: c.overdueFollowups, label: "Overdue")
+                MetricChip(icon: "checklist", tint: Brand.primary, value: c.todaysTasks, label: "Tasks")
             }
-            Text(label).font(.caption2).foregroundStyle(.secondary)
         }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 10)
-        .background(Brand.cardBg, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-    }
-
-    // MARK: Bits
-
-    private func urgencyTag(_ u: String) -> some View {
-        let s = urgencyStyle(u)
-        return Text(s.0).font(.caption2.weight(.bold)).foregroundStyle(s.1)
-            .padding(.horizontal, 7).padding(.vertical, 2)
-            .background(s.1.opacity(0.15), in: Capsule())
-    }
-
-    private func urgencyStyle(_ u: String) -> (String, Color) {
-        switch u {
-        case "now": return ("Do Now", Brand.wine)
-        case "today": return ("Today", .orange)
-        case "soon": return ("Soon", Brand.sky)
-        default: return ("Nurture", .gray)
-        }
-    }
-
-    private func scorePill(_ score: Int) -> some View {
-        let color: Color = score >= 75 ? .red : score >= 50 ? .orange : score >= 30 ? Brand.sky : .gray
-        return HStack(spacing: 3) {
-            Image(systemName: "bolt.fill").font(.system(size: 9))
-            Text("\(score)").font(.caption2.weight(.bold))
-        }
-        .foregroundStyle(color)
-        .padding(.horizontal, 6).padding(.vertical, 2)
-        .background(color.opacity(0.14), in: Capsule())
-    }
-
-    private func circleIcon(_ symbol: String, _ tint: Color) -> some View {
-        Image(systemName: symbol).font(.system(size: 15, weight: .semibold)).foregroundStyle(.white)
-            .frame(width: 38, height: 38).background(tint, in: Circle())
-    }
-
-    private func firstName(_ full: String) -> String {
-        full.split(separator: " ").first.map(String.init) ?? "there"
     }
 
     private var greeting: String {

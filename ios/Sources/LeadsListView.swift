@@ -86,28 +86,10 @@ struct LeadsListView: View {
     private var emptyState: some View {
         ZStack {
             Brand.groupedBg.ignoresSafeArea()
-            VStack(spacing: 18) {
-                ZStack {
-                    Circle().fill(Brand.primary.opacity(0.10))
-                    Image(systemName: "person.2.fill").font(.system(size: 30, weight: .medium)).foregroundStyle(Brand.primary)
-                }
-                .frame(width: 84, height: 84)
-
-                VStack(spacing: 6) {
-                    Text("No clients yet").font(.title3.weight(.bold)).foregroundStyle(Brand.navy)
-                    Text("New leads from your website and CRM will appear here.")
-                        .font(.subheadline).foregroundStyle(.secondary).multilineTextAlignment(.center)
-                }
-
-                HStack(spacing: 8) {
-                    Image(systemName: "arrow.up.forward.app.fill").font(.footnote)
-                    Text("Add or import clients from the web CRM.").font(.footnote.weight(.semibold))
-                }
-                .foregroundStyle(Brand.primary)
-                .padding(.horizontal, 16).padding(.vertical, 11)
-                .background(Brand.primary.opacity(0.10), in: Capsule())
-            }
-            .padding(40)
+            EmptyState(icon: "person.2.fill",
+                       title: "No clients yet",
+                       message: "New leads from your website and CRM will appear here.",
+                       hint: "Add or import clients from the web CRM.")
         }
     }
 
@@ -146,7 +128,7 @@ struct LeadRow: View {
 
             Spacer(minLength: 8)
             VStack(alignment: .trailing, spacing: 5) {
-                if let score = lead.score { scoreChip(score) }
+                if let score = lead.score { ScorePill(score: score) }
                 StageBadge(stage: lead.pipelineStage)
             }
         }
@@ -154,17 +136,6 @@ struct LeadRow: View {
         .padding(.horizontal, 14)
         .background(Brand.cardBg, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
         .shadow(color: Color.black.opacity(0.05), radius: 6, y: 2)
-    }
-
-    private func scoreChip(_ score: Int) -> some View {
-        let color: Color = score >= 75 ? .red : score >= 50 ? .orange : score >= 30 ? Brand.sky : .gray
-        return HStack(spacing: 3) {
-            Image(systemName: "bolt.fill").font(.system(size: 9))
-            Text("\(score)").font(.caption2.weight(.bold))
-        }
-        .foregroundStyle(color)
-        .padding(.horizontal, 6).padding(.vertical, 2)
-        .background(color.opacity(0.14), in: Capsule())
     }
 
     private var initials: String {

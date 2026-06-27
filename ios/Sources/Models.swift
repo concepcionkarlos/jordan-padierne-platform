@@ -197,10 +197,18 @@ struct LeadDetailResponse: Decodable {
 struct LeadDetailData: Decodable {
     let lead: Lead
     let score: Int?
+    let scorePercentile: Int?     // "Top X% of your pipeline" (null when not meaningful)
     let temperature: Int?
+    let freshness: Freshness?
     let coach: LeadCoach
     let notes: [Note]
     let appointments: [Appointment]
+}
+
+// How recently this lead was engaged — drives the activity status copy.
+struct Freshness: Decodable {
+    let level: String    // fresh / aging / stale / cold
+    let ageDays: Int
 }
 
 // The single recommended next move for this lead (server-computed via getNextAction).
