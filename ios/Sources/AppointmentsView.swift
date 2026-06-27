@@ -56,6 +56,7 @@ struct AppointmentsView: View {
     let api: APIClient
     @StateObject private var vm: AppointmentsViewModel
     @State private var rescheduling: Appointment?
+    @State private var wrappingUp: Appointment?
     @State private var creating = false
     @State private var pickedLead: Lead?
 
@@ -95,6 +96,9 @@ struct AppointmentsView: View {
             .sheet(item: $rescheduling) { appt in
                 AppointmentSheet(api: api, existing: appt) { Task { await vm.load() } }
             }
+            .sheet(item: $wrappingUp) { appt in
+                PostShowingSheet(api: api, appointment: appt) { Task { await vm.load() } }
+            }
             .sheet(isPresented: $creating) {
                 LeadPickerView(api: api) { picked in
                     pickedLead = picked
@@ -130,7 +134,8 @@ struct AppointmentsView: View {
     }
 
     private func row(_ a: Appointment) -> some View {
-        AppointmentRow(appointment: a)
+        Button { wrappingUp = a } label: { AppointmentRow(appointment: a) }
+            .buttonStyle(.plain)
             .listRowSeparator(.hidden)
             .listRowBackground(Color.clear)
             .listRowInsets(EdgeInsets(top: Space.xs, leading: Layout.screenMargin, bottom: Space.xs, trailing: Layout.screenMargin))
@@ -144,6 +149,7 @@ struct AppointmentsView: View {
                 }
             }
             .contextMenu {
+                Button { wrappingUp = a } label: { Label("Wrap up", systemImage: "checklist") }
                 Button { rescheduling = a } label: { Label("Reschedule", systemImage: "calendar") }
                 Button { Task { await vm.setStatus(a.id, "confirmed") } } label: { Label("Confirm", systemImage: "checkmark.circle") }
                 Button(role: .destructive) { Task { await vm.setStatus(a.id, "cancelled") } } label: { Label("Cancel", systemImage: "xmark.circle") }
