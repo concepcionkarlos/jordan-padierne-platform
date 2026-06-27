@@ -1,5 +1,11 @@
 import SwiftUI
 
+struct LeadSection: Identifiable {
+    let id: String
+    let title: String
+    let leads: [Lead]
+}
+
 @MainActor
 final class LeadsViewModel: ObservableObject {
     @Published var leads: [Lead] = []
@@ -26,6 +32,20 @@ final class LeadsViewModel: ObservableObject {
             try? await Task.sleep(nanoseconds: 300_000_000)
             if Task.isCancelled { return }
             await self?.load()
+        }
+    }
+
+    // Grouped by readiness band (the list arrives score-sorted desc, so order holds).
+    var sections: [LeadSection] {
+        let bands: [(id: String, title: String, low: Int, high: Int)] = [
+            ("ready",   "Ready to buy",    75, 100),
+            ("strong",  "Strong interest", 50, 74),
+            ("warming", "Warming up",      30, 49),
+            ("early",   "Early stage",      0, 29),
+        ]
+        return bands.compactMap { b in
+            let items = leads.filter { let s = $0.score ?? 0; return s >= b.low && s <= b.high }
+            return items.isEmpty ? nil : LeadSection(id: b.id, title: b.title, leads: items)
         }
     }
 }
@@ -61,19 +81,35 @@ struct LeadsListView: View {
     }
 
     private var list: some View {
-        List(vm.leads) { lead in
-            NavigationLink(destination: LeadDetailView(api: api, lead: lead)) {
-                LeadRow(lead: lead)
-            }
-            .listRowSeparator(.hidden)
-            .listRowBackground(Color.clear)
-            .listRowInsets(EdgeInsets(top: Space.xs, leading: Layout.screenMargin, bottom: Space.xs, trailing: Layout.screenMargin))
-            .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                if let url = PhoneLinks.tel(lead.phone) {
-                    Link(destination: url) { Label("Call", systemImage: "phone.fill") }.tint(.green)
-                }
-                if let url = PhoneLinks.whatsapp(lead.phone) {
-                    Link(destination: url) { Label("WhatsApp", systemImage: "message.fill") }.tint(.blue)
+        List {
+            ForEach(vm.sections) { section in
+                Section {
+                    ForEach(section.leads) { lead in
+                        NavigationLink(destination: LeadDetailView(api: api, lead: lead)) {
+                            LeadRow(lead: lead)
+                        }
+                        .listRowSeparator(.hidden)
+                        .listRowBackground(Color.clear)
+                        .listRowInsets(EdgeInsets(top: Space.xs, leading: Layout.screenMargin, bottom: Space.xs, trailing: Layout.screenMargin))
+                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                            if let url = PhoneLinks.tel(lead.phone) {
+                                Link(destination: url) { Label("Call", systemImage: "phone.fill") }.tint(.green)
+                            }
+                            if let url = PhoneLinks.whatsapp(lead.phone) {
+                                Link(destination: url) { Label("WhatsApp", systemImage: "message.fill") }.tint(.blue)
+                            }
+                        }
+                    }
+                } header: {
+                    HStack(spacing: Space.xs) {
+                        Text(section.title)
+                        Text("·")
+                        Text("\(section.leads.count)")
+                    }
+                    .font(Typography.sectionLabel)
+                    .foregroundStyle(.secondary)
+                    .textCase(nil)
+                    .padding(.leading, Space.xs)
                 }
             }
         }

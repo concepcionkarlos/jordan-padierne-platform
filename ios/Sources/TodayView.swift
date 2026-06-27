@@ -82,16 +82,22 @@ struct TodayView: View {
     private func loadedView(_ data: TodayData) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: Layout.sectionSpacing) {
+                Text(todayDate.uppercased()).font(.caption.weight(.semibold)).foregroundStyle(.secondary).tracking(0.5)
+                    .padding(.bottom, -Space.sm)
                 briefCard(data.brief)
                 nextMoves(data.actions)
                 if let appt = data.nextAppointment { nextAppointmentCard(appt) }
                 metricsSection(data.counts)
             }
             .padding(.horizontal, Layout.screenMargin)
-            .padding(.top, Space.sm)
+            .padding(.top, Space.xs)
             .padding(.bottom, Layout.bottomInset)
         }
         .background(Brand.groupedBg)
+    }
+
+    private var todayDate: String {
+        Date().formatted(.dateTime.weekday(.wide).month(.wide).day())
     }
 
     // MARK: Morning Brief — the assistant speaking. No label; the voice carries it.

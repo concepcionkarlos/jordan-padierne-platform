@@ -145,14 +145,19 @@ struct VoiceCaptureButton: View {
     private var reviewPanel: some View {
         VStack {
             Spacer()
-            VStack(alignment: .leading, spacing: 14) {
-                Text("Voice note").font(.headline)
+            VStack(alignment: .leading, spacing: Space.md) {
+                HStack(spacing: Space.sm) {
+                    Image(systemName: "waveform").foregroundStyle(Brand.primary)
+                    Text("Voice note").font(.headline).foregroundStyle(Brand.navy)
+                    Spacer()
+                }
 
                 TextEditor(text: $transcript)
+                    .font(.body)
                     .frame(height: 150)
                     .scrollContentBackground(.hidden)
-                    .padding(8)
-                    .background(.quaternary, in: RoundedRectangle(cornerRadius: 12))
+                    .padding(Space.sm)
+                    .background(.quaternary, in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
                     .accessibilityLabel("Voice note transcript")
 
                 attachRow
@@ -162,20 +167,30 @@ struct VoiceCaptureButton: View {
                         .font(.caption).foregroundStyle(.orange)
                 }
 
-                HStack {
-                    Button("Cancel", role: .cancel) { reset() }
-                        .buttonStyle(.bordered)
-                        .accessibilityHint("Discard this voice note")
-                    Spacer()
-                    Button { Task { await save() } } label: {
-                        if saving { ProgressView() } else { Text("Save").bold() }
+                Button { Task { await save() } } label: {
+                    HStack(spacing: Space.sm) {
+                        if saving {
+                            ProgressView().tint(.white)
+                        } else {
+                            Image(systemName: "checkmark")
+                            Text("Save note").font(.subheadline.weight(.semibold))
+                        }
                     }
-                    .buttonStyle(.borderedProminent)
-                    .disabled(!canSave)
-                    .accessibilityHint("Save this note to the client")
+                    .frame(maxWidth: .infinity).frame(minHeight: Hit.min)
+                    .background(canSave ? AnyShapeStyle(Brand.primary) : AnyShapeStyle(Color.gray.opacity(0.4)),
+                                in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
+                    .foregroundStyle(.white)
                 }
+                .buttonStyle(PressableStyle())
+                .disabled(!canSave)
+                .accessibilityHint("Save this note to the client")
+
+                Button("Cancel", role: .cancel) { reset() }
+                    .font(.subheadline).foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity).frame(minHeight: 40)
+                    .accessibilityHint("Discard this voice note")
             }
-            .padding(20)
+            .padding(Space.xl)
             .background(.regularMaterial, in: RoundedRectangle(cornerRadius: Radius.card, style: .continuous))
             .padding()
         }
