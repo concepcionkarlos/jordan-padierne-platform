@@ -93,7 +93,9 @@ export function applyLeadsQuery(all: any[], opts: LeadsQueryOpts = {}): LeadsPag
 
   const total = ordered.length
   const start = (page - 1) * pageSize
-  const data = ordered.slice(start, start + pageSize)
+  // Attach the Smart Score to each returned row so the native Leads list can show
+  // it without re-deriving the logic in Swift. (Web ignores the extra field.)
+  const data = ordered.slice(start, start + pageSize).map((l: any) => ({ ...l, score: scoreLead(l).score }))
 
   return { data, total, page, pageSize, stats }
 }

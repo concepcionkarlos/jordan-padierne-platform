@@ -145,12 +145,26 @@ struct LeadRow: View {
             }
 
             Spacer(minLength: 8)
-            StageBadge(stage: lead.pipelineStage)
+            VStack(alignment: .trailing, spacing: 5) {
+                if let score = lead.score { scoreChip(score) }
+                StageBadge(stage: lead.pipelineStage)
+            }
         }
         .padding(.vertical, 8)
         .padding(.horizontal, 14)
         .background(Brand.cardBg, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
         .shadow(color: Color.black.opacity(0.05), radius: 6, y: 2)
+    }
+
+    private func scoreChip(_ score: Int) -> some View {
+        let color: Color = score >= 75 ? .red : score >= 50 ? .orange : score >= 30 ? Brand.sky : .gray
+        return HStack(spacing: 3) {
+            Image(systemName: "bolt.fill").font(.system(size: 9))
+            Text("\(score)").font(.caption2.weight(.bold))
+        }
+        .foregroundStyle(color)
+        .padding(.horizontal, 6).padding(.vertical, 2)
+        .background(color.opacity(0.14), in: Capsule())
     }
 
     private var initials: String {

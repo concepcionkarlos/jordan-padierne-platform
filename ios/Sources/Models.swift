@@ -7,8 +7,25 @@ struct TodayResponse: Decodable {
 }
 
 struct TodayData: Decodable {
-    let nextAppointment: NextAppointment?
+    let brief: [String]
+    let actions: [CoachAction]
     let counts: Counts
+    let nextAppointment: NextAppointment?
+}
+
+// A single Coach next-best-action (the primary mobile content).
+struct CoachAction: Decodable, Identifiable {
+    var id: String { leadId }
+    let leadId: String
+    let name: String
+    let phone: String?
+    let stage: String
+    let score: Int
+    let urgency: String     // now / today / soon / nurture
+    let title: String
+    let reason: String
+    let emoji: String
+    let actionLabel: String
 }
 
 struct NextAppointment: Decodable, Identifiable {
@@ -49,6 +66,7 @@ struct Lead: Decodable, Identifiable {
     let clientType: String?
     let source: String?
     let createdAt: String
+    let score: Int?
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -63,6 +81,16 @@ struct Lead: Decodable, Identifiable {
         case clientType = "client_type"
         case source
         case createdAt = "created_at"
+        case score
+    }
+}
+
+extension Lead {
+    /// Minimal lead built from a Coach action — enough to open detail (the timeline loads by id).
+    init(minimalId id: String, name: String, phone: String?, stage: String, score: Int?) {
+        self.init(id: id, fullName: name, email: nil, phone: phone, pipelineStage: stage,
+                  status: nil, hotScore: nil, lastContact: nil, nextFollowup: nil,
+                  preferredArea: nil, clientType: nil, source: nil, createdAt: "", score: score)
     }
 }
 
