@@ -79,6 +79,13 @@ struct AppointmentsView: View {
             }
             .navigationTitle("Agenda")
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    if !todaysLocations.isEmpty {
+                        Button { RoutePlanner.openRoute(todaysLocations) } label: {
+                            Label("Route", systemImage: "car.fill")
+                        }
+                    }
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button { creating = true } label: { Image(systemName: "plus") }
                 }
@@ -98,6 +105,10 @@ struct AppointmentsView: View {
                 AppointmentSheet(api: api, lead: lead) { Task { await vm.load() } }
             }
         }
+    }
+
+    private var todaysLocations: [String] {
+        vm.todays.compactMap { $0.location }.filter { !$0.isEmpty }
     }
 
     private var list: some View {
@@ -230,6 +241,7 @@ struct AppointmentSheet: View {
     @State private var type = "showing"
     @State private var date = Date()
     @State private var location = ""
+    @State private var addToCalendar = false
     @State private var saving = false
 
     private let types = ["showing", "call", "meeting", "other"]
@@ -244,6 +256,9 @@ struct AppointmentSheet: View {
                     }
                     DatePicker("When", selection: $date, displayedComponents: [.date, .hourAndMinute])
                     TextField("Location (optional)", text: $location)
+                }
+                if existing == nil {
+                    Section { Toggle("Add to Apple Calendar", isOn: $addToCalendar) }
                 }
                 if let name = clientName {
                     Section("Client") { Text(name).foregroundStyle(.secondary) }
@@ -286,6 +301,9 @@ struct AppointmentSheet: View {
                 ])
             } else if let lead {
                 _ = try await api.createAppointment(leadId: lead.id, title: title, type: type, startsAt: iso, location: location)
+                if addToCalendar {
+                    CalendarSync.add(title: title, startsAt: date, location: location.isEmpty ? nil : location)
+                }
             }
             Haptics.success()
             onSaved()

@@ -16,6 +16,7 @@ struct NewLeadView: View {
     @State private var clientType = "buyer"
     @State private var notes = ""
     @State private var showPicker = false
+    @State private var showScanner = false
     @State private var saving = false
 
     private let sources = ["open_house", "referral", "website", "sign_call", "cold_call", "other"]
@@ -25,6 +26,9 @@ struct NewLeadView: View {
         NavigationStack {
             Form {
                 Section {
+                    Button { showScanner = true } label: {
+                        Label("Scan business card", systemImage: "doc.text.viewfinder")
+                    }
                     Button { showPicker = true } label: {
                         Label("Import from Contacts", systemImage: "person.crop.circle.badge.plus")
                     }
@@ -57,7 +61,18 @@ struct NewLeadView: View {
             .sheet(isPresented: $showPicker) {
                 ContactPicker { fill(from: $0) }.ignoresSafeArea()
             }
+            .sheet(isPresented: $showScanner) {
+                DocumentScanner(onResult: { card in fill(from: card); showScanner = false },
+                                onCancel: { showScanner = false })
+                    .ignoresSafeArea()
+            }
         }
+    }
+
+    private func fill(from card: ScannedCard) {
+        if !card.name.isEmpty { fullName = card.name }
+        if !card.phone.isEmpty { phone = card.phone }
+        if !card.email.isEmpty { email = card.email }
     }
 
     private var canSave: Bool { !fullName.trimmingCharacters(in: .whitespaces).isEmpty }
