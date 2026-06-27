@@ -2,26 +2,23 @@ import SwiftUI
 
 @MainActor
 final class TodayViewModel: ObservableObject {
-    enum Phase {
-        case loading
-        case loaded(TodayData)
-        case failed
-    }
-
-    @Published var phase: Phase = .loading
+    @Published var data: TodayData?
+    @Published var failed = false
     private let api: APIClient
 
     init(api: APIClient) { self.api = api }
 
+    // Refresh keeps the last data on screen (no blanking); only a first, dataless
+    // failure flips to the error state.
     func load() async {
-        phase = .loading
-        do { phase = .loaded(try await api.today()) }
-        catch { phase = .failed }
+        failed = false
+        do { data = try await api.today() }
+        catch { if data == nil { failed = true } }
     }
 }
 
-// "Now" — the executive-assistant home. Morning Brief + the Coach's ranked
-// next-moves are the screen; metrics are demoted to a glance at the bottom.
+// "Now" — the assistant home. Native large title; Morning Brief + the Coach's
+// next-moves are the screen; metrics are a quiet glance at the bottom.
 struct TodayView: View {
     let api: APIClient
     @EnvironmentObject private var session: AppSession
@@ -42,7 +39,7 @@ struct TodayView: View {
     var body: some View {
         NavigationStack {
             content
-                .navigationBarTitleDisplayMode(.inline)
+                .navigationTitle(greeting)
                 .toolbar {
                     ToolbarItem(placement: .topBarTrailing) {
                         Menu {
@@ -55,26 +52,25 @@ struct TodayView: View {
                     }
                 }
                 .refreshable { await vm.load() }
-                .task { await vm.load() }
+                .task { if vm.data == nil { await vm.load() } }
         }
         .overlay { VoiceCaptureButton(api: api, lead: nil) }
     }
 
     @ViewBuilder private var content: some View {
-        switch vm.phase {
-        case .loading:
-            ZStack { Brand.groupedBg.ignoresSafeArea(); ProgressView() }
-        case .failed:
-            failedView
-        case .loaded(let data):
+        if let data = vm.data {
             loadedView(data)
+        } else if vm.failed {
+            failedView
+        } else {
+            TodaySkeleton()
         }
     }
 
     private var failedView: some View {
         ZStack {
             Brand.groupedBg.ignoresSafeArea()
-            VStack(spacing: 12) {
+            VStack(spacing: Space.md) {
                 Image(systemName: "wifi.exclamationmark").font(.system(size: 34)).foregroundStyle(.secondary)
                 Text("Couldn't load your day").font(.headline).foregroundStyle(Brand.navy)
                 Text("Pull to refresh, or try again.").font(.subheadline).foregroundStyle(.secondary)
@@ -85,53 +81,44 @@ struct TodayView: View {
 
     private func loadedView(_ data: TodayData) -> some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                header.cardEntrance(0)
-                briefCard(data.brief).cardEntrance(1)
-                nextMoves(data.actions).cardEntrance(2)
-                if let appt = data.nextAppointment { nextAppointmentCard(appt).cardEntrance(3) }
-                metricsSection(data.counts).cardEntrance(4)
+            VStack(alignment: .leading, spacing: Layout.sectionSpacing) {
+                briefCard(data.brief)
+                nextMoves(data.actions)
+                if let appt = data.nextAppointment { nextAppointmentCard(appt) }
+                metricsSection(data.counts)
             }
-            .padding(20)
-            .padding(.bottom, 110)
+            .padding(.horizontal, Layout.screenMargin)
+            .padding(.top, Space.sm)
+            .padding(.bottom, Layout.bottomInset)
         }
         .background(Brand.groupedBg)
     }
 
-    private var header: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(greeting).font(.system(.largeTitle, design: .default).weight(.bold)).foregroundStyle(Brand.navy)
-            Text("Here's what needs you today").font(.subheadline).foregroundStyle(.secondary)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-
-    // MARK: Morning Brief (primary)
+    // MARK: Morning Brief — the assistant speaking. No label; the voice carries it.
 
     private func briefCard(_ brief: [String]) -> some View {
         PremiumCard {
-            VStack(alignment: .leading, spacing: 10) {
-                SectionHeader(title: "Morning Brief", systemImage: "sparkles", accent: Brand.primary)
-                ForEach(Array(brief.enumerated()), id: \.offset) { index, line in
+            VStack(alignment: .leading, spacing: Space.sm) {
+                ForEach(Array(brief.enumerated()), id: \.offset) { i, line in
                     Text(line)
-                        .font(index == 0 ? .subheadline.weight(.semibold) : .subheadline)
-                        .foregroundStyle(Brand.navy)
+                        .font(i == 0 ? .body.weight(.semibold) : .subheadline)
+                        .foregroundStyle(i == 0 ? Brand.navy : .secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
         }
     }
 
-    // MARK: Next Moves (Coach — primary)
+    // MARK: Next Moves (Coach)
 
     private func nextMoves(_ actions: [CoachAction]) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            SectionHeader(title: "Next Moves")
+        VStack(alignment: .leading, spacing: Layout.cardSpacing) {
+            SectionHeader(title: "Next moves")
             if actions.isEmpty {
                 PremiumCard {
-                    EmptyState(icon: "checkmark.seal.fill",
-                               title: "You're all caught up",
-                               message: "Add a client in the web CRM and your next best moves appear here.",
+                    EmptyState(icon: "checkmark.seal",
+                               title: "You're ahead of the day",
+                               message: "A calm pipeline is a good thing — a perfect moment to open a new door.",
                                tint: .green)
                     .frame(maxWidth: .infinity)
                 }
@@ -142,13 +129,13 @@ struct TodayView: View {
     }
 
     private func nextAppointmentCard(_ appt: NextAppointment) -> some View {
-        PremiumCard(padding: 14) {
-            HStack(spacing: 12) {
+        PremiumCard {
+            HStack(spacing: Space.md) {
                 IconTile(symbol: "calendar", tint: Brand.primary)
-                VStack(alignment: .leading, spacing: 2) {
-                    SectionHeader(title: "Next Appointment")
+                VStack(alignment: .leading, spacing: Space.xxs) {
+                    Text("Next appointment").font(Typography.sectionLabel).foregroundStyle(.secondary)
                     Text(appt.title).font(.subheadline.weight(.semibold)).foregroundStyle(Brand.navy).lineLimit(1)
-                    Text(AppDate.shortDateTime(appt.startTime)).font(.caption).foregroundStyle(.secondary)
+                    Text(AppDate.shortDateTime(appt.startTime)).font(.footnote).foregroundStyle(.secondary)
                 }
                 Spacer(minLength: 0)
                 if let url = PhoneLinks.tel(appt.leadPhone) {
@@ -158,17 +145,14 @@ struct TodayView: View {
         }
     }
 
-    // MARK: Today at a glance (demoted metrics)
+    // MARK: A quiet glance (demoted)
 
     private func metricsSection(_ c: Counts) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            SectionHeader(title: "Today at a glance")
-            HStack(spacing: 8) {
-                MetricChip(icon: "flame.fill", tint: .red, value: c.hotLeads, label: "Hot")
-                MetricChip(icon: "bolt.fill", tint: .orange, value: c.urgentLeads, label: "Urgent")
-                MetricChip(icon: "clock.badge.exclamationmark", tint: Brand.wine, value: c.overdueFollowups, label: "Overdue")
-                MetricChip(icon: "checklist", tint: Brand.primary, value: c.todaysTasks, label: "Tasks")
-            }
+        HStack(spacing: Space.sm) {
+            MetricChip(icon: "flame.fill", tint: .red, value: c.hotLeads, label: "Hot")
+            MetricChip(icon: "bolt.fill", tint: .orange, value: c.urgentLeads, label: "Urgent")
+            MetricChip(icon: "clock.badge.exclamationmark", tint: Brand.wine, value: c.overdueFollowups, label: "Overdue")
+            MetricChip(icon: "checklist", tint: Brand.primary, value: c.todaysTasks, label: "Tasks")
         }
     }
 
@@ -179,13 +163,33 @@ struct TodayView: View {
     }
 }
 
+// Elegant placeholder while the day loads.
+struct TodaySkeleton: View {
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: Layout.sectionSpacing) {
+                SkeletonCard(lines: 2)
+                VStack(spacing: Layout.cardSpacing) {
+                    SkeletonCard(lines: 3)
+                    SkeletonCard(lines: 3)
+                }
+                SkeletonCard(lines: 1)
+            }
+            .padding(.horizontal, Layout.screenMargin)
+            .padding(.top, Space.sm)
+        }
+        .background(Brand.groupedBg)
+        .disabled(true)
+    }
+}
+
 #if DEBUG
 extension TodayViewModel {
     static func previewLoaded() -> TodayViewModel {
         let vm = TodayViewModel(api: APIClient(baseURL: AppConfig.apiBaseURL, auth: PreviewAuthService()))
-        vm.phase = .loaded(TodayData(
+        vm.data = TodayData(
             brief: [
-                "Start here: Call now — brand new lead — María G.",
+                "Start here: call María — a brand-new lead worth moving on now.",
                 "1 deal at risk — David has gone quiet for 6 days.",
             ],
             actions: [
@@ -196,7 +200,7 @@ extension TodayViewModel {
             ],
             counts: Counts(hotLeads: 1, urgentLeads: 2, overdueFollowups: 1, todaysTasks: 3),
             nextAppointment: nil
-        ))
+        )
         return vm
     }
 }

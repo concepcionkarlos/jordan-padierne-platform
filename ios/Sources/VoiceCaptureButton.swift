@@ -50,7 +50,7 @@ struct VoiceCaptureButton: View {
                 }
             }
         }
-        .animation(.spring(response: 0.3, dampingFraction: 0.8), value: phase)
+        .animation(Anim.standard, value: phase)
         .task {
             speech.configure(localeID: language.localeID)
             _ = await speech.requestPermissions()
@@ -176,7 +176,7 @@ struct VoiceCaptureButton: View {
                 }
             }
             .padding(20)
-            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 22))
+            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: Radius.card, style: .continuous))
             .padding()
         }
     }

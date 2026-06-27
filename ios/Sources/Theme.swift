@@ -13,17 +13,7 @@ enum Brand {
     static let cardBg    = Color(uiColor: .secondarySystemGroupedBackground)
 }
 
-extension View {
-    /// Premium card surface — soft white, continuous rounded corners, subtle shadow.
-    func brandCard(padding: CGFloat = 16, radius: CGFloat = 18) -> some View {
-        self
-            .padding(padding)
-            .background(Brand.cardBg, in: RoundedRectangle(cornerRadius: radius, style: .continuous))
-            .shadow(color: Color.black.opacity(0.06), radius: 10, x: 0, y: 4)
-    }
-}
-
-// A tinted icon chip used in cards and empty states.
+// A tinted icon chip used in cards (e.g. the appointment glyph).
 struct IconTile: View {
     let symbol: String
     let tint: Color
@@ -34,6 +24,6 @@ struct IconTile: View {
             .font(.system(size: size * 0.45, weight: .semibold))
             .foregroundStyle(tint)
             .frame(width: size, height: size)
-            .background(tint.opacity(0.14), in: RoundedRectangle(cornerRadius: size * 0.28, style: .continuous))
+            .background(tint.opacity(0.14), in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
     }
 }

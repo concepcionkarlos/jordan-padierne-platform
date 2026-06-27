@@ -43,7 +43,7 @@ struct LeadsListView: View {
         NavigationStack {
             Group {
                 if vm.isLoading && vm.leads.isEmpty {
-                    ZStack { Brand.groupedBg.ignoresSafeArea(); ProgressView() }
+                    LeadsSkeleton()
                 } else if vm.failed && vm.leads.isEmpty {
                     errorState
                 } else if vm.leads.isEmpty {
@@ -67,7 +67,7 @@ struct LeadsListView: View {
             }
             .listRowSeparator(.hidden)
             .listRowBackground(Color.clear)
-            .listRowInsets(EdgeInsets(top: 5, leading: 16, bottom: 5, trailing: 16))
+            .listRowInsets(EdgeInsets(top: Space.xs, leading: Layout.screenMargin, bottom: Space.xs, trailing: Layout.screenMargin))
             .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                 if let url = PhoneLinks.tel(lead.phone) {
                     Link(destination: url) { Label("Call", systemImage: "phone.fill") }.tint(.green)
@@ -82,21 +82,20 @@ struct LeadsListView: View {
         .background(Brand.groupedBg)
     }
 
-    // Professional, intentional empty state.
     private var emptyState: some View {
         ZStack {
             Brand.groupedBg.ignoresSafeArea()
-            EmptyState(icon: "person.2.fill",
+            EmptyState(icon: "person.2",
                        title: "No clients yet",
                        message: "New leads from your website and CRM will appear here.",
-                       hint: "Add or import clients from the web CRM.")
+                       hint: "Add or import clients from the web.")
         }
     }
 
     private var errorState: some View {
         ZStack {
             Brand.groupedBg.ignoresSafeArea()
-            VStack(spacing: 12) {
+            VStack(spacing: Space.md) {
                 Image(systemName: "wifi.exclamationmark").font(.system(size: 34)).foregroundStyle(.secondary)
                 Text("Couldn't load clients").font(.headline).foregroundStyle(Brand.navy)
                 Text("Pull to refresh, or try again.").font(.subheadline).foregroundStyle(.secondary)
@@ -111,7 +110,7 @@ struct LeadRow: View {
     let lead: Lead
 
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: Space.md) {
             ZStack {
                 Circle().fill(Brand.primary.opacity(0.12))
                 Text(initials).font(.subheadline.weight(.bold)).foregroundStyle(Brand.primary)
@@ -119,23 +118,22 @@ struct LeadRow: View {
             .frame(width: 44, height: 44)
 
             VStack(alignment: .leading, spacing: 3) {
-                HStack(spacing: 6) {
+                HStack(spacing: Space.xs) {
                     Text(lead.fullName).font(.body.weight(.semibold)).foregroundStyle(Brand.navy).lineLimit(1)
-                    if lead.hotScore == 3 { Text("🔥") }
+                    if lead.hotScore == 3 { Text("🔥").font(.caption) }
                 }
-                Text(subtitle).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                Text(subtitle).font(.footnote).foregroundStyle(.secondary).lineLimit(1)
             }
 
-            Spacer(minLength: 8)
-            VStack(alignment: .trailing, spacing: 5) {
+            Spacer(minLength: Space.sm)
+            VStack(alignment: .trailing, spacing: Space.xs) {
                 if let score = lead.score { ScorePill(score: score) }
                 StageBadge(stage: lead.pipelineStage)
             }
         }
-        .padding(.vertical, 8)
-        .padding(.horizontal, 14)
-        .background(Brand.cardBg, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .shadow(color: Color.black.opacity(0.05), radius: 6, y: 2)
+        .padding(.vertical, Space.sm)
+        .padding(.horizontal, Space.md)
+        .background(Brand.cardBg, in: RoundedRectangle(cornerRadius: Radius.card, style: .continuous))
     }
 
     private var initials: String {
@@ -148,28 +146,29 @@ struct LeadRow: View {
     }
 }
 
-struct StageBadge: View {
-    let stage: String
-
+// Elegant placeholder while clients load.
+struct LeadsSkeleton: View {
     var body: some View {
-        Text(LeadStage(rawValue: stage)?.label ?? stage)
-            .font(.caption2.weight(.semibold))
-            .padding(.horizontal, 9)
-            .padding(.vertical, 4)
-            .background(color.opacity(0.16), in: Capsule())
-            .foregroundStyle(color)
-    }
-
-    private var color: Color {
-        switch stage {
-        case "NEW": return Brand.sky
-        case "QUALIFIED": return .indigo
-        case "CONTACTED": return .purple
-        case "SHOWING_SCHEDULED": return .orange
-        case "NEGOTIATION": return Brand.wine
-        case "CLOSED": return .green
-        case "LOST": return .gray
-        default: return .gray
+        ScrollView {
+            VStack(spacing: Space.sm) {
+                ForEach(0..<8, id: \.self) { _ in
+                    HStack(spacing: Space.md) {
+                        Circle().fill(Color.primary.opacity(0.08)).frame(width: 44, height: 44)
+                        VStack(alignment: .leading, spacing: Space.sm) {
+                            SkeletonBlock(height: 13, width: 160)
+                            SkeletonBlock(height: 10, width: 90)
+                        }
+                        Spacer()
+                    }
+                    .padding(.vertical, Space.sm)
+                    .padding(.horizontal, Space.md)
+                    .background(Brand.cardBg, in: RoundedRectangle(cornerRadius: Radius.card, style: .continuous))
+                }
+            }
+            .padding(.horizontal, Layout.screenMargin)
+            .padding(.top, Space.sm)
         }
+        .background(Brand.groupedBg)
+        .disabled(true)
     }
 }

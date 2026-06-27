@@ -2,7 +2,7 @@ import SwiftUI
 
 @MainActor
 final class LeadDetailViewModel: ObservableObject {
-    @Published var lead: Lead              // upgraded to the full record once detail loads
+    @Published var lead: Lead
     @Published var score: Int?
     @Published var scorePercentile: Int?
     @Published var temperature: Int?
@@ -25,7 +25,6 @@ final class LeadDetailViewModel: ObservableObject {
         self.nextFollowup = lead.nextFollowup
     }
 
-    // One call returns the full lead + Smart Score + percentile + freshness + Coach + timeline.
     func load() async {
         loading = true
         defer { loading = false }
@@ -39,11 +38,11 @@ final class LeadDetailViewModel: ObservableObject {
             coach = d.coach
             stage = d.lead.pipelineStage
             nextFollowup = d.lead.nextFollowup
-            withAnimation(Motion.spring) {
+            withAnimation(Anim.standard) {
                 timeline = TimelineBuilder.merge(notes: d.notes, appointments: d.appointments)
             }
         } catch {
-            // Keep the initial header from the passed-in lead; the Coach card just won't show.
+            // Keep the initial header; the Coach card simply won't appear.
         }
     }
 
@@ -59,11 +58,11 @@ final class LeadDetailViewModel: ObservableObject {
         var ok = false
         do {
             try await api.updateStage(leadId: lead.id, stage: newStage)
-            withAnimation(Motion.spring) { stage = newStage }
+            withAnimation(Anim.standard) { stage = newStage }
             ok = true
         } catch {}
         working = false
-        await load()   // refresh the Coach move + score now that the stage changed
+        await load()
         return ok
     }
 
@@ -84,8 +83,8 @@ final class LeadDetailViewModel: ObservableObject {
 }
 
 // "I opened this client — what's the next right move?"
-// Header (who + how engaged) → Smart Score (how close to buying) → Coach (what to do)
-// → Quick Actions → Pipeline → Activity. Everything is a shared component.
+// Inline nav title (name shows on scroll) + a Contacts-style content header,
+// then Smart Score, the Coach move, quick actions, and demoted progress + activity.
 struct LeadDetailView: View {
     let api: APIClient
     @StateObject private var vm: LeadDetailViewModel
@@ -98,36 +97,32 @@ struct LeadDetailView: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 14) {
-                headerCard.cardEntrance(0)
+            VStack(spacing: Layout.cardSpacing) {
+                headerCard
                 if let score = vm.score {
-                    SmartScoreCard(score: score, percentile: vm.scorePercentile).cardEntrance(1)
+                    SmartScoreCard(score: score, percentile: vm.scorePercentile)
                 }
-                if let c = vm.coach {
-                    CoachCard(urgency: c.urgency, emoji: c.emoji, title: c.title, reason: c.reason) {
-                        primaryButton(c)
-                    }
-                    .cardEntrance(2)
-                }
-                quickActions.cardEntrance(3)
-                pipelineCard.cardEntrance(4)
-                timelineCard.cardEntrance(5)
+                coachSection
+                quickActions
+                pipelineCard
+                timelineCard
             }
-            .padding(16)
-            .padding(.bottom, 110)   // room above the floating mic
+            .padding(.horizontal, Layout.screenMargin)
+            .padding(.top, Space.sm)
+            .padding(.bottom, Layout.bottomInset)
         }
         .background(Brand.groupedBg)
         .navigationTitle(vm.lead.fullName)
         .navigationBarTitleDisplayMode(.inline)
         .task { await vm.load() }
         .refreshable { await vm.load() }
-        .overlay(alignment: .top) {
-            if let toast { ConfirmationToast(text: toast).padding(.top, 6) }
+        .overlay(alignment: .bottom) {
+            if let toast { ConfirmationToast(text: toast).padding(.bottom, Layout.bottomInset + Space.lg) }
         }
         .overlay {
             VoiceCaptureButton(api: api, lead: vm.lead) { note in
-                withAnimation(Motion.spring) { vm.insertNote(note) }
-                showToast("Voice note saved")
+                withAnimation(Anim.standard) { vm.insertNote(note) }
+                showToast("Captured — before it slipped away")
             }
         }
     }
@@ -136,23 +131,33 @@ struct LeadDetailView: View {
 
     private var headerCard: some View {
         PremiumCard {
-            VStack(alignment: .leading, spacing: 10) {
-                Text(vm.lead.fullName).font(.largeTitle.weight(.bold)).foregroundStyle(Brand.navy)
+            VStack(alignment: .leading, spacing: Space.sm) {
+                Text(vm.lead.fullName).font(.title.weight(.bold)).foregroundStyle(Brand.navy)
                     .fixedSize(horizontal: false, vertical: true)
                 let meta = [vm.lead.clientType, vm.lead.preferredArea].compactMap { $0 }.joined(separator: " · ")
                 if !meta.isEmpty {
                     Text(meta).font(.subheadline).foregroundStyle(.secondary)
                 }
-                HStack(spacing: 10) {
+                HStack(spacing: Space.sm) {
                     StatusPill(text: activity.label, color: activity.color)
-                    Text(lastInteraction).font(.caption).foregroundStyle(.secondary)
+                    Text(lastInteraction).font(.footnote).foregroundStyle(.secondary)
                     Spacer(minLength: 0)
                 }
             }
         }
     }
 
-    // MARK: - Coach primary (the recommended move → a concrete app action).
+    // MARK: - Coach (network-gated → skeleton while it loads).
+
+    @ViewBuilder private var coachSection: some View {
+        if let c = vm.coach {
+            CoachCard(urgency: c.urgency, emoji: c.emoji, title: c.title, reason: c.reason) {
+                primaryButton(c)
+            }
+        } else if vm.loading {
+            SkeletonCard(lines: 2)
+        }
+    }
 
     @ViewBuilder
     private func primaryButton(_ c: LeadCoach) -> some View {
@@ -160,7 +165,7 @@ struct LeadDetailView: View {
             ActionButton(title: c.actionLabel, icon: "arrow.right.circle.fill", style: .primary) {
                 Task {
                     if await vm.setStage(c.stage ?? "QUALIFIED") {
-                        Haptics.success(); showToast("Stage updated")
+                        Haptics.success(); showToast("That deal just moved forward")
                     }
                 }
             }
@@ -169,48 +174,45 @@ struct LeadDetailView: View {
         }
     }
 
-    // MARK: - Quick Actions — the standard toolkit, minus whatever the Coach already promotes.
+    // MARK: - Quick actions (the toolkit, minus whatever the Coach already promotes).
 
     private var quickActions: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            SectionHeader(title: "Quick Actions")
-            HStack(spacing: 10) {
-                if !primaryIsCall {
-                    ActionButton(title: "Call", icon: "phone.fill", style: .secondary, url: PhoneLinks.tel(vm.lead.phone))
-                }
-                if !primaryIsWhatsApp {
-                    ActionButton(title: "WhatsApp", icon: "message.fill", style: .secondary, tint: .green,
-                                 url: PhoneLinks.whatsapp(vm.lead.phone, message: "Hi \(firstName)! 👋 Jordan here."))
-                }
-                Menu {
-                    Button("Tomorrow") { setFollowup(1) }
-                    Button("In 3 days") { setFollowup(3) }
-                    Button("In 1 week") { setFollowup(7) }
-                } label: {
-                    ActionTile(title: "Follow-up", icon: "bell.fill", enabled: !vm.working)
-                }
-                .disabled(vm.working)
+        HStack(spacing: Space.sm) {
+            if !primaryIsCall {
+                ActionButton(title: "Call", icon: "phone.fill", style: .secondary, url: PhoneLinks.tel(vm.lead.phone))
             }
+            if !primaryIsWhatsApp {
+                ActionButton(title: "WhatsApp", icon: "message.fill", style: .secondary, tint: .green,
+                             url: PhoneLinks.whatsapp(vm.lead.phone, message: "Hi \(firstName)! 👋 Jordan here."))
+            }
+            Menu {
+                Button("Tomorrow") { setFollowup(1) }
+                Button("In 3 days") { setFollowup(3) }
+                Button("In 1 week") { setFollowup(7) }
+            } label: {
+                ActionTile(title: "Follow-up", icon: "bell.fill", enabled: !vm.working)
+            }
+            .disabled(vm.working)
         }
     }
 
-    // MARK: - Pipeline (demoted) — stage control + follow-up status.
+    // MARK: - Progress (demoted) — stage + follow-up.
 
     private var pipelineCard: some View {
         PremiumCard {
-            VStack(alignment: .leading, spacing: 14) {
+            VStack(spacing: Space.md) {
                 HStack {
-                    SectionHeader(title: "Pipeline")
+                    StageBadge(stage: vm.stage)
                     Spacer()
                     stageMenu
                 }
-                HStack(spacing: 10) {
-                    StageBadge(stage: vm.stage)
-                    Spacer()
-                    Label(followupText, systemImage: "bell.fill").font(.caption).foregroundStyle(.secondary)
+                HStack(spacing: Space.xs) {
+                    Image(systemName: "bell").font(.footnote).foregroundStyle(.secondary)
+                    Text(followupText).font(.footnote).foregroundStyle(.secondary)
+                    Spacer(minLength: 0)
                 }
-                .animation(Motion.spring, value: vm.stage)
             }
+            .animation(Anim.standard, value: vm.stage)
         }
     }
 
@@ -232,25 +234,26 @@ struct LeadDetailView: View {
                 }
             }
         } label: {
-            HStack(spacing: 4) {
-                Text("Change").font(.caption.weight(.semibold))
+            HStack(spacing: Space.xs) {
+                Text("Change").font(.footnote.weight(.semibold))
                 Image(systemName: "chevron.up.chevron.down").font(.system(size: 10))
             }
             .foregroundStyle(Brand.primary)
+            .hitTarget()
         }
         .disabled(vm.working)
     }
 
-    // MARK: - Activity (demoted) — what happened last; new notes animate in.
+    // MARK: - Activity (demoted) — new notes animate in.
 
     private var timelineCard: some View {
         PremiumCard {
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: Space.md) {
                 SectionHeader(title: "Activity")
                 if vm.loading && vm.timeline.isEmpty {
-                    HStack { Spacer(); ProgressView(); Spacer() }.padding(.vertical, 8)
+                    SkeletonBlock(height: 12).padding(.vertical, Space.xs)
                 } else if vm.timeline.isEmpty {
-                    Text("No activity yet. Hold the mic to add a voice note.")
+                    Text("Nothing captured yet — hold the mic and I'll remember it for you.")
                         .font(.subheadline).foregroundStyle(.secondary)
                 } else {
                     VStack(spacing: 0) {
@@ -268,22 +271,22 @@ struct LeadDetailView: View {
     }
 
     private func timelineRow(_ item: TimelineItem) -> some View {
-        HStack(alignment: .top, spacing: 12) {
+        HStack(alignment: .top, spacing: Space.md) {
             Image(systemName: item.icon).foregroundStyle(Brand.primary).frame(width: 22)
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: Space.xxs) {
                 Text(item.title).font(.subheadline).foregroundStyle(Brand.navy)
-                HStack(spacing: 4) {
+                HStack(spacing: Space.xs) {
                     if let sub = item.subtitle { Text(sub) }
                     if let date = item.date { Text("· \(date.formatted(.relative(presentation: .named)))") }
                 }
-                .font(.caption).foregroundStyle(.secondary)
+                .font(.footnote).foregroundStyle(.secondary)
             }
             Spacer(minLength: 0)
         }
-        .padding(.vertical, 10)
+        .padding(.vertical, Space.sm)
     }
 
-    // MARK: - Derived copy (answers a question, not raw data)
+    // MARK: - Derived copy (a question answered, not raw data)
 
     private var activity: (label: String, color: Color) {
         if vm.lead.lastContact == nil { return ("New — not contacted yet", Brand.primary) }
@@ -307,14 +310,12 @@ struct LeadDetailView: View {
     }
 
     private var followupText: String {
-        vm.nextFollowup != nil ? "Follow-up \(AppDate.shortDateTime(vm.nextFollowup))" : "No follow-up"
+        vm.nextFollowup != nil ? "Follow-up \(AppDate.shortDateTime(vm.nextFollowup))" : "No follow-up set"
     }
 
     // MARK: - Coach action mapping
 
-    private func isStageAction(_ c: LeadCoach) -> Bool {
-        c.actionType == "advance" || c.actionType == "qualify"
-    }
+    private func isStageAction(_ c: LeadCoach) -> Bool { c.actionType == "advance" || c.actionType == "qualify" }
     private var primaryIsCall: Bool {
         guard let t = vm.coach?.actionType else { return false }
         return t == "call" || t == "schedule"
@@ -346,15 +347,15 @@ struct LeadDetailView: View {
 
     private func setFollowup(_ days: Int) {
         Task {
-            if await vm.setFollowup(daysFromNow: days) { Haptics.success(); showToast("Follow-up set") }
+            if await vm.setFollowup(daysFromNow: days) { Haptics.success(); showToast("Done — I'll keep this on your radar") }
         }
     }
 
     private func showToast(_ text: String) {
-        withAnimation(Motion.spring) { toast = text }
+        withAnimation(Anim.standard) { toast = text }
         Task {
-            try? await Task.sleep(nanoseconds: 1_500_000_000)
-            withAnimation(Motion.gentle) { toast = nil }
+            try? await Task.sleep(nanoseconds: 1_600_000_000)
+            withAnimation(Anim.standard) { toast = nil }
         }
     }
 }
