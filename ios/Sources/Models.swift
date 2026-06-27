@@ -185,3 +185,31 @@ struct NoteResponse: Decodable {
     let success: Bool
     let data: Note?
 }
+
+// ─── Lead detail (header + Coach + timeline in one call) ─────────────────────
+// Mirrors GET /api/leads/:id — the lead, its Smart Score + temperature, the
+// Coach's next-best-action, and the full timeline.
+struct LeadDetailResponse: Decodable {
+    let success: Bool
+    let data: LeadDetailData?
+}
+
+struct LeadDetailData: Decodable {
+    let lead: Lead
+    let score: Int?
+    let temperature: Int?
+    let coach: LeadCoach
+    let notes: [Note]
+    let appointments: [Appointment]
+}
+
+// The single recommended next move for this lead (server-computed via getNextAction).
+struct LeadCoach: Decodable {
+    let title: String        // what to do
+    let reason: String       // why it matters
+    let urgency: String      // now / today / soon / nurture
+    let emoji: String
+    let actionType: String   // call / whatsapp / template / schedule / advance / qualify
+    let actionLabel: String
+    let stage: String?       // target stage when actionType is 'advance'
+}

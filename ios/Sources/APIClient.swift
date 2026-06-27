@@ -56,6 +56,14 @@ struct APIClient {
         return try decode(data, response, as: LeadsResponse.self).data ?? []
     }
 
+    // MARK: - Lead detail (header + Coach + timeline, one round-trip)
+    func leadDetail(id: String) async throws -> LeadDetailData {
+        let (data, response) = try await send("api/leads/\(id)")
+        let result = try decode(data, response, as: LeadDetailResponse.self)
+        guard result.success, let payload = result.data else { throw APIError.badResponse }
+        return payload
+    }
+
     // MARK: - Timeline
     func notes(leadId: String) async throws -> [Note] {
         let (data, response) = try await send("api/notes", query: [URLQueryItem(name: "lead_id", value: leadId)])
