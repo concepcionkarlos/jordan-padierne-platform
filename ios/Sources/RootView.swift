@@ -6,14 +6,17 @@ struct RootView: View {
     @EnvironmentObject private var session: AppSession
 
     var body: some View {
-        switch session.state {
-        case .loading:
-            ProgressView()
-                .task { await session.bootstrap() }
-        case .signedOut:
-            LoginView()
-        case .signedIn:
-            LockedGate { MainTabView(api: api) }
+        Group {
+            switch session.state {
+            case .loading:
+                ProgressView()
+                    .task { await session.bootstrap() }
+            case .signedOut:
+                LoginView()
+            case .signedIn:
+                LockedGate { MainTabView(api: api) }
+            }
         }
+        .tint(Brand.primary)
     }
 }

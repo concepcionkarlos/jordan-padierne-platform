@@ -43,17 +43,17 @@ struct LeadsListView: View {
         NavigationStack {
             Group {
                 if vm.isLoading && vm.leads.isEmpty {
-                    ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
+                    ZStack { Brand.groupedBg.ignoresSafeArea(); ProgressView() }
                 } else if vm.failed && vm.leads.isEmpty {
-                    ContentUnavailableView("Couldn’t load leads", systemImage: "wifi.exclamationmark", description: Text("Pull to refresh."))
+                    errorState
                 } else if vm.leads.isEmpty {
-                    ContentUnavailableView("No leads yet", systemImage: "person.2", description: Text("Add or import clients from your CRM."))
+                    emptyState
                 } else {
                     list
                 }
             }
             .navigationTitle("Leads")
-            .searchable(text: $vm.search, prompt: "Search leads")
+            .searchable(text: $vm.search, prompt: "Search clients")
             .onChange(of: vm.search) { _, _ in vm.searchChanged() }
             .refreshable { await vm.load() }
             .task { if vm.leads.isEmpty { await vm.load() } }
@@ -65,6 +65,9 @@ struct LeadsListView: View {
             NavigationLink(destination: LeadDetailView(api: api, lead: lead)) {
                 LeadRow(lead: lead)
             }
+            .listRowSeparator(.hidden)
+            .listRowBackground(Color.clear)
+            .listRowInsets(EdgeInsets(top: 5, leading: 16, bottom: 5, trailing: 16))
             .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                 if let url = PhoneLinks.tel(lead.phone) {
                     Link(destination: url) { Label("Call", systemImage: "phone.fill") }.tint(.green)
@@ -75,6 +78,50 @@ struct LeadsListView: View {
             }
         }
         .listStyle(.plain)
+        .scrollContentBackground(.hidden)
+        .background(Brand.groupedBg)
+    }
+
+    // Professional, intentional empty state.
+    private var emptyState: some View {
+        ZStack {
+            Brand.groupedBg.ignoresSafeArea()
+            VStack(spacing: 18) {
+                ZStack {
+                    Circle().fill(Brand.primary.opacity(0.10))
+                    Image(systemName: "person.2.fill").font(.system(size: 30, weight: .medium)).foregroundStyle(Brand.primary)
+                }
+                .frame(width: 84, height: 84)
+
+                VStack(spacing: 6) {
+                    Text("No clients yet").font(.title3.weight(.bold)).foregroundStyle(Brand.navy)
+                    Text("New leads from your website and CRM will appear here.")
+                        .font(.subheadline).foregroundStyle(.secondary).multilineTextAlignment(.center)
+                }
+
+                HStack(spacing: 8) {
+                    Image(systemName: "arrow.up.forward.app.fill").font(.footnote)
+                    Text("Add or import clients from the web CRM.").font(.footnote.weight(.semibold))
+                }
+                .foregroundStyle(Brand.primary)
+                .padding(.horizontal, 16).padding(.vertical, 11)
+                .background(Brand.primary.opacity(0.10), in: Capsule())
+            }
+            .padding(40)
+        }
+    }
+
+    private var errorState: some View {
+        ZStack {
+            Brand.groupedBg.ignoresSafeArea()
+            VStack(spacing: 12) {
+                Image(systemName: "wifi.exclamationmark").font(.system(size: 34)).foregroundStyle(.secondary)
+                Text("Couldn't load clients").font(.headline).foregroundStyle(Brand.navy)
+                Text("Pull to refresh, or try again.").font(.subheadline).foregroundStyle(.secondary)
+                Button("Try Again") { Task { await vm.load() } }
+                    .buttonStyle(.borderedProminent).tint(Brand.primary)
+            }
+        }
     }
 }
 
@@ -84,23 +131,26 @@ struct LeadRow: View {
     var body: some View {
         HStack(spacing: 12) {
             ZStack {
-                Circle().fill(.quaternary)
-                Text(initials).font(.subheadline.weight(.semibold)).foregroundStyle(.secondary)
+                Circle().fill(Brand.primary.opacity(0.12))
+                Text(initials).font(.subheadline.weight(.bold)).foregroundStyle(Brand.primary)
             }
-            .frame(width: 42, height: 42)
+            .frame(width: 44, height: 44)
 
             VStack(alignment: .leading, spacing: 3) {
                 HStack(spacing: 6) {
-                    Text(lead.fullName).font(.body.weight(.semibold)).lineLimit(1)
+                    Text(lead.fullName).font(.body.weight(.semibold)).foregroundStyle(Brand.navy).lineLimit(1)
                     if lead.hotScore == 3 { Text("🔥") }
                 }
                 Text(subtitle).font(.caption).foregroundStyle(.secondary).lineLimit(1)
             }
 
-            Spacer()
+            Spacer(minLength: 8)
             StageBadge(stage: lead.pipelineStage)
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 8)
+        .padding(.horizontal, 14)
+        .background(Brand.cardBg, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .shadow(color: Color.black.opacity(0.05), radius: 6, y: 2)
     }
 
     private var initials: String {
@@ -119,7 +169,7 @@ struct StageBadge: View {
     var body: some View {
         Text(LeadStage(rawValue: stage)?.label ?? stage)
             .font(.caption2.weight(.semibold))
-            .padding(.horizontal, 8)
+            .padding(.horizontal, 9)
             .padding(.vertical, 4)
             .background(color.opacity(0.16), in: Capsule())
             .foregroundStyle(color)
@@ -127,13 +177,13 @@ struct StageBadge: View {
 
     private var color: Color {
         switch stage {
-        case "NEW": return .blue
+        case "NEW": return Brand.sky
         case "QUALIFIED": return .indigo
         case "CONTACTED": return .purple
         case "SHOWING_SCHEDULED": return .orange
-        case "NEGOTIATION": return .yellow
+        case "NEGOTIATION": return Brand.wine
         case "CLOSED": return .green
-        case "LOST": return .red
+        case "LOST": return .gray
         default: return .gray
         }
     }

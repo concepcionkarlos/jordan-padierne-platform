@@ -82,12 +82,19 @@ struct VoiceCaptureButton: View {
 
     private var fab: some View {
         Image(systemName: phase == .recording ? "waveform" : "mic.fill")
-            .font(.system(size: 26, weight: .semibold))
+            .font(.system(size: 25, weight: .semibold))
             .foregroundStyle(.white)
-            .frame(width: 66, height: 66)
-            .background(phase == .recording ? Color.red : Color.accentColor, in: Circle())
-            .shadow(color: .black.opacity(0.25), radius: 8, y: 4)
-            .scaleEffect(phase == .recording ? 1.18 : 1)
+            .frame(width: 64, height: 64)
+            .background(
+                LinearGradient(
+                    colors: phase == .recording ? [Color.red, Color.red.opacity(0.82)] : [Brand.primary, Brand.navy],
+                    startPoint: .topLeading, endPoint: .bottomTrailing
+                ),
+                in: Circle()
+            )
+            .overlay(Circle().strokeBorder(Color.white.opacity(0.22), lineWidth: 1))
+            .shadow(color: Brand.navy.opacity(0.35), radius: 12, y: 6)
+            .scaleEffect(phase == .recording ? 1.16 : 1)
             .opacity(phase == .review ? 0 : 1)
             .gesture(
                 DragGesture(minimumDistance: 0)
