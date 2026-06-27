@@ -240,6 +240,7 @@ struct VoiceCaptureButton: View {
             phase = .recording
             startedAt = Date()
             Haptics.impact(.medium)
+            VoiceActivityController.start(clientName: lead?.fullName ?? "Voice note")
             autoStopTask?.cancel()
             autoStopTask = Task { @MainActor in
                 try? await Task.sleep(nanoseconds: maxRecordingNanos)
@@ -258,6 +259,7 @@ struct VoiceCaptureButton: View {
         guard phase == .recording else { return }
         autoStopTask?.cancel()
         speech.stop()
+        VoiceActivityController.end()
         Haptics.impact(.light)
         transcript = speech.transcript
         let tooShort = Date().timeIntervalSince(startedAt) < 0.4
@@ -273,6 +275,7 @@ struct VoiceCaptureButton: View {
     private func handleInterruption() {
         guard phase == .recording else { return }
         autoStopTask?.cancel()
+        VoiceActivityController.end()
         Haptics.impact(.light)
         transcript = speech.transcript
         if transcript.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -307,6 +310,7 @@ struct VoiceCaptureButton: View {
 
     private func reset() {
         autoStopTask?.cancel()
+        VoiceActivityController.end()
         phase = .idle
         transcript = ""
         pickedLead = nil

@@ -21,10 +21,13 @@ targets:
     platform: iOS
     sources:
       - Sources
+      - Shared
       - Assets.xcassets
     dependencies:
       - package: Supabase
         product: Supabase
+      - target: VoiceWidgetExtension
+        embed: true
     # NOTE: the APNs push entitlement (aps-environment) + remote-notification
     # background mode are re-added in Push Increment ③, once the App ID has Push
     # enabled and the .p8 key exists — keeping them out now lets the core app sign
@@ -45,7 +48,25 @@ targets:
         INFOPLIST_KEY_NSMicrophoneUsageDescription: "Record quick voice notes for your clients."
         INFOPLIST_KEY_NSSpeechRecognitionUsageDescription: "Transcribe your voice notes on-device."
         INFOPLIST_KEY_UIUserInterfaceStyle: Light          # the UI is designed for light; lock it
+        INFOPLIST_KEY_NSSupportsLiveActivities: "YES"
         # DEVELOPMENT_TEAM + signing are set on your Mac when you archive for TestFlight.
+
+  # Live Activity / Dynamic Island for active voice-note capture.
+  VoiceWidgetExtension:
+    type: app-extension
+    platform: iOS
+    sources:
+      - Widget
+      - Shared
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.jordanpadierne.crm.VoiceWidget
+        TARGETED_DEVICE_FAMILY: "1"
+        CODE_SIGN_STYLE: Automatic
+        GENERATE_INFOPLIST_FILE: "NO"
+        INFOPLIST_FILE: Widget/Info.plist
+        SKIP_INSTALL: "YES"
+
 schemes:
   JordanCRM:
     build:
