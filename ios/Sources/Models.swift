@@ -139,13 +139,34 @@ struct AppointmentsResponse: Decodable {
     let data: [Appointment]?
 }
 
+struct AppointmentResponse: Decodable {
+    let success: Bool
+    let data: Appointment?
+}
+
+struct LeadRef: Decodable {
+    let fullName: String?
+    let phone: String?
+    enum CodingKeys: String, CodingKey { case fullName = "full_name", phone }
+}
+
 struct Appointment: Decodable, Identifiable {
     let id: String
+    let leadId: String?
     let title: String
     let type: String?
     let startsAt: String
+    let endsAt: String?
+    let location: String?
     let status: String?
-    enum CodingKeys: String, CodingKey { case id, title, type, startsAt = "starts_at", status }
+    let lead: LeadRef?
+    enum CodingKeys: String, CodingKey {
+        case id, title, type, status, location
+        case leadId = "lead_id"
+        case startsAt = "starts_at"
+        case endsAt = "ends_at"
+        case lead = "leads"
+    }
 }
 
 struct TimelineItem: Identifiable {

@@ -5,7 +5,6 @@ final class LeadDetailViewModel: ObservableObject {
     @Published var lead: Lead
     @Published var score: Int?
     @Published var scorePercentile: Int?
-    @Published var temperature: Int?
     @Published var freshness: Freshness?
     @Published var coach: LeadCoach?
     @Published var stage: String
@@ -20,7 +19,6 @@ final class LeadDetailViewModel: ObservableObject {
         self.api = api
         self.lead = lead
         self.score = lead.score
-        self.temperature = lead.hotScore
         self.stage = lead.pipelineStage
         self.nextFollowup = lead.nextFollowup
     }
@@ -33,7 +31,6 @@ final class LeadDetailViewModel: ObservableObject {
             lead = d.lead
             score = d.score
             scorePercentile = d.scorePercentile
-            temperature = d.temperature
             freshness = d.freshness
             coach = d.coach
             stage = d.lead.pipelineStage
@@ -89,6 +86,7 @@ struct LeadDetailView: View {
     let api: APIClient
     @StateObject private var vm: LeadDetailViewModel
     @State private var toast: String?
+    @State private var scheduling = false
 
     init(api: APIClient, lead: Lead) {
         self.api = api
@@ -124,6 +122,12 @@ struct LeadDetailView: View {
                 showToast("Captured — before it slipped away")
             }
         }
+        .sheet(isPresented: $scheduling) {
+            AppointmentSheet(api: api, lead: vm.lead) {
+                Task { await vm.load() }
+                showToast("Appointment scheduled")
+            }
+        }
     }
 
     // MARK: - Header (Contacts-style: monogram, name, status, circular actions)
@@ -154,8 +158,20 @@ struct LeadDetailView: View {
                           url: PhoneLinks.tel(vm.lead.phone))
             ContactAction(title: "WhatsApp", icon: "message.fill", tint: .green,
                           url: PhoneLinks.whatsapp(vm.lead.phone, message: "Hi \(firstName)! 👋 Jordan here."))
-            if let dir = MapsLinks.directions(query: vm.lead.preferredArea) {
-                ContactAction(title: "Directions", icon: "map.fill", tint: Brand.sky, url: dir)
+            if let mail = MailLinks.mailto(vm.lead.email) {
+                ContactAction(title: "Email", icon: "envelope.fill", tint: Brand.navy600, url: mail)
+            }
+            if vm.lead.preferredArea?.isEmpty == false {
+                Menu {
+                    if let a = MapsLinks.directions(query: vm.lead.preferredArea) {
+                        Link(destination: a) { Label("Apple Maps", systemImage: "map") }
+                    }
+                    if let g = MapsLinks.googleMaps(query: vm.lead.preferredArea) {
+                        Link(destination: g) { Label("Google Maps", systemImage: "mappin.and.ellipse") }
+                    }
+                } label: {
+                    ContactActionLabel(title: "Directions", icon: "map.fill", tint: Brand.sky)
+                }
             }
         }
         .padding(.horizontal, Space.lg)
@@ -213,6 +229,18 @@ struct LeadDetailView: View {
                     }
                     .disabled(vm.working)
                 }
+                Divider()
+                Button { scheduling = true } label: {
+                    HStack(spacing: Space.xs) {
+                        Image(systemName: "calendar.badge.plus").font(.footnote)
+                        Text("Schedule appointment").font(.footnote.weight(.semibold))
+                        Spacer()
+                        Image(systemName: "chevron.right").font(.caption2)
+                    }
+                    .foregroundStyle(Brand.primary)
+                    .frame(minHeight: 30)
+                }
+                .buttonStyle(.plain)
             }
             .animation(Anim.standard, value: vm.stage)
         }

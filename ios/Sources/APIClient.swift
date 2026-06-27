@@ -75,6 +75,33 @@ struct APIClient {
         return try decode(data, response, as: AppointmentsResponse.self).data ?? []
     }
 
+    // MARK: - Appointments (reuse the web CRUD; the server keeps the rules)
+    func allAppointments() async throws -> [Appointment] {
+        let (data, response) = try await send("api/appointments")
+        return try decode(data, response, as: AppointmentsResponse.self).data ?? []
+    }
+
+    func createAppointment(leadId: String, title: String, type: String, startsAt: String, location: String?) async throws -> Appointment {
+        var body: [String: Any] = ["lead_id": leadId, "title": title, "type": type, "starts_at": startsAt, "status": "scheduled"]
+        if let location, !location.isEmpty { body["location"] = location }
+        let (data, response) = try await send("api/appointments", method: "POST", jsonBody: body)
+        let result = try decode(data, response, as: AppointmentResponse.self)
+        guard result.success, let appt = result.data else { throw APIError.badResponse }
+        return appt
+    }
+
+    func updateAppointment(id: String, fields: [String: Any]) async throws {
+        var body = fields
+        body["id"] = id
+        let (data, response) = try await send("api/appointments", method: "PATCH", jsonBody: body)
+        _ = try decode(data, response, as: GenericResponse.self)
+    }
+
+    func deleteAppointment(id: String) async throws {
+        let (data, response) = try await send("api/appointments", query: [URLQueryItem(name: "id", value: id)], method: "DELETE")
+        _ = try decode(data, response, as: GenericResponse.self)
+    }
+
     // MARK: - Mutations (reuse the web endpoints; server keeps the logic)
     func updateStage(leadId: String, stage: String) async throws {
         let (data, response) = try await send("api/pipeline", method: "PATCH", jsonBody: ["lead_id": leadId, "stage": stage])

@@ -13,6 +13,8 @@ struct MainTabView: View {
                 .tabItem { Label("Today", systemImage: "house.fill") }
             LeadsListView(api: api)
                 .tabItem { Label("Leads", systemImage: "person.2.fill") }
+            AppointmentsView(api: api)
+                .tabItem { Label("Agenda", systemImage: "calendar") }
         }
         .onChange(of: scenePhase) { _, newPhase in
             if newPhase == .active { Task { await sync.flush() } }

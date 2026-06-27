@@ -11,7 +11,7 @@ struct LoginView: View {
     }
 
     var body: some View {
-        VStack(spacing: 18) {
+        VStack(spacing: Space.lg) {
             Spacer()
 
             Image(systemName: "house.fill")
@@ -19,25 +19,26 @@ struct LoginView: View {
                 .foregroundStyle(.tint)
             Text("Jordan CRM")
                 .font(.largeTitle.bold())
+                .foregroundStyle(Brand.navy)
             Text("Sign in to your CRM")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
 
-            VStack(spacing: 12) {
+            VStack(spacing: Space.md) {
                 TextField("Email", text: $email)
                     .textContentType(.username)
                     .keyboardType(.emailAddress)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
                     .padding()
-                    .background(.quaternary, in: RoundedRectangle(cornerRadius: 12))
+                    .background(.quaternary, in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
 
                 SecureField("Password", text: $password)
                     .textContentType(.password)
                     .padding()
-                    .background(.quaternary, in: RoundedRectangle(cornerRadius: 12))
+                    .background(.quaternary, in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
             }
-            .padding(.top, 8)
+            .padding(.top, Space.sm)
 
             if let error = session.errorMessage {
                 Text(error)
@@ -49,21 +50,23 @@ struct LoginView: View {
             Button {
                 Task { await session.signIn(email: email, password: password) }
             } label: {
-                HStack(spacing: 8) {
+                HStack(spacing: Space.sm) {
                     if session.isWorking { ProgressView().tint(.white) }
                     Text("Sign In").bold()
                 }
                 .frame(maxWidth: .infinity)
-                .padding()
-                .background(.tint, in: RoundedRectangle(cornerRadius: 12))
+                .frame(minHeight: Hit.min)
+                .padding(.vertical, Space.xs)
+                .background(.tint, in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
                 .foregroundStyle(.white)
                 .opacity(canSubmit ? 1 : 0.5)
             }
+            .buttonStyle(PressableStyle())
             .disabled(!canSubmit)
 
             Spacer()
         }
-        .padding(24)
+        .padding(Space.xxl)
     }
 }
 

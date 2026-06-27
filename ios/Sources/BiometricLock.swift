@@ -57,7 +57,7 @@ private struct LockedView: View {
             Image(systemName: "lock.fill")
                 .font(.system(size: 40))
                 .foregroundStyle(.tint)
-            Text("Jordan CRM").font(.title2.bold())
+            Text("Jordan CRM").font(.title2.bold()).foregroundStyle(Brand.navy)
             Text("Locked").font(.subheadline).foregroundStyle(.secondary)
             Button("Unlock with Face ID", action: onUnlock)
                 .buttonStyle(.borderedProminent)

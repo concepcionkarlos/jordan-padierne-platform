@@ -44,4 +44,12 @@ targets:
         INFOPLIST_KEY_NSFaceIDUsageDescription: "Unlock the app with Face ID."
         INFOPLIST_KEY_NSMicrophoneUsageDescription: "Record quick voice notes for your clients."
         INFOPLIST_KEY_NSSpeechRecognitionUsageDescription: "Transcribe your voice notes on-device."
+        INFOPLIST_KEY_UIUserInterfaceStyle: Light          # the UI is designed for light; lock it
         # DEVELOPMENT_TEAM + signing are set on your Mac when you archive for TestFlight.
+schemes:
+  JordanCRM:
+    build:
+      targets:
+        JordanCRM: all
+    run:
+      config: Debug

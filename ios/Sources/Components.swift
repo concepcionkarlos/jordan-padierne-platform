@@ -416,6 +416,23 @@ struct Monogram: View {
 }
 
 // ─── Contacts-style action (circular button + label) ─────────────────────────
+// The visual, shared by the button form and Menu-backed actions (e.g. Maps).
+struct ContactActionLabel: View {
+    let title: String
+    let icon: String
+    var tint: Color = Brand.primary
+    var enabled: Bool = true
+    var body: some View {
+        VStack(spacing: Space.xs) {
+            Image(systemName: icon).font(.system(size: Icon.lg, weight: .semibold)).foregroundStyle(.white)
+                .frame(width: 52, height: 52)
+                .background(enabled ? AnyShapeStyle(tint) : AnyShapeStyle(Color.gray.opacity(0.3)), in: Circle())
+            Text(title).font(.caption2.weight(.medium)).foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity)
+    }
+}
+
 struct ContactAction: View {
     let title: String
     let icon: String
@@ -427,13 +444,7 @@ struct ContactAction: View {
             guard let url else { return }
             Haptics.impact(.light); openURL(url)
         } label: {
-            VStack(spacing: Space.xs) {
-                Image(systemName: icon).font(.system(size: Icon.lg, weight: .semibold)).foregroundStyle(.white)
-                    .frame(width: 52, height: 52)
-                    .background(url == nil ? AnyShapeStyle(Color.gray.opacity(0.3)) : AnyShapeStyle(tint), in: Circle())
-                Text(title).font(.caption2.weight(.medium)).foregroundStyle(.secondary)
-            }
-            .frame(maxWidth: .infinity)
+            ContactActionLabel(title: title, icon: icon, tint: tint, enabled: url != nil)
         }
         .buttonStyle(PressableStyle())
         .disabled(url == nil)
